@@ -1,0 +1,212 @@
+<script>
+(() => {
+    const API_BASE = "https://changeaipay.onrender.com";
+
+    let isBooted = false;
+
+    // -----------------------
+    // SAFE STORAGE
+    // -----------------------
+    function getToken() {
+        try {
+            return localStorage.getItem("token");
+        } catch {
+            return null;
+        }
+    }
+
+    function setToken(token) {
+        try {
+            if (token) localStorage.setItem("token", token);
+            else localStorage.removeItem("token");
+        } catch {}
+    }
+
+    // -----------------------
+    // SAFE API WRAPPER
+    // -----------------------
+    async function api(path, { method = "GET", body } = {}) {
+        const token = getToken();
+
+        const headers = {
+            "Content-Type": "application/json"
+        };
+
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
+        let res;
+        try {
+            res = await fetch(`${API_BASE}${path}`, {
+                method,
+                headers,
+                body: body ? JSON.stringify(body) : undefined
+            });
+        } catch (err) {
+            console.error("Network error:", err);
+            throw new Error("Network error. Check API server.");
+        }
+
+        let data = null;
+        try {
+            data = await res.json();
+        } catch {}
+
+        if (!res.ok) {
+            const err = new Error(data?.error || `Request failed (${res.status})`);
+            err.status = res.status;
+            throw err;
+        }
+
+        return data;
+    }
+
+    // -----------------------
+    // NAVIGATION (FIXED FOR NETLIFY)
+    // -----------------------
+    function navigate(path) {
+        if (!path) return;
+        window.location.href = path;
+    }
+
+    // FIX: absolute-safe routing (prevents broken ../ paths on Netlify)
+    function navigateToLogin() {
+        navigate("/login_screen_vibrant/index.html");
+    }
+
+    function navigateToQR() {
+        navigate("/qr_generator_vibrant/index.html");
+    }
+
+    // -----------------------
+    // FORMAT HELPERS
+    // -----------------------
+    function fmtAmount(n) {
+        const x = Number(n);
+        return Number.isFinite(x) ? x.toFixed(2) : "0.00";
+    }
+
+    function clipAddr(a) {
+        const s = String(a || "");
+        return s.length > 16 ? `${s.slice(0, 8)}...${s.slice(-4)}` : s;
+    }
+
+    // -----------------------
+    // DASHBOARD LOADER (STABLE)
+    // -----------------------
+    async function loadDashboard() {
+        try {
+            const data = await api("/dashboard");
+
+            const title = document.querySelector("header h1");
+            if (title && data?.user?.name) {
+                title.textContent = data.user.name;
+            }
+
+            const addrEl = document.querySelector("span.font-mono");
+            if (addrEl && data?.user?.walletAddress) {
+                addrEl.textContent = clipAddr(data.user.walletAddress);
+                addrEl.dataset.fullAddress = data.user.walletAddress;
+            }
+
+            const bal = data?.balance?.balanceNano ?? 0;
+
+            const h2 = document.querySelector("h2");
+            const p = document.querySelector("h2 + p");
+
+            if (h2) h2.textContent = `€${fmtAmount(bal)}`;
+            if (p) p.textContent = `${fmtAmount(bal)} XNO`;
+
+        } catch (e) {
+            console.warn("Dashboard load failed:", e?.message);
+
+            if (e?.status === 401) {
+                setToken(null);
+                navigateToLogin();
+            }
+        }
+    }
+
+    // -----------------------
+    // BUTTON WIRING (SAFE SELECTORS)
+    // -----------------------
+    function wireButtons() {
+        const buttons = Array.from(document.querySelectorAll("button"));
+
+        const qrBtn = buttons.find(b =>
+            (b.textContent || "").toUpperCase().includes("GENERATE QR")
+        );
+
+        const historyBtn = buttons.find(b =>
+            (b.textContent || "").toUpperCase().includes("HISTORY")
+        );
+
+        if (qrBtn) {
+            qrBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                navigateToQR();
+            });
+        }
+
+        if (historyBtn) {
+            historyBtn.addEventListener("click", async (e) => {
+                e.preventDefault();
+
+                const to = prompt("Recipient?");
+                if (!to) return;
+
+                const amount = prompt("Amount?");
+                if (!amount) return;
+
+                try {
+                    historyBtn.disabled = true;
+
+                    const res = await api("/send-payment", {
+                        method: "POST",
+                        body: { to, amount }
+                    });
+
+                    alert("Sent: " + (res?.txHash || "OK"));
+                    await loadDashboard();
+
+                } catch (err) {
+                    alert(err?.message || "Error sending payment");
+                } finally {
+                    historyBtn.disabled = false;
+                }
+            });
+        }
+    }
+
+    // -----------------------
+    // BOOT (NO LOOP CRASH FIX)
+    // -----------------------
+    function boot() {
+        if (isBooted) return;
+        isBooted = true;
+
+        const token = getToken();
+
+        // FIX: delay redirect slightly to prevent flicker
+        if (!token) {
+            setTimeout(() => {
+                navigateToLogin();
+            }, 50);
+            return;
+        }
+
+        wireButtons();
+        loadDashboard();
+    }
+
+    // -----------------------
+    // START
+    // -----------------------
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", boot);
+    } else {
+        boot();
+    }
+})();
+</script>

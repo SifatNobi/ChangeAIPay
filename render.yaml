@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: changeaipay
+    env: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: RPC_URL
+        sync: false
+      - key: RPC_API_KEY
+        sync: false
+      - key: RPC_AUTH_TOKEN
+        sync: false
+      - key: RPC_BASIC_USER
+        sync: false
+      - key: RPC_BASIC_PASS
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

@@ -14,6 +14,18 @@ function signToken(userId) {
   return jwt.sign({}, secret, { subject: String(userId), expiresIn: "7d" });
 }
 
+function serializeUser(user) {
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    walletAddress: user.walletAddress,
+    walletStatus: user.walletStatus,
+    walletCreatedAt: user.walletCreatedAt,
+    createdAt: user.createdAt
+  };
+}
+
 async function register(req, res) {
   try {
     const name = String(req.body?.name || "").trim();
@@ -28,18 +40,26 @@ async function register(req, res) {
     if (existing) return res.status(409).json({ error: "Email already in use" });
 
     const hashed = await bcrypt.hash(password, 12);
-    const user = await User.create({ name, email, password: hashed });
+    const user = await User.create({
+      name,
+      email,
+      password: hashed,
+      walletStatus: "pending"
+    });
 
-    // Create real Nano wallet/account for this user (no mock logic)
     try {
-      const { walletId, address } = await createWalletAndAccount();
-      user.walletId = walletId;
+      const { privateKey, address } = await createWalletAndAccount();
+      user.privateKey = privateKey;
       user.walletAddress = address;
+      user.walletStatus = "ready";
+      user.walletCreatedAt = new Date();
       await user.save();
     } catch (err) {
+      user.walletStatus = "error";
+      await user.save().catch(() => null);
       await User.deleteOne({ _id: user._id });
-      return res.status(502).json({
-        error: "Failed to create Nano wallet via RPC",
+      return res.status(503).json({
+        error: "Failed to initialize Nano wallet",
         details: String(err?.message || err)
       });
     }
@@ -47,7 +67,7 @@ async function register(req, res) {
     const token = signToken(user._id);
     return res.status(201).json({
       token,
-      user: { id: user._id, name: user.name, email: user.email, walletAddress: user.walletAddress, createdAt: user.createdAt }
+      user: serializeUser(user)
     });
   } catch (err) {
     return res.status(500).json({ error: "Server error", details: String(err?.message || err) });
@@ -71,12 +91,12 @@ async function login(req, res) {
     const token = signToken(user._id);
     return res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email, walletAddress: user.walletAddress, createdAt: user.createdAt }
+      user: serializeUser(user)
     });
   } catch (err) {
     return res.status(500).json({ error: "Server error", details: String(err?.message || err) });
   }
 }
 
-module.exports = { register, login };
+module.exports = { register, login, serializeUser };
 

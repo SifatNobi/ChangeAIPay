@@ -1,0 +1,387 @@
+:root {
+  color-scheme: dark;
+  font-family: "Manrope", sans-serif;
+  background:
+    radial-gradient(circle at top right, rgba(84, 195, 255, 0.14), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(33, 182, 248, 0.1), transparent 34%),
+    #0a0a0a;
+  color: #f4fbff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.screen-center,
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.screen-center {
+  text-align: center;
+  gap: 16px;
+}
+
+.screen-center h1,
+.hero-copy h1,
+.section-heading h1,
+.hero-panel h1 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  line-height: 1.05;
+}
+
+.auth-panel,
+.app-shell,
+.page-shell,
+.stack-lg,
+.list-grid,
+.receive-grid,
+.hero-metrics {
+  display: grid;
+  gap: 24px;
+}
+
+.auth-panel {
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 460px);
+  align-items: center;
+  width: min(1120px, 100%);
+}
+
+.hero-copy {
+  display: grid;
+  gap: 18px;
+  padding: 32px;
+}
+
+.hero-copy h1,
+.hero-panel h1,
+.section-heading h1 {
+  font-size: clamp(2.4rem, 4vw, 4.2rem);
+}
+
+.card,
+.topbar {
+  background: rgba(25, 25, 25, 0.78);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(72, 72, 72, 0.18);
+  border-radius: 28px;
+  box-shadow: 0 18px 64px rgba(0, 0, 0, 0.28);
+}
+
+.auth-card,
+.form-card,
+.qr-card,
+.summary-card,
+.transaction-card,
+.empty-state,
+.wallet-panel {
+  padding: 24px;
+}
+
+.auth-card,
+.form-card {
+  display: grid;
+  gap: 16px;
+}
+
+.auth-card label,
+.form-card label {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-card span,
+.form-card span {
+  font-size: 0.9rem;
+}
+
+input {
+  width: 100%;
+  padding: 16px 18px;
+  border: 1px solid rgba(84, 195, 255, 0.16);
+  border-radius: 18px;
+  background: rgba(31, 31, 31, 0.95);
+  color: #ffffff;
+  outline: none;
+}
+
+input:focus {
+  border-color: rgba(84, 195, 255, 0.45);
+  box-shadow: 0 0 0 3px rgba(84, 195, 255, 0.14);
+}
+
+.primary-button,
+.ghost-button,
+.ghost-link {
+  border: 0;
+  border-radius: 999px;
+  transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease;
+}
+
+.primary-button {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #54c3ff, #21b6f8);
+  color: #042031;
+  font-weight: 800;
+}
+
+.ghost-button,
+.ghost-link {
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #d9edf8;
+}
+
+.primary-button:hover,
+.ghost-button:hover,
+.ghost-link:hover,
+.nav-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.96;
+}
+
+.topbar {
+  position: sticky;
+  top: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.app-shell {
+  width: min(1240px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 16px 0 48px;
+}
+
+.page-shell {
+  padding-top: 12px;
+}
+
+.brand-lockup,
+.topnav,
+.section-heading,
+.transaction-card,
+.transaction-meta,
+.wallet-panel {
+  display: flex;
+  gap: 16px;
+}
+
+.brand-lockup {
+  align-items: center;
+}
+
+.brand-lockup strong,
+.summary-card strong,
+.transaction-card h3,
+.auth-card h2 {
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.topnav {
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: #a9b7c3;
+}
+
+.nav-link.active {
+  background: rgba(84, 195, 255, 0.14);
+  color: #54c3ff;
+}
+
+.hero-panel {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+
+.hero-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.summary-card strong {
+  font-size: 1.5rem;
+  word-break: break-word;
+}
+
+.section-heading {
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.pill {
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.pill.confirmed {
+  background: rgba(68, 199, 143, 0.15);
+  color: #69e3b1;
+}
+
+.pill.submitted,
+.pill.pending {
+  background: rgba(84, 195, 255, 0.14);
+  color: #7fd4ff;
+}
+
+.pill.failed {
+  background: rgba(255, 113, 108, 0.16);
+  color: #ff908b;
+}
+
+.transaction-card,
+.transaction-meta,
+.wallet-panel {
+  justify-content: space-between;
+  align-items: start;
+}
+
+.transaction-card code,
+.wallet-panel code,
+.qr-card p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.transaction-meta {
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.receive-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  align-items: start;
+}
+
+.qr-card {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+}
+
+.qr-card img,
+.empty-qr {
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  border-radius: 24px;
+  background: #111;
+}
+
+.brand-mark {
+  border-radius: 24px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(84, 195, 255, 0.18), rgba(33, 182, 248, 0.1));
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brand-mark span {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #54c3ff;
+}
+
+.eyebrow {
+  color: #54c3ff;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+}
+
+.muted {
+  color: #9fb1bf;
+}
+
+.status {
+  border-radius: 18px;
+  padding: 14px 16px;
+}
+
+.status.error,
+.inline-error {
+  color: #ff908b;
+}
+
+.status.error {
+  background: rgba(255, 113, 108, 0.12);
+}
+
+.switch-copy {
+  margin: 0;
+}
+
+.switch-copy a,
+.ghost-link {
+  color: #54c3ff;
+}
+
+@media (max-width: 960px) {
+  .auth-panel,
+  .receive-grid,
+  .hero-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar,
+  .transaction-card,
+  .wallet-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .transaction-meta {
+    align-items: flex-start;
+    text-align: left;
+  }
+}

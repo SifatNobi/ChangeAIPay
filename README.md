@@ -1,90 +1,108 @@
 # ChangeAIPay
 
-Production-ready starter for **zero-fee, near-instant Nano payments** with:
-- **Express** backend
-- **MongoDB (Mongoose)** persistence
-- **JWT auth** (register/login)
-- **Real Nano RPC** integration (wallet creation, balances, sends)
-- **Vanilla frontend** (responsive landing + dashboard)
+ChangeAIPay is a split-deploy fintech prototype:
 
-## Folder structure
+- `frontend/`: React + Vite SPA intended for Netlify
+- `backend/`: Express + MongoDB API intended for Render
+- Nano wallet creation, balance, and send flows are implemented through a real Nano RPC endpoint
 
-```
-ChangeAIPay/
-  frontend/
-    index.html
-    script.js
-    styles.css
+## Architecture
 
-  backend/
-    server.js
-    package.json
-    .env
-    routes/
-    controllers/
-    models/
-    middleware/
-    services/
+- Frontend calls `https://changeaipay.onrender.com` by default through `VITE_API_BASE_URL`
+- Backend persists users and transactions in MongoDB
+- Backend signs JWTs for login/register and protects private endpoints with bearer auth
+- Nano transfers are recorded with `pending`, `submitted`, `confirmed`, or `failed` status
 
-  .gitignore
-  README.md
-```
+## API contract
 
-## Environment variables
+Public:
 
-Create / edit `backend/.env` (placeholders are already present):
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /health`
 
-```
-MONGO_URI=your_mongodb_uri
-JWT_SECRET=your_secret
-RPC_URL=your_nano_rpc
-PORT=3000
-```
+Authenticated:
 
-## Running locally
+- `GET /user/profile`
+- `POST /transaction/send`
+- `GET /transaction/history`
 
-### 1) Backend
+## Required environment variables
 
-From `backend/`:
+Copy `backend/.env.example` to `backend/.env` and fill in real values:
 
 ```bash
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/changeaipay
+JWT_SECRET=replace-with-a-long-random-secret
+RPC_URL=https://your-nano-rpc.example.com
+RPC_AUTH_TOKEN=
+RPC_BASIC_USER=
+RPC_BASIC_PASS=
+RPC_TIMEOUT_MS=15000
+RPC_CONFIRM_ATTEMPTS=8
+RPC_CONFIRM_DELAY_MS=1500
+PORT=3000
+CORS_ORIGINS=https://your-netlify-site.netlify.app
+```
+
+Frontend:
+
+```bash
+VITE_API_BASE_URL=https://changeaipay.onrender.com
+```
+
+## Local development
+
+Backend:
+
+```bash
+cd backend
 npm install
 npm start
 ```
 
-The backend serves the frontend automatically. Open:
-- `http://localhost:3000`
+Frontend:
 
-### 2) Nano node requirement
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-This app uses **real Nano RPC calls** (no mock logic). You must point `RPC_URL` at a running Nano node with RPC enabled.
+## Nano RPC expectations
 
-Used RPC actions:
+The backend now uses real RPC calls and will return operator-facing errors if `RPC_URL` is not configured.
+
+Expected RPC actions:
+
 - `wallet_create`
 - `account_create`
 - `account_balance`
 - `send`
+- `block_info`
 
-## API
+## Deployment
 
-### Auth
-- `POST /auth/register` { name, email, password }
-- `POST /auth/login` { email, password }
+### Netlify
 
-### Wallet & payments (JWT required)
-- `GET /me`
-- `GET /dashboard`
-- `POST /create-wallet`
-- `GET /balance`
-- `POST /send-payment` { to: "<email or walletAddress>", amount: "<NANO>" }
+- Config is committed in `netlify.toml`
+- Base directory: `frontend`
+- Build command: `npm run build`
+- Publish directory: `dist`
+- SPA fallback is also committed in `frontend/public/_redirects`
 
-### Transactions (JWT required)
-- `GET /transactions`
+### Render
 
-## Security notes
+- Config scaffold is committed in `render.yaml`
+- Root directory: `backend`
+- Build command: `npm install`
+- Start command: `npm start`
+- Health check path: `/health`
+- Set the backend env vars in Render before deploying
 
-- Passwords are hashed with **bcrypt**
-- JWT is required for private endpoints
-- Sensitive data (password, walletId) is never returned to the frontend
-- Do not commit secrets (`backend/.env` is gitignored)
+## Notes
+
+- The app no longer depends on the old static Stitch export for the active frontend flow
+- The supplied logo URL is used consistently in the rebuilt SPA and remaining static HTML references
+- If the supplied Imgur URL does not behave like a direct image asset in production, replace it with the actual direct CDN image URL while keeping the same single-source constant
 

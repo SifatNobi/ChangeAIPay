@@ -1,7 +1,7 @@
 {
   "name": "changeaipay-backend",
   "version": "1.0.0",
-  "description": "ChangeAIPay backend (Express + MongoDB + Nano RPC)",
+  "description": "ChangeAIPay backend API",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
@@ -14,8 +14,9 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.3.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.19.0"
+    "mongoose": "^8.19.0",
+    "nanocurrency": "^2.5.0"
   }
 }
-
