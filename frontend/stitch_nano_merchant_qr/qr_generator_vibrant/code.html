@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ChangeAIPay - QR Generator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#0e0e0e",
+                        "secondary-fixed-dim": "#c0c4ea",
+                        "on-surface-variant": "#ababab",
+                        "tertiary-fixed-dim": "#9b98ff",
+                        "primary-fixed-dim": "#02aeef",
+                        "on-primary-fixed": "#001a28",
+                        "inverse-on-surface": "#555555",
+                        "on-primary-fixed-variant": "#003e58",
+                        "outline": "#757575",
+                        "secondary-fixed": "#ced2f9",
+                        "surface-container-low": "#131313",
+                        "on-tertiary-container": "#120076",
+                        "secondary-container": "#404564",
+                        "error": "#ff716c",
+                        "on-background": "#ffffff",
+                        "surface-container-highest": "#262626",
+                        "on-tertiary-fixed": "#0d005f",
+                        "on-secondary": "#424767",
+                        "tertiary-fixed": "#aaa8ff",
+                        "tertiary-container": "#9592ff",
+                        "secondary": "#ced2f9",
+                        "tertiary-dim": "#9592ff",
+                        "primary-fixed": "#2dbcfe",
+                        "on-error": "#490006",
+                        "on-surface": "#ffffff",
+                        "on-error-container": "#ffa8a3",
+                        "surface-tint": "#54c3ff",
+                        "surface-bright": "#2c2c2c",
+                        "primary-container": "#21b6f8",
+                        "surface-container": "#191919",
+                        "tertiary": "#a4a1ff",
+                        "on-tertiary-fixed-variant": "#2e2792",
+                        "surface-dim": "#0e0e0e",
+                        "surface-container-high": "#1f1f1f",
+                        "primary-dim": "#02aeef",
+                        "on-secondary-fixed-variant": "#4c5071",
+                        "on-primary-container": "#003045",
+                        "on-secondary-container": "#cacef4",
+                        "on-tertiary": "#201585",
+                        "on-secondary-fixed": "#2f3453",
+                        "primary": "#54c3ff",
+                        "inverse-primary": "#00668e",
+                        "error-dim": "#d7383b",
+                        "background": "#0e0e0e",
+                        "outline-variant": "#484848",
+                        "secondary-dim": "#c0c4ea",
+                        "surface-container-lowest": "#000000",
+                        "surface-variant": "#262626",
+                        "error-container": "#9f0519",
+                        "on-primary": "#003b54",
+                        "inverse-surface": "#f9f9f9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(25, 25, 25, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        .electric-glow {
+            box-shadow: 0 0 32px rgba(84, 195, 255, 0.08);
+        }
+        .neon-border-focus:focus-within {
+            box-shadow: 0 0 0 2px rgba(84, 195, 255, 0.4), 0 0 15px rgba(84, 195, 255, 0.2);
+        }
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body selection:bg-primary/30 min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-neutral-950/60 backdrop-blur-xl shadow-[0_0_20px_rgba(84,195,255,0.08)]">
+<div class="flex items-center justify-between px-6 h-16 w-full">
+<div class="flex items-center gap-3">
+<img alt="ChangeAIPay Logo" class="w-8 h-8 object-contain" data-alt="ChangeAIPay official logo featuring a stylized C with a Z inside a neon blue circular frame" src="https://lh3.googleusercontent.com/aida/ADBb0uiXCjDR8caH-Q1lEuV_KPZnh9-lsHK1QXqmR1YdvE8fzr8QCGRBS4v210FsHc-D7XNlRzkEtKg9inh4VrI_T2CqUBCB9rYKmvDML8uexMu61oC_5Y-bqgdwu7JPI9O3liQubWod90PnudSrwi9-02Pg38evvrvhSRrPKcvmEk07WFy-5boNnS3RbL4xzzhT2Nrw3PgaZJ_Tyd2ndScWM-EkkMKG_SmL4s4xvVhdMiMx1l1hIWUFWoQZmt-Y7EKqmaODvBTW5n4JWQ"/>
+<h1 class="text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-[#54c3ff] to-[#21b6f8] font-headline">ChangeAIPay</h1>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-white/5 p-2 rounded-full transition-colors">
+                account_balance_wallet
+            </button>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-lg mx-auto">
+<!-- Input Section -->
+<div class="space-y-6">
+<div class="space-y-2">
+<label class="font-label text-[10px] uppercase tracking-widest font-medium text-on-surface-variant ml-1">Enter Amount (XNO)</label>
+<div class="relative group">
+<input class="w-full bg-surface-container-high border-none rounded-xl py-5 px-6 text-2xl font-headline font-bold text-on-surface placeholder:text-neutral-700 neon-border-focus outline-none transition-all" placeholder="0.00" type="text"/>
+<div class="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
+<span class="text-primary font-headline font-bold">XNO</span>
+</div>
+</div>
+</div>
+<!-- Toggle Container -->
+<div class="flex items-center justify-between bg-surface-container-low p-4 rounded-xl">
+<div class="flex flex-col">
+<span class="text-on-surface font-semibold text-sm">Open Payment</span>
+<span class="text-on-surface-variant text-xs">Allow any amount to be sent</span>
+</div>
+<button class="relative inline-flex h-6 w-11 items-center rounded-full bg-surface-container-highest transition-colors">
+<span class="inline-block h-4 w-4 translate-x-1 rounded-full bg-primary transition-transform"></span>
+</button>
+</div>
+<!-- QR Glass Card -->
+<div class="glass-card rounded-xl p-8 flex flex-col items-center justify-center electric-glow border border-white/5">
+<div class="relative bg-white p-4 rounded-lg mb-8 shadow-[0_0_40px_rgba(84,195,255,0.15)]">
+<img alt="Payment QR Code" class="w-48 h-48 sm:w-56 sm:h-56 grayscale contrast-125" data-alt="Digital black and white QR code presented on a clean white geometric substrate with professional tech aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDweXsZxsD48NFd5i7R7KlbQoeVslXx6CZtu8WmgpAAz2fD2D0b28of3IdgquPDa--njFuFHnXqFxmYuZi10VN_zkrYcgvk_1I5gn3jsQdJyIFOr8J9qKUM-vL23Ukk0onylPxS_r3T5tZ4Y23rGoX3O43jSPf-DZU91G4dLxNBMz63eKRtXMcIr0JuxSN1UJYZnbCuD3Xwx8Xs3RAxx64LAlgJByB6VF3OGFM1f_9euNy1XGOI97Dj2E5XsPN7lkKxe6i4B_cwuR0"/>
+<div class="absolute inset-0 border-2 border-primary/20 rounded-lg pointer-events-none"></div>
+</div>
+<div class="w-full space-y-4">
+<div class="flex justify-between items-end">
+<div>
+<p class="font-label text-[10px] uppercase tracking-widest font-medium text-on-surface-variant mb-1">Amount Due</p>
+<h2 class="text-4xl font-headline font-bold text-on-surface">5.00 <span class="text-primary-container text-2xl">XNO</span></h2>
+</div>
+<div class="text-right">
+<p class="text-xl font-headline text-on-surface-variant">€1.20</p>
+</div>
+</div>
+<div class="bg-surface-container-highest/30 rounded-lg p-3 flex items-center justify-between">
+<code class="text-[10px] font-mono text-on-surface-variant truncate mr-4">nano_3pbe8m5hnbp8f14tnd5x354qsmksid954...</code>
+<span class="material-symbols-outlined text-primary text-sm cursor-pointer hover:scale-110 transition-transform">content_copy</span>
+</div>
+</div>
+</div>
+<!-- Status System -->
+<div class="space-y-3">
+<div class="flex items-center gap-4 bg-primary/10 border border-primary/10 p-4 rounded-xl animate-pulse-slow">
+<span class="material-symbols-outlined text-primary animate-spin">progress_activity</span>
+<span class="text-primary font-medium text-sm">Waiting for payment...</span>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl opacity-40">
+<span class="material-symbols-outlined text-on-surface-variant">check_circle</span>
+<span class="text-on-surface-variant font-medium text-sm">Payment detected</span>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl opacity-20">
+<span class="material-symbols-outlined text-on-surface-variant">verified</span>
+<span class="text-on-surface-variant font-medium text-sm">Confirmed</span>
+</div>
+</div>
+<!-- Action Button -->
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-lg py-5 rounded-xl shadow-[0_0_32px_rgba(84,195,255,0.25)] hover:scale-[1.02] active:scale-95 transition-all">
+                Generate New QR Code
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pt-3 pb-6 bg-[#191919]/60 backdrop-blur-xl shadow-[0_-8px_32px_rgba(84,195,255,0.08)] rounded-t-2xl z-50">
+<a class="flex flex-col items-center justify-center text-neutral-500 hover:text-[#54c3ff] transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-medium mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#54c3ff] bg-[#54c3ff]/10 rounded-xl px-4 py-1 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">qr_code_2</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-medium mt-1">Receive</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-500 hover:text-[#54c3ff] transition-all" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-medium mt-1">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-500 hover:text-[#54c3ff] transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-medium mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

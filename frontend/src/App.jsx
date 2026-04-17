@@ -10,7 +10,9 @@ import {
   useNavigate
 } from "react-router-dom";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://changeaipay.onrender.com";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "https://changeaipay.onrender.com";
+
 const LOGO_URL = "https://imgur.com/a/5wQvzft";
 const TOKEN_KEY = "changeaipay_token";
 
@@ -24,11 +26,11 @@ async function apiRequest(path, { method = "GET", token, body } = {}) {
     body: body ? JSON.stringify(body) : undefined
   });
 
-  let data = null;
+  let data;
   try {
     data = await response.json();
-  } catch (_error) {
-    data = null;
+  } catch {
+    data = {};
   }
 
   if (!response.ok) {
@@ -54,11 +56,10 @@ function persistToken(token) {
   if (token) {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem("token", token);
-    return;
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem("token");
   }
-
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem("token");
 }
 
 function buildNanoUri(address, amount) {
@@ -66,23 +67,20 @@ function buildNanoUri(address, amount) {
   if (!safeAddress) return "";
 
   const safeAmount = String(amount || "").trim();
-  return safeAmount ? `nano:${safeAddress}?amount=${encodeURIComponent(safeAmount)}` : `nano:${safeAddress}`;
+  return safeAmount
+    ? `nano:${safeAddress}?amount=${encodeURIComponent(safeAmount)}`
+    : `nano:${safeAddress}`;
 }
 
 function BrandMark({ size = 52 }) {
   const [failed, setFailed] = useState(false);
 
   return (
-    <div
-      className="brand-mark"
-      style={{ width: size, height: size }}
-      aria-label="ChangeAIPay logo"
-      role="img"
-    >
+    <div className="brand-mark" style={{ width: size, height: size }}>
       {!failed ? (
         <img
           src={LOGO_URL}
-          alt="ChangeAIPay logo"
+          alt="logo"
           onError={() => setFailed(true)}
           referrerPolicy="no-referrer"
         />
@@ -93,106 +91,108 @@ function BrandMark({ size = 52 }) {
   );
 }
 
-function LoadingScreen({ message = "Loading ChangeAIPay..." }) {
+function SafeText({ children, fallback = "—" }) {
+  return <>{children ?? fallback}</>;
+}
+
+function TransactionItem({ transaction }) {
+  const direction = String(transaction?.direction || "").toLowerCase();
+  const isIncoming = direction.includes("in") || direction.includes("receive");
+  const amount = formatAmount(transaction?.amountNano);
+  const counterparty =
+    transaction?.counterpart?.email ||
+    transaction?.counterpart?.walletAddress ||
+    "Unknown";
+
   return (
-    <div className="screen-center">
-      <BrandMark size={72} />
-      <h1>ChangeAIPay</h1>
-      <p>{message}</p>
-    </div>
+    <article className={`transaction-row ${isIncoming ? "incoming" : "outgoing"}`}>
+      <div className="tx-icon">{isIncoming ? "↓" : "↑"}</div>
+      <div className="tx-main">
+        <p className="tx-amount">
+          {isIncoming ? "+" : "-"}
+          {amount} XNO
+        </p>
+        <p className="tx-meta">
+          <SafeText>{counterparty}</SafeText>
+        </p>
+      </div>
+      <div className="tx-state">{isIncoming ? "Confirmed" : "Sent"}</div>
+    </article>
   );
 }
 
 function AuthForm({ mode, onSubmit, loading, error }) {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
 
-  function updateField(event) {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+  function update(e) {
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
   }
 
-  function submit(event) {
-    event.preventDefault();
+  function submit(e) {
+    e.preventDefault();
     onSubmit(form);
   }
 
   return (
-    <div className="auth-shell">
-      <div className="auth-panel">
-        <div className="hero-copy">
-          <BrandMark size={64} />
-          <span className="eyebrow">Nano fintech prototype</span>
-          <h1>Instant zero-fee payments, rebuilt for a stable demo.</h1>
-          <p>
-            Register, keep a session alive, send Nano to another user, and inspect persistent
-            transaction history without the old multi-page flicker.
+    <div className="auth-shell stitch-bg stitch-login-screen">
+      <div className="stitch-orb orb-a" />
+      <div className="stitch-orb orb-b" />
+      <header className="auth-topbar">
+        <div className="brand-lockup">
+          <BrandMark size={44} />
+          <h1 className="brand-title">ChangeAIPay</h1>
+        </div>
+      </header>
+      <div className="auth-panel stitch-login-layout">
+        <div className="hero-copy stitch-login-hero">
+          <div className="hero-badge stitch-pill">
+            <span className="bolt">⚡</span>
+            <span>The Future of Value</span>
+          </div>
+          <h1>
+            Zero-fee instant payments
+            <span className="hero-highlight"> with Nano</span>
+          </h1>
+          <p className="muted">
+            Experience the world&apos;s most efficient digital currency protocol.
           </p>
         </div>
 
-        <form className="card auth-card" onSubmit={submit}>
-          <h2>{mode === "login" ? "Welcome back" : "Create your account"}</h2>
-          <p className="muted">
-            {mode === "login"
-              ? "Use your email and password to restore your ChangeAIPay session."
-              : "A Nano wallet will be created for this account during registration."}
-          </p>
+        <div className="card auth-card glass-card auth-surface login-surface stitch-login-card">
+          <div className="brand-lockup auth-brand">
+            <BrandMark size={40} />
+            <strong>ChangeAIPay</strong>
+          </div>
+          <h2>{mode === "login" ? "Login" : "Register"}</h2>
 
-          {mode === "register" ? (
-            <label>
-              <span>Name</span>
-              <input
-                autoComplete="name"
-                name="name"
-                onChange={updateField}
-                placeholder="Ava Merchant"
-                required
-                type="text"
-                value={form.name}
-              />
-            </label>
-          ) : null}
-
-          <label>
-            <span>Email</span>
+          <form className="form-stack" onSubmit={submit}>
+            {mode === "register" && (
+              <input name="name" placeholder="Name" onChange={update} required />
+            )}
+            <input name="email" placeholder="Email" onChange={update} required />
             <input
-              autoComplete="email"
-              name="email"
-              onChange={updateField}
-              placeholder="merchant@changeaipay.com"
-              required
-              type="email"
-              value={form.email}
-            />
-          </label>
-
-          <label>
-            <span>Password</span>
-            <input
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              minLength={8}
               name="password"
-              onChange={updateField}
-              placeholder="At least 8 characters"
-              required
               type="password"
-              value={form.password}
+              placeholder="Password"
+              onChange={update}
+              required
             />
-          </label>
 
-          {error ? <div className="status error">{error}</div> : null}
+            {error && <div className="status error">{error}</div>}
 
-          <button className="primary-button" disabled={loading} type="submit">
-            {loading ? "Working..." : mode === "login" ? "Login" : "Register"}
-          </button>
+            <button className="primary-button auth-cta" disabled={loading}>
+              {loading ? "Loading..." : mode}
+            </button>
+          </form>
 
-          <p className="muted switch-copy">
-            {mode === "login" ? "Need an account?" : "Already registered?"}{" "}
-            <Link to={mode === "login" ? "/register" : "/login"}>
-              {mode === "login" ? "Register" : "Login"}
+          <p className="switch-copy">
+            <Link className="ghost-link" to={mode === "login" ? "/register" : "/login"}>
+              {mode === "login" ? "Need an account? Register" : "Already have an account? Login"}
             </Link>
           </p>
-        </form>
+        </div>
       </div>
+      <div className="auth-meta">Powered by Nano Protocol</div>
     </div>
   );
 }
@@ -200,49 +200,39 @@ function AuthForm({ mode, onSubmit, loading, error }) {
 function ProtectedRoute({ bootStatus, token, children }) {
   const location = useLocation();
 
-  if (bootStatus === "loading") {
-    return <LoadingScreen message="Restoring secure session..." />;
-  }
+  if (bootStatus === "loading") return <div className="screen-center stitch-bg">Loading...</div>;
 
   if (!token) {
-    return <Navigate replace state={{ from: location.pathname }} to="/login" />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   return children;
 }
 
 function AppLayout({ profile, onLogout, children }) {
-  const navigation = useMemo(
-    () => [
-      { to: "/dashboard", label: "Dashboard" },
-      { to: "/send", label: "Send" },
-      { to: "/receive", label: "Receive" },
-      { to: "/history", label: "History" }
-    ],
-    []
-  );
+  const name = profile?.user?.name || "User";
 
   return (
-    <div className="app-shell">
-      <header className="topbar">
+    <div className="app-shell stitch-bg">
+      <header className="topbar glass-card">
         <div className="brand-lockup">
-          <BrandMark size={44} />
-          <div>
-            <span className="eyebrow">ChangeAIPay</span>
-            <strong>{profile?.user?.name || "YC Demo Wallet"}</strong>
-          </div>
+          <BrandMark size={40} />
+          <strong className="brand-title">ChangeAIPay</strong>
         </div>
 
         <nav className="topnav">
-          {navigation.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          <NavLink className="nav-link" to="/dashboard">
+            Home
+          </NavLink>
+          <NavLink className="nav-link" to="/send">
+            Send
+          </NavLink>
+          <a className="nav-link" href="#receive">
+            Receive
+          </a>
+          <a className="nav-link" href="#history">
+            History
+          </a>
         </nav>
 
         <button className="ghost-button" onClick={onLogout} type="button">
@@ -255,498 +245,259 @@ function AppLayout({ profile, onLogout, children }) {
   );
 }
 
-function SummaryCard({ label, value, helper }) {
-  return (
-    <article className="card summary-card">
-      <span className="eyebrow">{label}</span>
-      <strong>{value}</strong>
-      <p className="muted">{helper}</p>
-    </article>
-  );
-}
-
-function TransactionList({ transactions, emptyMessage }) {
-  if (!transactions.length) {
-    return <div className="card empty-state">{emptyMessage}</div>;
-  }
-
-  return (
-    <div className="list-grid">
-      {transactions.map((transaction) => (
-        <article className="card transaction-card" key={transaction.id || transaction.txHash}>
-          <div>
-            <span className="eyebrow">
-              {transaction.direction === "outgoing" ? "Sent" : "Received"}
-            </span>
-            <h3>{formatAmount(transaction.amountNano)} XNO</h3>
-            <p className="muted">
-              {transaction.counterpart.email || transaction.counterpart.walletAddress || "Unknown"}
-            </p>
-          </div>
-
-          <div className="transaction-meta">
-            <span className={`pill ${transaction.status}`}>{transaction.status}</span>
-            <span className="muted">{new Date(transaction.timestamp).toLocaleString()}</span>
-            {transaction.txHash ? <code>{transaction.txHash}</code> : null}
-            {transaction.errorMessage ? (
-              <span className="inline-error">{transaction.errorMessage}</span>
-            ) : null}
-          </div>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function DashboardPage({ token, profile }) {
+function DashboardPage({ profile, token }) {
   const [transactions, setTransactions] = useState([]);
-  const [error, setError] = useState("");
+  const [receiveAmount, setReceiveAmount] = useState("");
+  const [qrDataUrl, setQrDataUrl] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
-
     apiRequest("/transaction/history?limit=5", { token })
-      .then((data) => {
-        if (!cancelled) {
-          setTransactions(data.transactions || []);
-        }
-      })
-      .catch((requestError) => {
-        if (!cancelled) {
-          setError(requestError.message);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
+      .then((d) => setTransactions(d?.transactions || []))
+      .catch(() => setTransactions([]));
   }, [token]);
 
   const balance = profile?.balance?.balanceNano || "0";
-  const pending = profile?.balance?.pendingNano || "0";
+  const walletAddress =
+    profile?.walletAddress ||
+    profile?.user?.walletAddress ||
+    profile?.balance?.walletAddress ||
+    "";
+
+  const receiveUri = useMemo(
+    () => buildNanoUri(walletAddress, receiveAmount),
+    [walletAddress, receiveAmount]
+  );
+
+  useEffect(() => {
+    if (!receiveUri) {
+      setQrDataUrl("");
+      return;
+    }
+
+    QRCode.toDataURL(receiveUri, { margin: 1, width: 320 })
+      .then(setQrDataUrl)
+      .catch(() => setQrDataUrl(""));
+  }, [receiveUri]);
 
   return (
-    <section className="stack-lg">
-      <div className="hero-panel">
+    <div className="stack-lg stitch-bg stitch-dashboard-screen">
+      <header className="merchant-header card glass-card stitch-dashboard-header">
         <div>
-          <span className="eyebrow">Wallet overview</span>
-          <h1>Stable fintech flows for the demo stage.</h1>
-          <p className="muted">
-            Your session, Nano wallet address, and transaction ledger are all loaded from the live
-            backend API.
-          </p>
+          <span className="eyebrow">Merchant HQ</span>
+          <h1 className="merchant-name">{profile?.user?.name || "CyberNexus Systems"}</h1>
+          <div className="wallet-chip">
+            <span>wallet</span>
+            <span className="mono">{walletAddress || "nano_3x...7u8"}</span>
+          </div>
         </div>
-        <div className="hero-metrics">
-          <SummaryCard
-            label="Available balance"
-            value={`${formatAmount(balance)} XNO`}
-            helper="Live Nano account balance from the backend RPC service."
-          />
-          <SummaryCard
-            label="Pending"
-            value={`${formatAmount(pending)} XNO`}
-            helper="Pending Nano value waiting to settle."
-          />
-          <SummaryCard
-            label="Wallet address"
-            value={profile?.user?.walletAddress || "Unavailable"}
-            helper={`Status: ${profile?.user?.walletStatus || "unknown"}`}
-          />
-        </div>
-      </div>
+        <div className="pill confirmed">Network: Live</div>
+      </header>
 
-      <section className="card">
+      <section className="card hero-panel glass-card neon-sheen stitch-balance-card">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">Recent activity</span>
-            <h2>Latest transactions</h2>
+            <span className="eyebrow">Current Treasury</span>
+            <h1>Dashboard</h1>
           </div>
-          <Link className="ghost-link" to="/history">
-            View full history
-          </Link>
+          <div className="pill confirmed">Live</div>
         </div>
-        {error ? <div className="status error">{error}</div> : null}
-        <TransactionList emptyMessage="No transactions recorded yet." transactions={transactions} />
+
+        <p className="muted">Balance and recent activity for your ChangeAIPay wallet.</p>
+        <div className="summary-card">
+          <span className="eyebrow">Current Treasury</span>
+          <strong>{formatAmount(balance)} XNO</strong>
+        </div>
+        <div className="hero-actions">
+          <a className="primary-button action-pill" href="#receive">
+            Generate QR
+          </a>
+          <a className="ghost-button action-pill" href="#history">
+            History
+          </a>
+        </div>
       </section>
-    </section>
+
+      <section className="receive-grid stitch-dual-grid">
+        <article className="card qr-card glass-card stitch-receive-card" id="receive">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Receive</span>
+              <h2>Payment QR</h2>
+            </div>
+          </div>
+
+          <label className="field-label stitch-qr-label" htmlFor="receive-amount">
+            Enter Amount (XNO)
+          </label>
+          <input
+            id="receive-amount"
+            name="receive-amount"
+            value={receiveAmount}
+            onChange={(e) => setReceiveAmount(e.target.value)}
+            placeholder="0.00"
+          />
+
+          {qrDataUrl ? (
+            <img alt="Payment QR code" src={qrDataUrl} />
+          ) : (
+            <div className="empty-qr">
+              <p className="muted">Add amount to generate QR</p>
+            </div>
+          )}
+
+          <div className="wallet-panel">
+            <span className="wallet-label">Wallet Address</span>
+            <code>{walletAddress || "Wallet not available in profile"}</code>
+          </div>
+        </article>
+
+        <article className="card glass-card market-card stitch-market-card">
+          <span className="eyebrow">History</span>
+          <h2>Recent Flux</h2>
+          <p className="muted">Ledger activity from your account.</p>
+          <div className="market-bars">
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="pill">{transactions.length} entries</div>
+        </article>
+      </section>
+
+      <section className="card glass-card stitch-history-card" id="history">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">History</span>
+            <h2>Transactions</h2>
+          </div>
+        </div>
+
+        <div className="list-grid">
+          {transactions.length === 0 && (
+            <div className="empty-state">No transactions yet.</div>
+          )}
+
+          {transactions.map((t, i) => (
+            <TransactionItem key={i} transaction={t} />
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
 
 function SendPage({ token }) {
   const [form, setForm] = useState({ recipient: "", amount: "" });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(null);
 
-  function update(event) {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
-  }
+  async function submit(e) {
+    e.preventDefault();
 
-  async function submit(event) {
-    event.preventDefault();
-    setSubmitting(true);
-    setError("");
-    setSuccess(null);
+    await apiRequest("/transaction/send", {
+      method: "POST",
+      token,
+      body: form
+    });
 
-    try {
-      const data = await apiRequest("/transaction/send", {
-        method: "POST",
-        token,
-        body: form
-      });
-      setSuccess(data.transaction);
-      setForm({ recipient: "", amount: "" });
-    } catch (requestError) {
-      const detail = requestError.details ? ` ${requestError.details}` : "";
-      setError(`${requestError.message}.${detail}`.trim());
-    } finally {
-      setSubmitting(false);
-    }
+    setForm({ recipient: "", amount: "" });
   }
 
   return (
-    <section className="stack-lg">
-      <div className="section-heading">
-        <div>
-          <span className="eyebrow">Send Nano</span>
-          <h1>Transfer Nano instantly to another user.</h1>
-        </div>
-      </div>
+    <div className="stack-lg stitch-bg stitch-send-screen">
+      <section className="card form-card glass-card send-surface stitch-send-card">
+        <span className="eyebrow">Quick Transfer</span>
+        <h1>Send Nano</h1>
+        <p className="muted">Real-time transfer with zero-fee Nano settlement.</p>
 
-      <form className="card form-card" onSubmit={submit}>
-        <label>
-          <span>Recipient email or wallet address</span>
+        <form onSubmit={submit}>
           <input
             name="recipient"
-            onChange={update}
-            placeholder="merchant@changeaipay.com or nano_..."
-            required
-            type="text"
+            onChange={(e) => setForm({ ...form, recipient: e.target.value })}
+            placeholder="Recipient (email or Nano address)"
             value={form.recipient}
           />
-        </label>
-        <label>
-          <span>Amount (XNO)</span>
           <input
-            inputMode="decimal"
             name="amount"
-            onChange={update}
-            placeholder="0.25"
-            required
-            type="text"
+            onChange={(e) => setForm({ ...form, amount: e.target.value })}
+            placeholder="Amount (XNO)"
             value={form.amount}
           />
-        </label>
-        {error ? <div className="status error">{error}</div> : null}
-        <button className="primary-button" disabled={submitting} type="submit">
-          {submitting ? "Sending..." : "Send Nano"}
-        </button>
-      </form>
-
-      {success ? (
-        <div className="card">
-          <span className="eyebrow">Transfer result</span>
-          <h2>{success.status === "confirmed" ? "Transaction confirmed" : "Transaction submitted"}</h2>
-          <p className="muted">
-            {formatAmount(success.amountNano)} XNO to{" "}
-            {success.counterpart.email || success.counterpart.walletAddress}
-          </p>
-          {success.txHash ? <code>{success.txHash}</code> : null}
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-function ReceivePage({ profile }) {
-  const [amount, setAmount] = useState("");
-  const [qrCode, setQrCode] = useState("");
-  const address = profile?.user?.walletAddress || "";
-
-  useEffect(() => {
-    let cancelled = false;
-    const uri = buildNanoUri(address, amount);
-
-    if (!uri) {
-      setQrCode("");
-      return undefined;
-    }
-
-    QRCode.toDataURL(uri, {
-      margin: 1,
-      color: {
-        dark: "#54c3ff",
-        light: "#0e0e0e"
-      }
-    })
-      .then((url) => {
-        if (!cancelled) {
-          setQrCode(url);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setQrCode("");
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [address, amount]);
-
-  return (
-    <section className="receive-grid">
-      <div className="card form-card">
-        <span className="eyebrow">Receive Nano</span>
-        <h1>Share a wallet QR for incoming payments.</h1>
-        <label>
-          <span>Optional amount (XNO)</span>
-          <input
-            inputMode="decimal"
-            onChange={(event) => setAmount(event.target.value)}
-            placeholder="0.00"
-            type="text"
-            value={amount}
-          />
-        </label>
-        <div className="wallet-panel">
-          <span className="muted">Wallet address</span>
-          <code>{address || "Wallet unavailable"}</code>
-        </div>
-      </div>
-
-      <div className="card qr-card">
-        {qrCode ? <img alt="Nano payment QR code" src={qrCode} /> : <div className="empty-qr" />}
-        <p className="muted">URI: {buildNanoUri(address, amount) || "Nano wallet unavailable"}</p>
-      </div>
-    </section>
-  );
-}
-
-function HistoryPage({ token }) {
-  const [transactions, setTransactions] = useState([]);
-  const [status, setStatus] = useState("loading");
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-    setStatus("loading");
-    setError("");
-
-    apiRequest("/transaction/history", { token })
-      .then((data) => {
-        if (!cancelled) {
-          setTransactions(data.transactions || []);
-          setStatus("ready");
-        }
-      })
-      .catch((requestError) => {
-        if (!cancelled) {
-          setError(requestError.message);
-          setStatus("error");
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
-
-  return (
-    <section className="stack-lg">
-      <div className="section-heading">
-        <div>
-          <span className="eyebrow">History</span>
-          <h1>Persistent transaction ledger</h1>
-        </div>
-      </div>
-
-      {status === "loading" ? <div className="card empty-state">Loading transactions...</div> : null}
-      {status === "error" ? <div className="status error">{error}</div> : null}
-      {status === "ready" ? (
-        <TransactionList
-          emptyMessage="No transactions have been persisted for this wallet yet."
-          transactions={transactions}
-        />
-      ) : null}
-    </section>
+          <button className="primary-button" type="submit">
+            Send
+          </button>
+        </form>
+      </section>
+    </div>
   );
 }
 
 function App() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [token, setToken] = useState(() => getStoredToken());
-  const [profile, setProfile] = useState(null);
-  const [bootStatus, setBootStatus] = useState(() => (getStoredToken() ? "loading" : "idle"));
-  const [authError, setAuthError] = useState("");
-  const [authSubmitting, setAuthSubmitting] = useState(false);
 
-  const setSessionToken = useCallback((nextToken) => {
-    persistToken(nextToken);
-    setToken(nextToken);
-  }, []);
+  const [token, setToken] = useState(getStoredToken());
+  const [profile, setProfile] = useState(null);
+  const [bootStatus, setBootStatus] = useState("idle");
 
   const logout = useCallback(() => {
+    persistToken("");
+    setToken("");
     setProfile(null);
-    setAuthError("");
-    setSessionToken("");
-    navigate("/login", { replace: true });
-  }, [navigate, setSessionToken]);
+    navigate("/login");
+  }, [navigate]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    if (!token) {
-      setProfile(null);
-      setBootStatus("idle");
-      return undefined;
-    }
+    if (!token) return;
 
     setBootStatus("loading");
-    setAuthError("");
 
     apiRequest("/user/profile", { token })
-      .then((data) => {
-        if (!cancelled) {
-          setProfile(data);
-          setBootStatus("ready");
-        }
+      .then((d) => {
+        setProfile(d || {});
+        setBootStatus("ready");
       })
-      .catch((error) => {
-        if (!cancelled) {
-          setProfile(null);
-          setBootStatus("idle");
-          setAuthError(error.message);
-          setSessionToken("");
-        }
+      .catch(() => {
+        setProfile(null);
+        setBootStatus("idle");
+        persistToken("");
       });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [token, setSessionToken]);
-
-  async function handleAuth(path, values) {
-    setAuthSubmitting(true);
-    setAuthError("");
-
-    try {
-      const body =
-        path === "/auth/register"
-          ? {
-              name: values.name,
-              email: values.email,
-              password: values.password
-            }
-          : {
-              email: values.email,
-              password: values.password
-            };
-
-      const data = await apiRequest(path, {
-        method: "POST",
-        body
-      });
-
-      setSessionToken(data.token);
-      setProfile((current) => current || { user: data.user, balance: null });
-      navigate("/dashboard", { replace: true });
-    } catch (error) {
-      const detail = error.details ? ` ${error.details}` : "";
-      setAuthError(`${error.message}.${detail}`.trim());
-    } finally {
-      setAuthSubmitting(false);
-    }
-  }
+  }, [token]);
 
   return (
     <Routes>
       <Route
         path="/login"
         element={
-          token && bootStatus === "ready" ? (
-            <Navigate replace to="/dashboard" />
+          token ? (
+            <Navigate to="/dashboard" />
           ) : (
-            <AuthForm
-              error={authError}
-              loading={authSubmitting}
-              mode="login"
-              onSubmit={(values) => handleAuth("/auth/login", values)}
-            />
+            <AuthForm mode="login" onSubmit={() => {}} />
           )
         }
       />
-      <Route
-        path="/register"
-        element={
-          token && bootStatus === "ready" ? (
-            <Navigate replace to="/dashboard" />
-          ) : (
-            <AuthForm
-              error={authError}
-              loading={authSubmitting}
-              mode="register"
-              onSubmit={(values) => handleAuth("/auth/register", values)}
-            />
-          )
-        }
-      />
+
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute bootStatus={bootStatus} token={token}>
-            <AppLayout onLogout={logout} profile={profile}>
+            <AppLayout profile={profile} onLogout={logout}>
               <DashboardPage profile={profile} token={token} />
             </AppLayout>
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/send"
         element={
           <ProtectedRoute bootStatus={bootStatus} token={token}>
-            <AppLayout onLogout={logout} profile={profile}>
-              <SendPage token={token} />
-            </AppLayout>
+            <SendPage token={token} />
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/receive"
-        element={
-          <ProtectedRoute bootStatus={bootStatus} token={token}>
-            <AppLayout onLogout={logout} profile={profile}>
-              <ReceivePage profile={profile} />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/history"
-        element={
-          <ProtectedRoute bootStatus={bootStatus} token={token}>
-            <AppLayout onLogout={logout} profile={profile}>
-              <HistoryPage token={token} />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/"
-        element={
-          <Navigate
-            replace
-            to={token && (bootStatus === "loading" || bootStatus === "ready") ? "/dashboard" : "/login"}
-          />
-        }
-      />
-      <Route
-        path="*"
-        element={<Navigate replace to={location.pathname.startsWith("/login") ? "/login" : "/"} />}
-      />
+
+      <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );
 }
