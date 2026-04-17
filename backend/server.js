@@ -11,56 +11,68 @@ const transactionRoutes = require("./routes/transaction");
 
 const app = express();
 
-/* ---------------- DEBUG START ---------------- */
+console.log("🚀 Server booting...");
 
-console.log("Server file loaded...");
+/* ---------------- ENV CHECK ---------------- */
 
-/* ---------------- ENV HELPERS ---------------- */
-
-function getEnv(name, required = true) {
+function getEnv(name) {
   const value = process.env[name];
-
-  if (required && !value) {
-    console.error(`❌ Missing environment variable: ${name}`);
+  if (!value) {
+    console.error(`❌ Missing ENV: ${name}`);
     process.exit(1);
   }
-
   return value;
 }
 
-function getAllowedOrigins() {
-  return (process.env.CORS_ORIGINS || "")
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-}
-
-const allowedOrigins = getAllowedOrigins();
-
 /* ---------------- CORS ---------------- */
+
+const allowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((v) => v.trim())
+  .filter(Boolean);
 
 app.use(
   cors({
-    origin(origin, callback) {
+    origin: (origin, callback) => {
       if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error("CORS blocked origin: " + origin));
+      return callback(new Error("CORS blocked: " + origin));
     },
     credentials: true,
   })
 );
 
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json());
 
-/* ---------------- HEALTH CHECK ---------------- */
+/* ---------------- BASIC ROUTES ---------------- */
 
+/* Root route (IMPORTANT for testing) */
+app.get("/", (_req, res) => {
+  res.json({
+    status: "Backend running ✅",
+    available_routes: {
+      auth: ["/auth/register", "/auth/login"],
+      user: "/user/*",
+      transaction: "/transaction/*",
+      health: "/health",
+      test: "/test"
+    }
+  });
+});
+
+/* Health check */
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
-    mongoReadyState: mongoose.connection.readyState,
+    mongo_state: mongoose.connection.readyState,
     uptime: process.uptime(),
   });
+});
+
+/* Test route */
+app.get("/test", (_req, res) => {
+  res.send("Server is alive 🚀");
 });
 
 /* ---------------- RATE LIMIT ---------------- */
@@ -79,15 +91,17 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/transaction", transactionRoutes);
 
-/* ---------------- 404 ---------------- */
+/* ---------------- 404 HANDLER ---------------- */
 
 app.use((req, res) => {
   res.status(404).json({
-    error: `Route not found: ${req.method} ${req.originalUrl}`,
+    error: "Route not found",
+    method: req.method,
+    path: req.originalUrl,
   });
 });
 
-/* ---------------- GLOBAL ERROR HANDLERS (IMPORTANT) ---------------- */
+/* ---------------- ERROR HANDLERS ---------------- */
 
 process.on("uncaughtException", (err) => {
   console.error("🔥 Uncaught Exception:", err);
@@ -103,30 +117,24 @@ async function start() {
   console.log("Starting server...");
 
   const mongoUri = getEnv("MONGO_URI");
-  const jwtSecret = getEnv("JWT_SECRET");
-
-  if (!process.env.RPC_URL) {
-    console.warn("⚠ RPC_URL not set. Wallet features may fail.");
-  }
-
-  console.log("Connecting to MongoDB...");
+  getEnv("JWT_SECRET");
 
   try {
     await mongoose.connect(mongoUri);
-    console.log("MongoDB connected");
+    console.log("MongoDB connected ✅");
   } catch (err) {
-    console.error("❌ Mongo connection failed:", err);
+    console.error("❌ MongoDB failed:", err);
     process.exit(1);
   }
 
   const port = process.env.PORT || 3000;
 
   app.listen(port, "0.0.0.0", () => {
-    console.log(`🚀 Backend running on port ${port}`);
+    console.log(`🚀 Server running on port ${port}`);
   });
 }
 
 start().catch((err) => {
-  console.error("❌ Fatal startup error:", err);
+  console.error("❌ Fatal error:", err);
   process.exit(1);
 });
