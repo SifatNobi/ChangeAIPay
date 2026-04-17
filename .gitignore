@@ -1,3 +1,7 @@
 node_modules/
 .env
 
+# Vite build output (Netlify builds this)
+dist/
+frontend/dist/
+
