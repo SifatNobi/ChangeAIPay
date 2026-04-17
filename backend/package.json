@@ -17,6 +17,7 @@
     "express-rate-limit": "^8.3.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.0",
-    "nanocurrency": "^2.5.0"
+    "nanocurrency": "^2.5.0",
+    "node-fetch": "^3.3.2"
   }
 }

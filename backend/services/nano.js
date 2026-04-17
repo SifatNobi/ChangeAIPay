@@ -1,4 +1,5 @@
 const nanocurrency = require("nanocurrency");
+const { callRpc } = require("./rpcClient");
 
 function nanoToRaw(nanoAmountStr) {
   const s = String(nanoAmountStr || "").trim();
@@ -24,26 +25,6 @@ function rawToNano(rawStr) {
   return fracStr ? `${whole}.${fracStr}` : whole.toString();
 }
 
-function getRpcUrl() {
-  const rpcUrl = String(process.env.RPC_URL || "").trim();
-  if (!rpcUrl) {
-    const err = new Error("Nano RPC is not configured. Set RPC_URL for wallet and transfer features.");
-    err.code = "RPC_NOT_CONFIGURED";
-    throw err;
-  }
-
-  return rpcUrl;
-}
-
-function getRpcHeaders() {
-  const headers = { "Content-Type": "application/json" };
-
-  const token = String(process.env.RPC_AUTH_TOKEN || "").trim();
-  if (token) headers.Authorization = `Bearer ${token}`;
-
-  return headers;
-}
-
 function validateRpcPayload(action, payload) {
   if (!action || typeof action !== "string") {
     throw new Error("Nano RPC action must be a non-empty string");
@@ -65,31 +46,7 @@ function validateRpcPayload(action, payload) {
   if (action === "process") requireField("block");
 }
 
-async function rpcFetchWithTimeout(url, body, timeoutMs) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: getRpcHeaders(),
-      body,
-      signal: controller.signal
-    });
-
-    if (!response.ok) {
-      throw new Error("RPC request failed with status " + response.status);
-    }
-
-    const data = await response.json();
-    return data;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 async function rpc(action, payload = {}) {
-  const rpcUrl = getRpcUrl();
   const rpcApiKey = String(process.env.RPC_API_KEY || "").trim();
 
   const requestPayload = {
@@ -120,10 +77,13 @@ async function rpc(action, payload = {}) {
   let lastErr = null;
   for (let attempt = 0; attempt <= retries; attempt += 1) {
     try {
-      const data = await rpcFetchWithTimeout(rpcUrl, body, timeoutMs);
-      if (data?.error) {
-        throw new Error(`Nano RPC ${action} failed: ${data.error}`);
+      const result = await callRpc(requestPayload);
+      if (!result?.success) {
+        throw new Error(result?.error || "All RPC nodes failed");
       }
+
+      const data = result.data;
+      if (data?.error) throw new Error(`Nano RPC ${action} failed: ${data.error}`);
       return data;
     } catch (err) {
       lastErr = err;

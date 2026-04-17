@@ -8,6 +8,7 @@ const rateLimit = require("express-rate-limit");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const transactionRoutes = require("./routes/transaction");
+const { callRpc } = require("./services/rpcClient");
 
 const app = express();
 
@@ -99,55 +100,16 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/transaction", transactionRoutes);
 
-/* ---------------- RPC TEST ROUTE (FIXED SAFE VERSION) ---------------- */
+/* ---------------- RPC TEST ROUTES (FAILOVER) ---------------- */
 
 app.get("/test-rpc", async (_req, res) => {
-  try {
-    if (!process.env.RPC_URL) {
-      return res.status(500).json({
-        success: false,
-        error: "RPC_URL missing in environment variables",
-      });
-    }
+  const result = await callRpc({ action: "version" });
+  return res.json(result);
+});
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
-    const response = await fetch(process.env.RPC_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "version" }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    const text = await response.text(); // IMPORTANT FIX
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      return res.status(500).json({
-        success: false,
-        error: "Invalid JSON from RPC",
-        raw_response: text,
-      });
-    }
-
-    return res.json({
-      success: true,
-      data,
-    });
-
-  } catch (err) {
-    console.error("❌ RPC test failed:", err.message);
-
-    return res.status(500).json({
-      success: false,
-      error: err.message || "RPC request failed",
-    });
-  }
+app.get("/rpc-status", async (_req, res) => {
+  const result = await callRpc({ action: "version" });
+  return res.json(result);
 });
 
 /* ---------------- 404 ---------------- */
