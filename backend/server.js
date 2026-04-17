@@ -11,20 +11,27 @@ const transactionRoutes = require("./routes/transaction");
 
 const app = express();
 
+/* ---------------- DEBUG START ---------------- */
+
+console.log("Server file loaded...");
+
 /* ---------------- ENV HELPERS ---------------- */
 
-function getRequiredEnv(name) {
-  const value = String(process.env[name] || "").trim();
-  if (!value) {
-    throw new Error(`Missing ${name} in environment`);
+function getEnv(name, required = true) {
+  const value = process.env[name];
+
+  if (required && !value) {
+    console.error(`❌ Missing environment variable: ${name}`);
+    process.exit(1);
   }
+
   return value;
 }
 
 function getAllowedOrigins() {
-  return String(process.env.CORS_ORIGINS || "")
+  return (process.env.CORS_ORIGINS || "")
     .split(",")
-    .map((value) => value.trim())
+    .map((v) => v.trim())
     .filter(Boolean);
 }
 
@@ -38,9 +45,9 @@ app.use(
       if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error("Origin not allowed by CORS"));
+      return callback(new Error("CORS blocked origin: " + origin));
     },
-    credentials: true
+    credentials: true,
   })
 );
 
@@ -52,7 +59,7 @@ app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     mongoReadyState: mongoose.connection.readyState,
-    nanoRpcConfigured: Boolean(process.env.RPC_URL)
+    uptime: process.uptime(),
   });
 });
 
@@ -63,8 +70,6 @@ app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 50,
-    standardHeaders: true,
-    legacyHeaders: false
   })
 );
 
@@ -77,58 +82,51 @@ app.use("/transaction", transactionRoutes);
 /* ---------------- 404 ---------------- */
 
 app.use((req, res) => {
-  return res.status(404).json({
-    error: `Route not found: ${req.method} ${req.originalUrl}`
+  res.status(404).json({
+    error: `Route not found: ${req.method} ${req.originalUrl}`,
   });
 });
 
-/* ---------------- MONGODB EVENTS ---------------- */
+/* ---------------- GLOBAL ERROR HANDLERS (IMPORTANT) ---------------- */
 
-mongoose.connection.on("connected", () => {
-  console.log("MongoDB connected successfully");
+process.on("uncaughtException", (err) => {
+  console.error("🔥 Uncaught Exception:", err);
 });
 
-mongoose.connection.on("error", (err) => {
-  console.error("Mongo runtime error:", err);
+process.on("unhandledRejection", (err) => {
+  console.error("🔥 Unhandled Rejection:", err);
 });
 
-mongoose.connection.on("disconnected", () => {
-  console.warn("MongoDB disconnected");
-});
-
-/* ---------------- START SERVER (FIXED FOR RENDER) ---------------- */
+/* ---------------- START SERVER ---------------- */
 
 async function start() {
-  const mongoUri = getRequiredEnv("MONGO_URI");
-  getRequiredEnv("JWT_SECRET");
+  console.log("Starting server...");
+
+  const mongoUri = getEnv("MONGO_URI");
+  const jwtSecret = getEnv("JWT_SECRET");
 
   if (!process.env.RPC_URL) {
-    console.warn(
-      "RPC_URL is not configured. Wallet features may fail."
-    );
+    console.warn("⚠ RPC_URL not set. Wallet features may fail.");
   }
 
+  console.log("Connecting to MongoDB...");
+
   try {
-    console.log("Connecting to MongoDB...");
-
-    await mongoose.connect(mongoUri, {
-      autoIndex: true
-    });
-
-    console.log("MongoDB connection established");
+    await mongoose.connect(mongoUri);
+    console.log("MongoDB connected");
   } catch (err) {
-    console.error("Mongo connection error:", err);
+    console.error("❌ Mongo connection failed:", err);
     process.exit(1);
   }
 
   const port = process.env.PORT || 3000;
 
   app.listen(port, "0.0.0.0", () => {
-    console.log(`Backend running on port ${port}`);
+    console.log(`🚀 Backend running on port ${port}`);
   });
 }
 
 start().catch((err) => {
-  console.error("Fatal startup error:", err);
+  console.error("❌ Fatal startup error:", err);
   process.exit(1);
 });
