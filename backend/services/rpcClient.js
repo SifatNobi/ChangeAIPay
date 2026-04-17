@@ -16,8 +16,9 @@
  */
 
 const RPC_NODES = [
+  "https://rpc.nano.to",
   "https://proxy.nanos.cc/proxy",
-  "https://rpc.nano.to"
+  "https://node.somenano.com/proxy"
 ];
 
 /**
@@ -31,7 +32,7 @@ async function callRpc(payload) {
   for (const url of RPC_NODES) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
+      const timeout = setTimeout(() => controller.abort(), 15000);
 
       const res = await fetch(url, {
         method: "POST",
@@ -50,6 +51,12 @@ async function callRpc(payload) {
         continue;
       }
 
+      // 🔥 NEW: Allow partial responses but reject HTML
+      if (text.includes("<html")) {
+        console.warn("[rpcClient] HTML response from:", url);
+        continue;
+      }
+
       let data;
       try {
         data = JSON.parse(text);
@@ -60,6 +67,7 @@ async function callRpc(payload) {
 
       // 🔥 CRITICAL FIX — HANDLE ACCOUNT NOT FOUND
       if (data.error && data.error.includes("Account not found")) {
+        console.log("✅ RPC success from:", url);
         return {
           success: true,
           exists: false,
@@ -77,6 +85,7 @@ async function callRpc(payload) {
       }
 
       // success
+      console.log("✅ RPC success from:", url);
       return {
         success: true,
         data,
@@ -98,5 +107,5 @@ async function callRpc(payload) {
   };
 }
 
-module.exports = { callRpc };
+module.exports = { callRpc, RPC_NODES };
 

@@ -8,7 +8,7 @@ const rateLimit = require("express-rate-limit");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const transactionRoutes = require("./routes/transaction");
-const { callRpc } = require("./services/rpcClient");
+const { callRpc, RPC_NODES } = require("./services/rpcClient");
 const auth = require("./middleware/auth");
 const User = require("./models/User");
 const { sendNano, getBalance, confirmTransaction } = require("./services/nanoWallet");
@@ -142,6 +142,37 @@ app.get("/rpc-status", async (_req, res) => {
   } catch (err) {
     return res.json({ status: "error", error: String(err?.message || err) });
   }
+});
+
+app.get("/rpc-debug", async (_req, res) => {
+  const results = [];
+
+  for (const url of RPC_NODES) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "version" }),
+      });
+
+      const text = await response.text();
+
+      results.push({
+        url,
+        success: true,
+        preview: text.slice(0, 100)
+      });
+
+    } catch (err) {
+      results.push({
+        url,
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  res.json(results);
 });
 
 /* ---------------- WALLET ROUTES (PATCH: only added if missing) ---------------- */
