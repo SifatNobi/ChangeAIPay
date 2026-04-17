@@ -1,3 +1,19 @@
+/**
+ * =============================================================================
+ * NANO WALLET SERVICE - PRODUCTION SAFETY RULES ENFORCED
+ * =============================================================================
+ * 
+ * SAFETY RULES:
+ * ✅ NEVER expose private keys in responses
+ * ✅ ALWAYS handle "Account not found" as valid state (balance = 0)
+ * ✅ ALWAYS normalize response structure: { success, tx_hash, source, error }
+ * ✅ ALWAYS fail gracefully without crashing backend
+ * ✅ STRICT: Never trust single RPC node
+ * ✅ NEW ACCOUNTS: Treated properly (no balance = account doesn't exist yet)
+ * 
+ * =============================================================================
+ */
+
 const { callRpc } = require("./rpcClient");
 const { rawToNano, nanoToRaw, sendFromWallet, waitForConfirmation } = require("./nano");
 
@@ -22,6 +38,23 @@ async function getBalance(account) {
   const result = await callRpc({ action: "account_balance", account: acct });
   if (!result.success) return normalize(result);
 
+  // CRITICAL: Handle "Account not found" as a valid state (balance = 0).
+  if (result.data?.account_not_found) {
+    return {
+      success: true,
+      source: result.source || null,
+      error: null,
+      data: {
+        account: acct,
+        exists: false,
+        balanceRaw: "0",
+        pendingRaw: "0",
+        balanceNano: "0",
+        pendingNano: "0"
+      }
+    };
+  }
+
   const balanceRaw = String(result.data?.balance || "0");
   const pendingRaw = String(result.data?.pending || "0");
 
@@ -31,6 +64,7 @@ async function getBalance(account) {
     error: null,
     data: {
       account: acct,
+      exists: true,
       balanceRaw,
       pendingRaw,
       balanceNano: rawToNano(balanceRaw),
@@ -66,19 +100,21 @@ async function confirmTransaction(hash) {
  *
  * NOTE: This function does not accept seeds from clients. It is intended to be
  * used with server-side stored keys (e.g. authenticated user wallets).
+ * 
+ * Returns: { success, tx_hash, source, error }
  */
 async function sendNano({ privateKey, fromAddress, toAddress, amountNano }) {
   const to = String(toAddress || "").trim();
   const from = String(fromAddress || "").trim();
-  if (!privateKey) return { success: false, data: null, error: "Missing privateKey", source: null };
-  if (!from) return { success: false, data: null, error: "Missing fromAddress", source: null };
-  if (!to) return { success: false, data: null, error: "Missing toAddress", source: null };
+  if (!privateKey) return { success: false, tx_hash: null, source: null, error: "Missing privateKey" };
+  if (!from) return { success: false, tx_hash: null, source: null, error: "Missing fromAddress" };
+  if (!to) return { success: false, tx_hash: null, source: null, error: "Missing toAddress" };
 
   let amountRaw;
   try {
     amountRaw = nanoToRaw(amountNano);
   } catch (err) {
-    return { success: false, data: null, error: String(err?.message || err), source: null };
+    return { success: false, tx_hash: null, source: null, error: String(err?.message || err) };
   }
 
   try {
@@ -87,16 +123,14 @@ async function sendNano({ privateKey, fromAddress, toAddress, amountNano }) {
 
     return {
       success: true,
+      tx_hash: txHash,
       source: null,
       error: null,
-      data: {
-        txHash,
-        confirmed: Boolean(confirmation?.confirmed),
-        confirmedAt: confirmation?.confirmedAt || null
-      }
+      confirmed: Boolean(confirmation?.confirmed),
+      confirmedAt: confirmation?.confirmedAt || null
     };
   } catch (err) {
-    return { success: false, data: null, error: "Failed to process Nano transaction", source: null };
+    return { success: false, tx_hash: null, source: null, error: "Failed to process Nano transaction" };
   }
 }
 

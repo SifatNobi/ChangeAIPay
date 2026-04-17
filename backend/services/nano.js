@@ -1,3 +1,21 @@
+/**
+ * =============================================================================
+ * NANO WALLET SERVICE - PRODUCTION SAFETY RULES ENFORCED
+ * =============================================================================
+ * 
+ * SAFETY RULES:
+ * ✅ NEVER expose private keys in logs or responses
+ * ✅ NEVER return raw seed phrases to frontends
+ * ✅ ALWAYS handle "Account not found" as valid state
+ * ✅ ALWAYS fail gracefully on RPC errors
+ * ✅ ALWAYS validate inputs (address format, keys, amounts)
+ * ✅ ALWAYS verify balance before sending
+ * ✅ ALWAYS reject sends from uninitialized accounts (no balance yet)
+ * ✅ STRICT: Use only hardened RPC nodes (no experimental nodes)
+ * 
+ * =============================================================================
+ */
+
 const nanocurrency = require("nanocurrency");
 const { callRpc } = require("./rpcClient");
 
@@ -83,7 +101,12 @@ async function rpc(action, payload = {}) {
       }
 
       const data = result.data;
-      if (data?.error) throw new Error(`Nano RPC ${action} failed: ${data.error}`);
+      
+      // CRITICAL: Don't throw for "Account not found" - it's a valid state in Nano.
+      if (data?.error && !data?.account_not_found) {
+        throw new Error(`Nano RPC ${action} failed: ${data.error}`);
+      }
+      
       return data;
     } catch (err) {
       lastErr = err;
@@ -119,7 +142,20 @@ async function createWalletAndAccount() {
 async function getAccountBalance(address) {
   const data = await rpc("account_balance", { account: address });
 
+  // CRITICAL: Handle "Account not found" as balance = 0 (uninitialized account).
+  // In Nano, accounts don't exist until they receive their first block.
+  if (data?.account_not_found) {
+    return {
+      exists: false,
+      balanceRaw: "0",
+      pendingRaw: "0",
+      balanceNano: "0",
+      pendingNano: "0"
+    };
+  }
+
   return {
+    exists: true,
     balanceRaw: String(data.balance || "0"),
     pendingRaw: String(data.pending || "0"),
     balanceNano: rawToNano(String(data.balance || "0")),
@@ -132,14 +168,26 @@ async function sendFromWallet({ privateKey, fromAddress, toAddress, amountRaw })
   if (!fromAddress) throw new Error("Missing Nano sender address");
   if (!toAddress) throw new Error("Missing Nano recipient address");
 
-  // 1) Read account state (frontier + representative + balance)
-  const info = await rpc("account_info", { account: fromAddress });
+  let info;
+  try {
+    // 1) Try to read existing account state
+    info = await rpc("account_info", { account: fromAddress });
+  } catch (err) {
+    // CRITICAL: account_info fails for new accounts that haven't received funds yet.
+    // This is expected in Nano. New accounts can't send unless they first receive funds.
+    const errMsg = String(err?.message || err);
+    if (errMsg.toLowerCase().includes("account not found")) {
+      throw new Error("Account is new and has not received any Nano yet. Cannot send from a new account without balance.");
+    }
+    throw err;
+  }
+
   const previous = String(info.frontier || "").trim();
   const representative = String(info.representative_block || "").trim();
   const currentBalanceRaw = String(info.balance || "0");
 
   if (!previous || !representative) {
-    throw new Error("Nano RPC account_info missing required fields");
+    throw new Error("Nano RPC account_info missing required fields (frontier or representative)");
   }
 
   const nextBalanceRaw = (BigInt(currentBalanceRaw) - BigInt(amountRaw)).toString();

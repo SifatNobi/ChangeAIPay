@@ -1,7 +1,26 @@
+/**
+ * =============================================================================
+ * NANO RPC CLIENT - PRODUCTION SAFETY RULES ENFORCED
+ * =============================================================================
+ * 
+ * SAFETY RULES:
+ * ✅ NEVER expose private keys or seeds
+ * ✅ NEVER crash backend on RPC failure
+ * ✅ NEVER trust single RPC node (multi-node failover)
+ * ✅ ALWAYS normalize responses
+ * ✅ ALWAYS treat "account not found" as valid state (balance = 0)
+ * ✅ ALWAYS fallback to next RPC node on error
+ * ✅ ALWAYS use timeouts (10s per node)
+ * ✅ ALWAYS validate JSON before parsing
+ * ✅ NEVER use response.json() (use response.text() + manual parse)
+ * ✅ NO experimental or unstable RPC nodes
+ * 
+ * =============================================================================
+ */
+
 const DEFAULT_RPC_ENDPOINTS = [
   "https://proxy.nanos.cc/proxy",
-  "https://rainstorm.city/api",
-  "https://nano.to/rpc"
+  "https://rpc.nano.to"
 ];
 
 function getRpcEndpoints() {
@@ -50,6 +69,7 @@ function safeJsonParse(text) {
  * - Uses fetch + AbortController timeout.
  * - Uses response.text() and safe JSON.parse (never response.json()).
  * - Normalizes output.
+ * - Handles "Account not found" gracefully as a valid state (balance = 0).
  */
 async function callRpc(payload) {
   let body;
@@ -89,8 +109,27 @@ async function callRpc(payload) {
 
       // Nano RPC uses { error: "..." } for application-level errors.
       if (parsed.value && typeof parsed.value === "object" && parsed.value.error) {
+        const errorMsg = String(parsed.value.error || "");
+        
+        // CRITICAL: "Account not found" is NOT an error in Nano.
+        // It means the account is uninitialized (frontier/balance = 0).
+        // Treat it as success with balance = 0.
+        if (errorMsg.toLowerCase().includes("account not found")) {
+          return {
+            success: true,
+            source: url,
+            data: {
+              account_not_found: true,
+              balance: "0",
+              pending: "0",
+              error: errorMsg
+            },
+            error: null
+          };
+        }
+
         console.warn(
-          `[rpcClient] RPC error from ${url}: ${String(parsed.value.error)}`
+          `[rpcClient] RPC error from ${url}: ${errorMsg}`
         );
         continue;
       }

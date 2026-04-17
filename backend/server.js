@@ -106,13 +106,42 @@ app.use("/transaction", transactionRoutes);
 /* ---------------- RPC TEST ROUTES (FAILOVER) ---------------- */
 
 app.get("/test-rpc", async (_req, res) => {
-  const result = await callRpc({ action: "version" });
-  return res.json(result);
+  try {
+    const result = await callRpc({ action: "version" });
+    return res.json({
+      success: result.success,
+      working_node: result.source || null,
+      version: result.data?.node_vendor || null,
+      message: result.success ? "RPC connection successful ✅" : "RPC nodes unavailable ❌",
+      source: result.source || null,
+      error: result.error || null
+    });
+  } catch (err) {
+    return res.json({ success: false, working_node: null, error: String(err?.message || err) });
+  }
 });
 
 app.get("/rpc-status", async (_req, res) => {
-  const result = await callRpc({ action: "version" });
-  return res.json(result);
+  try {
+    const result = await callRpc({ action: "version" });
+    if (!result.success) {
+      return res.json({
+        status: "offline",
+        working_nodes: [],
+        error: result.error || "All RPC nodes failed"
+      });
+    }
+
+    return res.json({
+      status: "online",
+      working_nodes: [result.source],
+      version: result.data?.node_vendor || "unknown",
+      network: result.data?.network || "unknown",
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    return res.json({ status: "error", error: String(err?.message || err) });
+  }
 });
 
 /* ---------------- WALLET ROUTES (PATCH: only added if missing) ---------------- */
