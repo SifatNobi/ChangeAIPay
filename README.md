@@ -81,6 +81,21 @@ Expected RPC actions:
 - `send`
 - `block_info`
 
+## Nano RPC Configuration (Required for Render)
+
+To enable Nano transactions, set the following environment variable in Render:
+
+```bash
+RPC_URL=https://nano.to/rpc
+```
+
+This is required for:
+- transaction sending
+- account validation
+- wallet operations
+
+Do NOT hardcode `RPC_URL` inside the codebase. It must be configured in Render environment variables.
+
 ## Deployment
 
 ### Netlify

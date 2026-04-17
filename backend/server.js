@@ -13,6 +13,9 @@ const app = express();
 
 console.log("🚀 Server booting...");
 
+/* ---------------- FETCH COMPAT (Render safety) ---------------- */
+const fetch = global.fetch || ((...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args)));
+
 /* ---------------- ENV CHECK ---------------- */
 
 function getEnv(name) {
@@ -43,25 +46,26 @@ app.use(
   })
 );
 
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
-/* ---------------- BASIC ROUTES ---------------- */
+/* ---------------- ROOT ---------------- */
 
-/* Root route (IMPORTANT for testing) */
 app.get("/", (_req, res) => {
   res.json({
     status: "Backend running ✅",
-    available_routes: {
+    routes: {
       auth: ["/auth/register", "/auth/login"],
       user: "/user/*",
       transaction: "/transaction/*",
       health: "/health",
-      test: "/test"
+      test: "/test",
+      test_rpc: "/test-rpc"
     }
   });
 });
 
-/* Health check */
+/* ---------------- HEALTH ---------------- */
+
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
@@ -70,7 +74,8 @@ app.get("/health", (_req, res) => {
   });
 });
 
-/* Test route */
+/* ---------------- TEST ---------------- */
+
 app.get("/test", (_req, res) => {
   res.send("Server is alive 🚀");
 });
@@ -91,7 +96,48 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/transaction", transactionRoutes);
 
-/* ---------------- 404 HANDLER ---------------- */
+/* ---------------- RPC TEST ROUTE ---------------- */
+/* IMPORTANT: must be before 404 */
+
+app.get("/test-rpc", async (_req, res) => {
+  try {
+    if (!process.env.RPC_URL) {
+      return res.status(500).json({
+        success: false,
+        error: "RPC_URL missing in environment variables"
+      });
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch(process.env.RPC_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "version" }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    const data = await response.json();
+
+    return res.json({
+      success: true,
+      data
+    });
+
+  } catch (err) {
+    console.error("❌ RPC test failed:", err.message);
+
+    return res.status(500).json({
+      success: false,
+      error: err.message || "RPC request failed"
+    });
+  }
+});
+
+/* ---------------- 404 ---------------- */
 
 app.use((req, res) => {
   res.status(404).json({
@@ -118,6 +164,10 @@ async function start() {
 
   const mongoUri = getEnv("MONGO_URI");
   getEnv("JWT_SECRET");
+
+  if (!process.env.RPC_URL) {
+    console.warn("⚠ RPC_URL not set. Nano transactions will fail.");
+  }
 
   try {
     await mongoose.connect(mongoUri);

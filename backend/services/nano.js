@@ -1,4 +1,3 @@
-const axios = require("axios");
 const nanocurrency = require("nanocurrency");
 
 function nanoToRaw(nanoAmountStr) {
@@ -25,61 +24,125 @@ function rawToNano(rawStr) {
   return fracStr ? `${whole}.${fracStr}` : whole.toString();
 }
 
-function getAxiosConfig() {
-  const config = {
-    headers: { "Content-Type": "application/json" },
-    timeout: Number(process.env.RPC_TIMEOUT_MS || 15000)
-  };
-
-  const token = String(process.env.RPC_AUTH_TOKEN || "").trim();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  const username = String(process.env.RPC_BASIC_USER || "").trim();
-  const password = String(process.env.RPC_BASIC_PASS || "").trim();
-  if (username && password) {
-    config.auth = { username, password };
-  }
-
-  return config;
-}
-
 function getRpcUrl() {
-  let rpcUrl = String(process.env.RPC_URL || "").trim();
+  const rpcUrl = String(process.env.RPC_URL || "").trim();
   if (!rpcUrl) {
     const err = new Error("Nano RPC is not configured. Set RPC_URL for wallet and transfer features.");
     err.code = "RPC_NOT_CONFIGURED";
     throw err;
   }
 
-  // Support common user-provided shorthand for nano.to.
-  // nano.to exposes the public RPC at https://rpc.nano.to.
-  if (/nano\.to\/rpc$/i.test(rpcUrl)) {
-    rpcUrl = "https://rpc.nano.to";
+  return rpcUrl;
+}
+
+function getRpcHeaders() {
+  const headers = { "Content-Type": "application/json" };
+
+  const token = String(process.env.RPC_AUTH_TOKEN || "").trim();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  return headers;
+}
+
+function validateRpcPayload(action, payload) {
+  if (!action || typeof action !== "string") {
+    throw new Error("Nano RPC action must be a non-empty string");
+  }
+  if (payload == null || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error("Nano RPC payload must be an object");
   }
 
-  return rpcUrl;
+  const requireField = (name) => {
+    if (payload[name] == null || String(payload[name]).trim() === "") {
+      throw new Error(`Nano RPC ${action} missing required field: ${name}`);
+    }
+  };
+
+  // Minimal validation for the actions we use.
+  if (action === "account_balance") requireField("account");
+  if (action === "account_info") requireField("account");
+  if (action === "block_info") requireField("hash");
+  if (action === "process") requireField("block");
+}
+
+async function rpcFetchWithTimeout(url, body, timeoutMs) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: getRpcHeaders(),
+      body,
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error("RPC request failed with status " + response.status);
+    }
+
+    const data = await response.json();
+    return data;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function rpc(action, payload = {}) {
   const rpcUrl = getRpcUrl();
   const rpcApiKey = String(process.env.RPC_API_KEY || "").trim();
-  const response = await axios.post(
-    rpcUrl,
-    {
-      action,
-      ...payload,
-      ...(rpcApiKey ? { key: rpcApiKey } : {})
-    },
-    getAxiosConfig()
-  );
 
-  if (response.data?.error) {
-    throw new Error(`Nano RPC ${action} failed: ${response.data.error}`);
+  const requestPayload = {
+    action,
+    ...payload,
+    ...(rpcApiKey ? { key: rpcApiKey } : {})
+  };
+
+  validateRpcPayload(action, requestPayload);
+
+  let body;
+  try {
+    body = JSON.stringify(requestPayload);
+  } catch (err) {
+    throw new Error("Nano RPC payload must be valid JSON");
   }
 
-  return response.data;
+  // Safe debug logging for RPC calls (does not include private keys).
+  try {
+    console.log("Sending Nano TX payload:", JSON.stringify(requestPayload, null, 2));
+  } catch {
+    console.log("Sending Nano TX payload: [unserializable]");
+  }
+
+  const timeoutMs = Math.max(Number(process.env.RPC_TIMEOUT_MS || 10000), 1000);
+  const retries = Math.max(Number(process.env.RPC_RETRIES || 1), 0);
+
+  let lastErr = null;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      const data = await rpcFetchWithTimeout(rpcUrl, body, timeoutMs);
+      if (data?.error) {
+        throw new Error(`Nano RPC ${action} failed: ${data.error}`);
+      }
+      return data;
+    } catch (err) {
+      lastErr = err;
+      const msg = String(err?.message || err);
+      console.error("Nano RPC Error:", msg);
+
+      // AbortError / timeout or transient network failures should retry.
+      const isAbort = err?.name === "AbortError" || /aborted|timeout/i.test(msg);
+      const isNetwork = /network|ECONNRESET|ENOTFOUND|EAI_AGAIN|fetch failed/i.test(msg);
+      if (attempt < retries && (isAbort || isNetwork)) {
+        const backoffMs = 250 * (attempt + 1);
+        await new Promise((resolve) => setTimeout(resolve, backoffMs));
+        continue;
+      }
+      break;
+    }
+  }
+
+  throw new Error("Failed to process Nano transaction");
 }
 
 async function createWalletAndAccount() {
