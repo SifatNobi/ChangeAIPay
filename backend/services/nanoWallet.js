@@ -32,44 +32,42 @@ function normalize(result) {
 async function getBalance(account) {
   const acct = String(account || "").trim();
   if (!acct) {
-    return { success: false, data: null, error: "Account is required", source: null };
+    return { success: false, balance: "0", exists: false, error: "Account is required" };
   }
 
   const result = await callRpc({ action: "account_balance", account: acct });
-  if (!result.success) return normalize(result);
-
-  // CRITICAL: Handle "Account not found" as a valid state (balance = 0).
-  if (result.data?.account_not_found) {
+  
+  // CRITICAL: Handle "Account not found" as valid state (returns exists: false)
+  if (result.success && result.exists === false) {
     return {
       success: true,
-      source: result.source || null,
-      error: null,
-      data: {
-        account: acct,
-        exists: false,
-        balanceRaw: "0",
-        pendingRaw: "0",
-        balanceNano: "0",
-        pendingNano: "0"
-      }
+      balance: "0",
+      exists: false,
+      error: null
     };
   }
 
+  if (!result.success) {
+    return {
+      success: false,
+      balance: "0",
+      exists: false,
+      error: result.error || "RPC failure"
+    };
+  }
+
+  // Account exists with balance data
   const balanceRaw = String(result.data?.balance || "0");
   const pendingRaw = String(result.data?.pending || "0");
 
   return {
     success: true,
-    source: result.source || null,
-    error: null,
-    data: {
-      account: acct,
-      exists: true,
-      balanceRaw,
-      pendingRaw,
-      balanceNano: rawToNano(balanceRaw),
-      pendingNano: rawToNano(pendingRaw)
-    }
+    balance: balanceRaw,
+    pending: pendingRaw,
+    balanceNano: rawToNano(balanceRaw),
+    pendingNano: rawToNano(pendingRaw),
+    exists: true,
+    error: null
   };
 }
 

@@ -102,8 +102,14 @@ async function rpc(action, payload = {}) {
 
       const data = result.data;
       
-      // CRITICAL: Don't throw for "Account not found" - it's a valid state in Nano.
-      if (data?.error && !data?.account_not_found) {
+      // CRITICAL: "Account not found" (exists: false) is a VALID state in Nano.
+      // Don't throw - return the data as-is (it will have data: null and exists: false set in callRpc).
+      if (result.exists === false) {
+        return { error: "Account not found", account_not_found: true };
+      }
+
+      // Real RPC error - fail
+      if (data?.error) {
         throw new Error(`Nano RPC ${action} failed: ${data.error}`);
       }
       
@@ -144,7 +150,7 @@ async function getAccountBalance(address) {
 
   // CRITICAL: Handle "Account not found" as balance = 0 (uninitialized account).
   // In Nano, accounts don't exist until they receive their first block.
-  if (data?.account_not_found) {
+  if (data?.account_not_found || data?.error === "Account not found") {
     return {
       exists: false,
       balanceRaw: "0",
@@ -180,6 +186,11 @@ async function sendFromWallet({ privateKey, fromAddress, toAddress, amountRaw })
       throw new Error("Account is new and has not received any Nano yet. Cannot send from a new account without balance.");
     }
     throw err;
+  }
+
+  // Check if rpc() returned "Account not found" (which may be in the error field)
+  if (info.account_not_found || info.error === "Account not found") {
+    throw new Error("Account is new and has not received any Nano yet. Cannot send from a new account without balance.");
   }
 
   const previous = String(info.frontier || "").trim();
