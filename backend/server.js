@@ -14,7 +14,10 @@ const app = express();
 console.log("🚀 Server booting...");
 
 /* ---------------- FETCH COMPAT (Render safety) ---------------- */
-const fetch = global.fetch || ((...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args)));
+const fetch =
+  global.fetch ||
+  ((...args) =>
+    import("node-fetch").then(({ default: fetch }) => fetch(...args)));
 
 /* ---------------- ENV CHECK ---------------- */
 
@@ -59,8 +62,8 @@ app.get("/", (_req, res) => {
       transaction: "/transaction/*",
       health: "/health",
       test: "/test",
-      test_rpc: "/test-rpc"
-    }
+      test_rpc: "/test-rpc",
+    },
   });
 });
 
@@ -96,15 +99,14 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/transaction", transactionRoutes);
 
-/* ---------------- RPC TEST ROUTE ---------------- */
-/* IMPORTANT: must be before 404 */
+/* ---------------- RPC TEST ROUTE (FIXED SAFE VERSION) ---------------- */
 
 app.get("/test-rpc", async (_req, res) => {
   try {
     if (!process.env.RPC_URL) {
       return res.status(500).json({
         success: false,
-        error: "RPC_URL missing in environment variables"
+        error: "RPC_URL missing in environment variables",
       });
     }
 
@@ -115,16 +117,27 @@ app.get("/test-rpc", async (_req, res) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "version" }),
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     clearTimeout(timeout);
 
-    const data = await response.json();
+    const text = await response.text(); // IMPORTANT FIX
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      return res.status(500).json({
+        success: false,
+        error: "Invalid JSON from RPC",
+        raw_response: text,
+      });
+    }
 
     return res.json({
       success: true,
-      data
+      data,
     });
 
   } catch (err) {
@@ -132,7 +145,7 @@ app.get("/test-rpc", async (_req, res) => {
 
     return res.status(500).json({
       success: false,
-      error: err.message || "RPC request failed"
+      error: err.message || "RPC request failed",
     });
   }
 });
