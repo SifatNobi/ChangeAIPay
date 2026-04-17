@@ -9,6 +9,9 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const transactionRoutes = require("./routes/transaction");
 const { callRpc } = require("./services/rpcClient");
+const auth = require("./middleware/auth");
+const User = require("./models/User");
+const { sendNano, getBalance, confirmTransaction } = require("./services/nanoWallet");
 
 const app = express();
 
@@ -110,6 +113,79 @@ app.get("/test-rpc", async (_req, res) => {
 app.get("/rpc-status", async (_req, res) => {
   const result = await callRpc({ action: "version" });
   return res.json(result);
+});
+
+/* ---------------- WALLET ROUTES (PATCH: only added if missing) ---------------- */
+
+// Public: read-only balance lookup (no secrets).
+app.get("/balance/:account", async (req, res) => {
+  try {
+    const result = await getBalance(req.params.account);
+    return res.json(result);
+  } catch (err) {
+    return res.json({ success: false, data: null, error: "RPC failure", source: null });
+  }
+});
+
+// Authenticated: send from the caller's server-stored wallet key. Never accepts private keys from clients.
+app.post("/send", auth, async (req, res) => {
+  try {
+    const recipientInput = String(req.body?.recipient || req.body?.to || "").trim();
+    const amountNano = String(req.body?.amount || "").trim();
+
+    if (!recipientInput) {
+      return res.json({ success: false, data: null, error: "Recipient is required", source: null });
+    }
+    if (!amountNano) {
+      return res.json({ success: false, data: null, error: "Amount is required", source: null });
+    }
+
+    const sender = await User.findById(req.user.id).select("+privateKey");
+    if (!sender) {
+      return res.json({ success: false, data: null, error: "User not found", source: null });
+    }
+
+    if (!sender.walletAddress || !sender.privateKey) {
+      return res.json({ success: false, data: null, error: "Sender wallet is not ready", source: null });
+    }
+
+    const receiver = recipientInput.includes("@")
+      ? await User.findOne({ email: recipientInput.toLowerCase() }).lean()
+      : await User.findOne({ walletAddress: recipientInput }).lean();
+
+    if (!receiver) {
+      return res.json({ success: false, data: null, error: "Recipient user not found", source: null });
+    }
+
+    if (!receiver.walletAddress) {
+      return res.json({ success: false, data: null, error: "Recipient wallet is not ready", source: null });
+    }
+
+    if (String(receiver._id) === String(sender._id)) {
+      return res.json({ success: false, data: null, error: "Cannot send Nano to yourself", source: null });
+    }
+
+    const result = await sendNano({
+      privateKey: sender.privateKey,
+      fromAddress: sender.walletAddress,
+      toAddress: receiver.walletAddress,
+      amountNano
+    });
+
+    return res.json(result);
+  } catch (_err) {
+    return res.json({ success: false, data: null, error: "Failed to process Nano transaction", source: null });
+  }
+});
+
+// Public confirmation status by hash.
+app.get("/confirm/:hash", async (req, res) => {
+  try {
+    const result = await confirmTransaction(req.params.hash);
+    return res.json(result);
+  } catch (_err) {
+    return res.json({ success: false, data: null, error: "RPC failure", source: null });
+  }
 });
 
 /* ---------------- 404 ---------------- */
