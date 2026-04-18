@@ -9,6 +9,12 @@
   box-sizing: border-box;
 }
 
+html, body, #root {
+  min-height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -17,6 +23,13 @@ body {
     radial-gradient(circle at 100% 0, rgba(84, 195, 255, 0.16), transparent 26%),
     radial-gradient(circle at 0 100%, rgba(33, 182, 248, 0.14), transparent 28%),
     #000;
+}
+
+input,
+button,
+select,
+textarea {
+  font-size: 16px;
 }
 
 a {
@@ -49,6 +62,15 @@ button {
   opacity: 0.06;
   background-image: radial-gradient(circle, #54c3ff 1px, transparent 1px);
   background-size: 34px 34px;
+}
+
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .stitch-orb {
@@ -690,6 +712,115 @@ input:focus {
 
 .status.error {
   background: rgba(255, 113, 108, 0.12);
+}
+
+.status.pending {
+  color: #ffc107;
+  background: rgba(255, 193, 7, 0.12);
+}
+
+.status.success {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+}
+
+.status strong {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.status p {
+  margin: 4px 0;
+  font-size: 0.95em;
+}
+
+.tx-hash {
+  font-size: 0.85em;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: "Inter", monospace;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.copy-button {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.qr-scan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: -8px;
+  margin-bottom: 12px;
+}
+
+.qr-scanner-container {
+  border: 1px solid rgba(84, 195, 255, 0.18);
+  border-radius: 18px;
+  overflow: hidden;
+  min-height: 280px;
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.qr-scanner-container #qr-scanner {
+  width: 100%;
+  min-height: 280px;
+}
+
+.trust-note {
+  color: #9caec0;
+  font-size: 0.92rem;
+  margin: 12px 0 8px;
+}
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0;
+}
+
+.compare-card {
+  border: 1px solid rgba(84, 195, 255, 0.14);
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.compare-card.highlight {
+  background: rgba(33, 182, 248, 0.12);
+  border-color: rgba(33, 182, 248, 0.24);
+}
+
+.trust-list {
+  display: grid;
+  gap: 10px;
+}
+
+.auth-about-card,
+.auth-waitlist-card {
+  padding: 24px;
+}
+
+.auth-about-card h2 {
+  margin: 12px 0;
+}
+
+.tx-hash-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .switch-copy {

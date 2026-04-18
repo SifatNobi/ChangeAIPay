@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { joinWaitlist } from "../../api";
 import BrandMark from "../components/BrandMark";
 
 export default function LoginScreen({
@@ -7,6 +9,10 @@ export default function LoginScreen({
   loading,
   error
 }) {
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistStatus, setWaitlistStatus] = useState({ type: "idle", message: "" });
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+
   function submit(e) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -16,6 +22,28 @@ export default function LoginScreen({
       email: String(payload.email || ""),
       password: String(payload.password || "")
     });
+  }
+
+  async function handleJoinWaitlist(e) {
+    e.preventDefault();
+    setWaitlistStatus({ type: "idle", message: "" });
+    const email = String(waitlistEmail || "").trim();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setWaitlistStatus({ type: "error", message: "Please enter a valid email." });
+      return;
+    }
+
+    setWaitlistLoading(true);
+    try {
+      const result = await joinWaitlist(email);
+      setWaitlistStatus({ type: "success", message: result.message || "You're on the list" });
+      setWaitlistEmail("");
+    } catch (err) {
+      setWaitlistStatus({ type: "error", message: err?.message || "Unable to join the waitlist." });
+    } finally {
+      setWaitlistLoading(false);
+    }
   }
 
   return (
@@ -79,7 +107,46 @@ export default function LoginScreen({
           </p>
         </div>
       </div>
-      <div className="auth-meta">Powered by Nano Protocol</div>
+      <section className="card glass-card auth-about-card">
+        <span className="eyebrow">Instant, zero-fee payments using Nano</span>
+        <h2>Save fees and settle instantly</h2>
+        <p className="muted">
+          Merchants can save up to 2–5% per transaction. Consumers avoid hidden fees. Savings may vary based on usage.
+        </p>
+        <div className="compare-grid">
+          <div>
+            <strong>Traditional payments</strong>
+            <p>2–5% fees</p>
+          </div>
+          <div>
+            <strong>Our system</strong>
+            <p>0% fees</p>
+          </div>
+        </div>
+      </section>
+      <section className="card glass-card auth-waitlist-card">
+        <span className="eyebrow">Join the waitlist</span>
+        <p className="muted">Submit your email to reserve early access and product updates.</p>
+        <form className="form-stack" onSubmit={handleJoinWaitlist}>
+          <input
+            value={waitlistEmail}
+            onChange={(e) => setWaitlistEmail(e.target.value)}
+            name="waitlistEmail"
+            placeholder="Email"
+            type="email"
+            required
+          />
+          <button className="primary-button auth-cta" disabled={waitlistLoading} type="submit">
+            {waitlistLoading ? "Joining..." : "Join waitlist"}
+          </button>
+        </form>
+        {waitlistStatus.type !== "idle" && (
+          <div className={`status ${waitlistStatus.type}`}>
+            {waitlistStatus.message}
+          </div>
+        )}
+      </section>
+      <div className="auth-meta">Powered by Nano Protocol • Instant settlement • Zero-fee</div>
     </div>
   );
 }

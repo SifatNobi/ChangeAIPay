@@ -72,6 +72,13 @@ export async function sendTransaction(token, { recipient, amount }) {
   });
 }
 
+export async function joinWaitlist(email) {
+  return apiRequest("/waitlist", {
+    method: "POST",
+    body: { email }
+  });
+}
+
 export async function getTransactionHistory(token, { limit = 50 } = {}) {
   const qs = new URLSearchParams();
   if (limit) qs.set("limit", String(limit));

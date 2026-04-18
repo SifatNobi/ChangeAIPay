@@ -61,7 +61,7 @@ export default function DashboardScreen({ profile, token, loadHistory }) {
           <div className="pill confirmed">Live</div>
         </div>
 
-        <p className="muted">Balance and recent activity for your ChangeAIPay wallet.</p>
+        <p className="muted">Balance and recent activity for your ChangeAIPay wallet. Scan QR to pay instantly.</p>
         <div className="summary-card">
           <span className="eyebrow">Current Treasury</span>
           <strong>{formatAmount(balance)} XNO</strong>
@@ -136,12 +136,37 @@ export default function DashboardScreen({ profile, token, loadHistory }) {
 
         <div className="list-grid">
           {transactions.length === 0 && (
-            <div className="empty-state">No transactions yet.</div>
+            <div className="empty-state">
+              No transactions yet — your payments will appear here.
+            </div>
           )}
 
           {transactions.map((t, i) => (
             <TransactionItem key={t?.id || t?.txHash || i} transaction={t} />
           ))}
+        </div>
+      </section>
+
+      <section className="card glass-card stitch-about-card">
+        <span className="eyebrow">Why choose ChangeAIPay</span>
+        <h2>Instant, zero-fee payments using Nano</h2>
+        <p className="muted">
+          Merchants can save up to 2–5% per transaction. Consumers avoid hidden fees. Savings may vary based on usage.
+        </p>
+        <div className="compare-grid">
+          <div className="compare-card">
+            <strong>Traditional payments</strong>
+            <p>2–5% fees</p>
+          </div>
+          <div className="compare-card highlight">
+            <strong>Our system</strong>
+            <p>0% fees</p>
+          </div>
+        </div>
+        <div className="trust-list">
+          <p>Powered by Nano network</p>
+          <p>Instant settlement</p>
+          <p>Transparent, no hidden fees</p>
         </div>
       </section>
     </div>

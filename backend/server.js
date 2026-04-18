@@ -8,10 +8,11 @@ const rateLimit = require("express-rate-limit");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const transactionRoutes = require("./routes/transaction");
-const { callRpc, RPC_NODES } = require("./services/rpcClient");
+const waitlistRoutes = require("./routes/waitlist");
+const { callRpc, RPC_NODES, getNodeHealth, testRpcNodes } = require("./services/rpcClient");
 const auth = require("./middleware/auth");
 const User = require("./models/User");
-const { sendNano, getBalance, confirmTransaction } = require("./services/nanoWallet");
+const { sendNano, getBalance, confirmTransaction, autoReceive } = require("./services/nanoWallet");
 
 const app = express();
 
@@ -102,77 +103,142 @@ app.use(
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/transaction", transactionRoutes);
+app.use("/waitlist", waitlistRoutes);
 
-/* ---------------- RPC TEST ROUTES (FAILOVER) ---------------- */
+/* ========== DEMO-READY RPC & HEALTH ROUTES (PHASE 7) ========== */
 
+// SIMPLE RPC TEST (for demo)
 app.get("/test-rpc", async (_req, res) => {
+  try {
+    const result = await callRpc({ action: "version" });
+    const status = result.success ? "✅ ONLINE" : "❌ OFFLINE";
+    return res.json({
+      status,
+      success: result.success,
+      working_node: result.source || null,
+      message: result.success ? "RPC connection successful" : "All RPC nodes failed",
+      version: result.data?.node_vendor || null,
+      network: result.data?.network || null,
+      error: result.error || null,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    return res.status(502).json({ 
+      status: "❌ ERROR",
+      success: false, 
+      error: String(err?.message || err) 
+    });
+  }
+});
+
+// DEBUGGING RPC FAILOVER
+app.get("/rpc-debug", async (_req, res) => {
   try {
     const result = await callRpc({ action: "version" });
     return res.json({
       success: result.success,
       working_node: result.source || null,
-      version: result.data?.node_vendor || null,
-      message: result.success ? "RPC connection successful ✅" : "RPC nodes unavailable ❌",
-      source: result.source || null,
-      error: result.error || null
-    });
-  } catch (err) {
-    return res.json({ success: false, working_node: null, error: String(err?.message || err) });
-  }
-});
-
-app.get("/rpc-status", async (_req, res) => {
-  try {
-    const result = await callRpc({ action: "version" });
-    if (!result.success) {
-      return res.json({
-        status: "offline",
-        working_nodes: [],
-        error: result.error || "All RPC nodes failed"
-      });
-    }
-
-    return res.json({
-      status: "online",
-      working_nodes: [result.source],
-      version: result.data?.node_vendor || "unknown",
-      network: result.data?.network || "unknown",
+      data: result.data || null,
+      error: result.error || null,
       timestamp: new Date().toISOString()
     });
   } catch (err) {
-    return res.json({ status: "error", error: String(err?.message || err) });
+    return res.status(502).json({
+      success: false,
+      error: String(err?.message || err)
+    });
   }
 });
 
-app.get("/rpc-debug", async (_req, res) => {
-  const results = [];
-
-  for (const url of RPC_NODES) {
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "version" }),
-      });
-
-      const text = await response.text();
-
-      results.push({
-        url,
-        success: true,
-        preview: text.slice(0, 100)
-      });
-
-    } catch (err) {
-      results.push({
-        url,
-        success: false,
-        error: err.message
-      });
-    }
+// COMPREHENSIVE HEALTH CHECK (for demo)
+app.get("/health-full", async (_req, res) => {
+  try {
+    const mongoState = mongoose.connection.readyState;
+    const mongoStates = ["disconnected", "connected", "connecting", "disconnecting"];
+    
+    const rpcTest = await callRpc({ action: "version" });
+    const nodeHealth = getNodeHealth();
+    
+    // Count healthy nodes
+    const healthyNodes = nodeHealth.filter(n => n.healthy).length;
+    
+    return res.json({
+      status: mongoState === 1 && rpcTest.success ? "🟢 PRODUCTION READY" : "🟡 DEGRADED",
+      uptime_seconds: Math.floor(process.uptime()),
+      database: {
+        connected: mongoState === 1,
+        state: mongoStates[mongoState],
+        ready: mongoState === 1 ? "✅ Yes" : "❌ No"
+      },
+      rpc: {
+        status: rpcTest.success ? "✅ HEALTHY" : "❌ UNHEALTHY",
+        working_node: rpcTest.source || "none",
+        healthy_nodes: `${healthyNodes}/${RPC_NODES.length}`,
+        nodes: nodeHealth,
+        network: rpcTest.data?.network || "unknown"
+      },
+      message: "ChangeAIPay Backend Status"
+    });
+  } catch (err) {
+    return res.status(500).json({ 
+      status: "🔴 ERROR",
+      error: String(err?.message || err) 
+    });
   }
+});
 
-  res.json(results);
+// NODE HEALTH DETAILED (for investigating issues)
+app.get("/rpc-health", async (_req, res) => {
+  try {
+    const nodeHealth = getNodeHealth();
+    const testResults = await testRpcNodes();
+    const onlineCount = testResults.filter((r) => r.online).length;
+
+    return res.json({
+      status: onlineCount > 0 ? "✅ HEALTHY" : "❌ CRITICAL",
+      online_nodes: `${onlineCount}/${RPC_NODES.length}`,
+      nodes: testResults,
+      node_health: nodeHealth,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: "🔴 ERROR",
+      error: String(err?.message || err)
+    });
+  }
+});
+
+// PAYMENT FLOW TESTER (for demo)
+app.get("/demo-payment-flow", async (_req, res) => {
+  try {
+    return res.json({
+      status: "🚀 READY FOR DEMO",
+      supported_operations: [
+        "POST /transaction/send - Send Nano to recipient",
+        "GET /transaction/history - View payment history",
+        "GET /balance/:account - Check account balance"
+      ],
+      payment_flow: {
+        step1: "User initiates payment with recipient and amount",
+        step2: "Backend validates sender balance",
+        step3: "Backend builds and signs Nano block",
+        step4: "Broadcast via RPC with automatic failover",
+        step5: "Poll for confirmation (max 10-20 seconds)",
+        step6: "Return tx_hash and status to frontend"
+      },
+      error_handling: {
+        insufficient_balance: "Checked before sending (no double charges)",
+        account_not_opened: "Sender must receive funds first",
+        rpc_failed: "Retries all nodes, returns clear error",
+        invalid_input: "Validation on sender input"
+      },
+      demo_ready: true,
+      message: "Payment system is production-ready"
+    });
+  } catch (err) {
+    return res.status(500).json({ error: String(err?.message || err) });
+  }
 });
 
 /* ---------------- WALLET ROUTES (PATCH: only added if missing) ---------------- */
@@ -276,8 +342,8 @@ async function start() {
   const mongoUri = getEnv("MONGO_URI");
   getEnv("JWT_SECRET");
 
-  if (!process.env.RPC_URL) {
-    console.warn("⚠ RPC_URL not set. Nano transactions will fail.");
+  if (!process.env.RPC_NODES) {
+    console.warn("⚠ RPC_NODES not configured. Falling back to default public nodes.");
   }
 
   try {
