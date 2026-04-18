@@ -12,15 +12,11 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: RPC_URL
+      - key: RPC_NODES
+        sync: false
+      - key: RPC_TIMEOUT_MS
         sync: false
       - key: RPC_API_KEY
-        sync: false
-      - key: RPC_AUTH_TOKEN
-        sync: false
-      - key: RPC_BASIC_USER
-        sync: false
-      - key: RPC_BASIC_PASS
         sync: false
       - key: CORS_ORIGINS
         sync: false

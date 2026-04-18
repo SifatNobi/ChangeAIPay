@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const DEFAULT_LOGO_SRC = "/logo.svg";
+const DEFAULT_LOGO_SRC = "/assets/icon.png";
 
 export default function BrandMark({ size = 52, src = DEFAULT_LOGO_SRC }) {
   const [failed, setFailed] = useState(false);

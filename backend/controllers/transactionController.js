@@ -80,24 +80,27 @@ async function send(req, res) {
     if (!receiver) {
       return res.status(404).json({ 
         success: false,
-        status: "recipient_not_found",
-        error: "Recipient user not found" 
+        status: "failed",
+        message: "Recipient not found. Enter a valid email or wallet address.",
+        error: "Recipient not found. Enter a valid email or wallet address."
       });
     }
 
     if (String(receiver._id) === String(sender._id)) {
       return res.status(400).json({ 
         success: false,
-        status: "invalid_recipient",
-        error: "Cannot send Nano to yourself" 
+        status: "failed",
+        message: "You cannot send Nano to yourself.",
+        error: "You cannot send Nano to yourself."
       });
     }
 
     if (!receiver.walletAddress) {
       return res.status(400).json({ 
         success: false,
-        status: "receiver_wallet_not_ready",
-        error: "Recipient wallet is not ready" 
+        status: "failed",
+        message: "Recipient wallet is not ready.",
+        error: "Recipient wallet is not ready."
       });
     }
 
@@ -107,8 +110,9 @@ async function send(req, res) {
     } catch (error) {
       return res.status(400).json({ 
         success: false,
-        status: "invalid_amount",
-        error: String(error?.message || error) 
+        status: "failed",
+        message: "Please enter a valid amount to send.",
+        error: "Please enter a valid amount to send." 
       });
     }
 
@@ -126,7 +130,8 @@ async function send(req, res) {
       console.log(`[transactionController] ⚠️ Duplicate send blocked. Recent transaction: ${recentDuplicate._id}`);
       return res.status(400).json({
         success: false,
-        status: "duplicate_send",
+        status: "failed",
+        message: "This payment was just sent. Please wait a moment before retrying.",
         error: "This payment was just sent. Please wait a moment before retrying.",
         tx_hash: recentDuplicate.txHash,
         transaction: recentDuplicate.txHash ? formatTransaction(recentDuplicate.toObject(), sender._id) : null
@@ -195,7 +200,6 @@ async function send(req, res) {
       
       return res.status(201).json({
         success: true,
-        state: "processing",
         status: "success",
         tx_hash: txHash,
         message: "Payment submitted successfully",
@@ -208,58 +212,52 @@ async function send(req, res) {
       
       const isStructuredError = error && typeof error === "object" && error.status;
       
-      let statusType = ERROR_TYPES.RPC_FAILED;
-      let walletState = "failed";
+      let normalizedStatus = "failed";
       let httpStatus = 502;
-      let errorMsg = "Failed to send Nano transaction";
-      let errorDetails = String(error?.message || error);
+      let errorMsg = "Unable to process payment. Please try again.";
       let balance = null;
       let balanceNano = null;
 
       if (isStructuredError) {
-        statusType = error.status;
-        errorMsg = error.error || "Payment failed";
         balance = error.balance;
         balanceNano = error.balanceNano;
-        
-        // Use explicit state if provided, otherwise infer from status
-        if (error.state) {
-          walletState = error.state;
-        }
 
-        // Map error types to HTTP status codes and wallet states
-        switch (statusType) {
+        switch (error.status) {
           case ERROR_TYPES.INSUFFICIENT_BALANCE:
+            normalizedStatus = "action_required";
             httpStatus = 400;
-            walletState = "needs_funding";
-            errorMsg = "Insufficient balance";
+            errorMsg = "Wallet needs funding. Send Nano to your wallet first.";
             console.error(`[transactionController] ❌ Insufficient balance. Have: ${balance}, Need: ${error.amount}`);
             break;
           case ERROR_TYPES.ACCOUNT_NOT_OPENED:
+            normalizedStatus = "action_required";
             httpStatus = 400;
-            walletState = "not_activated";
-            errorMsg = "Account not opened. Please receive Nano first.";
+            errorMsg = "Wallet not activated. To start sending payments, receive Nano first.";
             console.error(`[transactionController] ❌ Account not opened`);
             break;
           case ERROR_TYPES.RPC_FAILED:
+            normalizedStatus = "failed";
             httpStatus = 502;
-            walletState = "failed";
-            console.error(`[transactionController] ❌ RPC failure: ${errorMsg}`);
+            errorMsg = "Unable to reach the payment network. Please try again shortly.";
+            console.error(`[transactionController] ❌ RPC failure: ${String(error.error || error.message || error)}`);
             break;
           case ERROR_TYPES.INVALID_INPUT:
+            normalizedStatus = "failed";
             httpStatus = 400;
-            walletState = "failed";
-            console.error(`[transactionController] ❌ Invalid input: ${errorMsg}`);
+            errorMsg = "Please check the recipient and amount and try again.";
+            console.error(`[transactionController] ❌ Invalid input: ${String(error.error || error.message || error)}`);
             break;
           case ERROR_TYPES.BLOCK_FAILURE:
+            normalizedStatus = "failed";
             httpStatus = 502;
-            walletState = "failed";
-            console.error(`[transactionController] ❌ Block failure: ${errorMsg}`);
+            errorMsg = "Payment could not be completed. Please try again.";
+            console.error(`[transactionController] ❌ Block failure: ${String(error.error || error.message || error)}`);
             break;
           default:
+            normalizedStatus = "failed";
             httpStatus = 502;
-            walletState = "failed";
-            console.error(`[transactionController] ❌ Unknown error: ${errorMsg}`);
+            errorMsg = "Unable to process payment. Please try again.";
+            console.error(`[transactionController] ❌ Unknown error: ${String(error.error || error.message || error)}`);
         }
       } else {
         // Unstructured Error
@@ -267,17 +265,16 @@ async function send(req, res) {
       }
 
       // CRITICAL: Only mark as failed if transaction was not already submitted
-      // This prevents marking as failed if RPC accepted but confirmation failed
       if (transaction.status === "pending") {
-        transaction.status = "failed";
+        transaction.status = normalizedStatus === "failed" ? "failed" : transaction.status;
         transaction.errorMessage = errorMsg;
         await transaction.save();
       }
       
       return res.status(httpStatus).json({
         success: false,
-        state: walletState,
-        status: statusType,
+        status: normalizedStatus,
+        message: errorMsg,
         error: errorMsg,
         ...(balance !== null && { balance, balanceNano }),
         tx_hash: transaction.txHash || null,
@@ -320,4 +317,108 @@ async function history(req, res) {
   }
 }
 
-module.exports = { send, history };
+/* ========== PHASE 11: REAL-TIME STATUS POLLING ==========
+   GET /transaction/:id/status
+   Polls RPC to check live confirmation status
+   Enables frontend to show "Confirming... 23 seconds" UI
+   ====================================================== */
+async function status(req, res) {
+  try {
+    const txId = String(req.params?.id || "").trim();
+    if (!txId) {
+      return res.status(400).json({ success: false, error: "Transaction ID required" });
+    }
+
+    const transaction = await Transaction.findById(txId);
+    if (!transaction) {
+      return res.status(404).json({ success: false, error: "Transaction not found" });
+    }
+
+    // Authorization: user must be sender or receiver
+    const userId = String(req.user.id || "");
+    const senderId = String(transaction.sender || "");
+    const receiverId = String(transaction.receiver || "");
+    const isAuthorized = userId === senderId || userId === receiverId;
+
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, error: "Unauthorized" });
+    }
+
+    let currentStatus = transaction.status;
+    let confirmed = false;
+    let confirmationTime = null;
+    let rpcTimeoutOccurred = false;
+
+    // CRITICAL: If status is "submitted" and we have tx_hash, check RPC for confirmation
+    if (currentStatus === "submitted" && transaction.txHash) {
+      console.log(`[transactionController/status] 🔍 Checking RPC for tx: ${transaction.txHash}`);
+      
+      try {
+        // PHASE 12: Apply timeout protection (max 5 seconds per RPC check)
+        const confirmPromise = waitForConfirmation(transaction.txHash);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("RPC timeout")), 5000)
+        );
+
+        const confirmResult = await Promise.race([confirmPromise, timeoutPromise]);
+        
+        if (confirmResult.confirmed) {
+          // Update transaction to confirmed
+          transaction.status = "confirmed";
+          transaction.confirmedAt = confirmResult.confirmedAt || new Date();
+          await transaction.save();
+          currentStatus = "confirmed";
+          confirmed = true;
+          confirmationTime = confirmResult.confirmationTime;
+          console.log(`[transactionController/status] ✅ Updated to confirmed: ${transaction._id}`);
+        } else if (confirmResult.pending) {
+          // Still pending, but no error
+          console.log(`[transactionController/status] ⏳ Still pending: ${transaction._id}`);
+          confirmed = false;
+        }
+      } catch (confirmErr) {
+        const errMsg = String(confirmErr?.message || confirmErr);
+        if (errMsg.includes("RPC timeout")) {
+          rpcTimeoutOccurred = true;
+          console.warn(`[transactionController/status] ⏱️ RPC timeout - keep polling: ${transaction._id}`);
+        } else {
+          // Other RPC error, don't fail the response
+          console.warn(`[transactionController/status] ⚠️ Confirmation check error: ${errMsg}`);
+        }
+      }
+    }
+
+    // Normalize status for frontend
+    const normalizedStatus = normalizeHistoryStatus(currentStatus);
+
+    return res.json({
+      success: true,
+      transaction_id: transaction._id,
+      status: currentStatus,
+      normalizedStatus,
+      tx_hash: transaction.txHash || null,
+      confirmed,
+      confirmationTime,
+      submittedAt: transaction.submittedAt,
+      confirmedAt: transaction.confirmedAt,
+      errorMessage: transaction.errorMessage,
+      rpcTimeoutOccurred,
+      message: confirmed 
+        ? "Transaction confirmed and finalized"
+        : currentStatus === "failed"
+        ? transaction.errorMessage || "Transaction failed"
+        : rpcTimeoutOccurred
+        ? "RPC network busy - continuing to poll"
+        : "Awaiting network confirmation"
+    });
+  } catch (err) {
+    console.error(`[transactionController/status] ❌ Error: ${String(err?.message || err)}`);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to check transaction status",
+      details: String(err?.message || err)
+    });
+  }
+}
+
+module.exports = { send, history, status };
