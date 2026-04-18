@@ -9,6 +9,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html, body, #root {
   min-height: 100%;
   width: 100%;
@@ -17,6 +21,7 @@ html, body, #root {
 
 body {
   margin: 0;
+  padding: 0;
   min-height: 100vh;
   color: #fff;
   background:
@@ -260,6 +265,7 @@ button {
 .form-card {
   width: min(640px, 100%);
   margin: 0 auto;
+  padding: 0 16px;
 }
 
 .form-card form {
@@ -310,6 +316,8 @@ input:focus {
 
 .auth-cta {
   width: 100%;
+  min-height: 48px;
+  padding: 15px 20px;
 }
 
 .ghost-button,
@@ -338,14 +346,98 @@ input:focus {
   padding: 14px 18px;
 }
 
+/* Hide hamburger on desktop, show on mobile */
+.hamburger-button {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  border-radius: 999px;
+  cursor: pointer;
+  gap: 5px;
+  transition: all 0.3s ease;
+}
+
+.hamburger-button span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: #54c3ff;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+.hamburger-button.active span:first-child {
+  transform: rotate(45deg) translateY(12px);
+}
+
+.hamburger-button.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-button.active span:last-child {
+  transform: rotate(-45deg) translateY(-12px);
+}
+
+.hamburger-button:hover {
+  background: rgba(84, 195, 255, 0.12);
+  border-color: rgba(84, 195, 255, 0.3);
+}
+
+/* Mobile menu navigation - hidden by default */
+.topnav-mobile {
+  display: none;
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  background: rgba(18, 18, 18, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(84, 195, 255, 0.15);
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 0;
+  z-index: 9;
+}
+
+.topnav-mobile .nav-link {
+  padding: 14px 20px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.topnav-mobile .nav-link:last-child {
+  border-bottom: none;
+}
+
+.logout-link {
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
 .app-shell {
   width: min(1240px, calc(100% - 30px));
   margin: 0 auto;
   padding: 14px 0 52px;
+  display: grid;
+  gap: 24px;
 }
 
 .page-shell {
+  display: grid;
+  gap: 24px;
   padding-top: 14px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 @media (max-width: 1200px) {
@@ -596,6 +688,20 @@ input:focus {
 .receive-grid {
   grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
   align-items: start;
+  gap: 20px;
+}
+
+@media (max-width: 960px) {
+  .receive-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .receive-grid {
+    gap: 12px;
+  }
 }
 
 .market-card {
@@ -889,6 +995,13 @@ input:focus {
 
   .topbar {
     position: static;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .topnav-desktop {
+    display: none !important;
   }
 
   .transaction-meta {
@@ -922,6 +1035,14 @@ input:focus {
 }
 
 @media (max-width: 768px) {
+  .topnav-desktop {
+    display: none !important;
+  }
+
+  .hamburger-button {
+    display: flex;
+  }
+
   .auth-shell {
     padding: 16px;
   }
@@ -929,11 +1050,13 @@ input:focus {
   .app-shell {
     width: calc(100% - 18px);
     padding-bottom: 26px;
+    margin: 0 auto;
   }
 
   .topbar {
     padding: 10px 12px;
     border-radius: 16px;
+    gap: 10px;
   }
 
   .brand-title {
@@ -976,6 +1099,24 @@ input:focus {
   .auth-meta {
     bottom: 12px;
   }
+
+  .qr-scanner-container {
+    min-height: 240px;
+  }
+
+  .qr-scanner-container #qr-scanner {
+    min-height: 240px;
+  }
+
+  .field-label {
+    font-size: 0.63rem;
+  }
+
+  .ghost-button {
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
 }
 
 @media (max-width: 560px) {
@@ -987,15 +1128,28 @@ input:focus {
     width: calc(100% - 14px);
     padding-top: 8px;
     padding-bottom: 20px;
+    margin: 0 auto;
+   gap: 14px;
+  }
+
+  .page-shell {
+    gap: 14px;
+    padding-top: 8px;
   }
 
   .topbar {
     padding: 10px;
     border-radius: 14px;
+    top: 8px;
+    margin-bottom: 4px;
   }
 
   .brand-lockup strong {
     font-size: 0.95rem;
+  }
+
+  .brand-title {
+    font-size: 1rem;
   }
 
   .card {
@@ -1005,6 +1159,7 @@ input:focus {
 
   .hero-copy {
     gap: 14px;
+    padding: 12px 8px;
   }
 
   .hero-copy h1,
@@ -1044,6 +1199,281 @@ input:focus {
     transform: none;
     margin-top: 10px;
     text-align: center;
+  }
+
+  input {
+    padding: 14px 14px;
+    font-size: 16px;
+  }
+
+  .primary-button {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+  }
+
+  .ghost-button {
+    padding: 10px 12px;
+    font-size: 0.75rem;
+  }
+
+  .nav-link {
+    padding: 12px 0;
+    font-size: 0.9rem;
+  }
+
+  .qr-scanner-container {
+    min-height: 200px;
+    margin-bottom: 12px;
+  }
+
+  .qr-scanner-container #qr-scanner {
+    min-height: 200px;
+  }
+
+  .qr-card img,
+  .empty-qr {
+    width: min(100%, 240px);
+  }
+
+  .hero-badge {
+    padding: 6px 10px;
+  }
+
+  .qr-scan-actions {
+    gap: 8px;
+    flex-direction: column;
+  }
+
+  .qr-scan-actions span {
+    font-size: 0.75rem;
+  }
+
+  .action-pill {
+    min-width: 0;
+    font-size: 0.85rem;
+  }
+
+  .compare-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .merchant-header {
+    gap: 8px;
+  }
+
+  .merchant-name {
+    font-size: clamp(1.5rem, 8vw, 2rem);
+    margin: 8px 0 0;
+  }
+
+  .wallet-chip {
+    margin-top: 6px;
+    font-size: 0.65rem;
+  }
+}
+
+/* Extra small devices: 480px and below */
+@media (max-width: 480px) {
+  .app-shell {
+    width: calc(100% - 12px);
+    padding: 8px 6px 18px;
+    margin: 0 auto;
+    gap: 12px;
+  }
+
+  .page-shell {
+    gap: 12px;
+  }
+
+  .topbar {
+    padding: 8px;
+    top: 6px;
+    gap: 8px;
+  }
+
+  .brand-lockup {
+    gap: 6px;
+  }
+
+  .card,
+  .auth-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .stitch-send-card,
+  .stitch-login-card,
+  .stitch-balance-card,
+  .stitch-history-card {
+    padding: 14px;
+  }
+
+  .hero-copy {
+    padding: 8px 4px;
+    gap: 12px;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(1.6rem, 12vw, 2.2rem);
+    letter-spacing: -0.02em;
+  }
+
+  .status {
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+
+  input {
+    padding: 12px 12px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+
+  .primary-button,
+  .auth-cta {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  .ghost-button {
+    padding: 8px 10px;
+    font-size: 0.7rem;
+    border-radius: 6px;
+  }
+
+  .hamburger-button {
+    width: 36px;
+    height: 36px;
+    padding: 4px;
+  }
+
+  .hamburger-button span {
+    width: 20px;
+    height: 2px;
+  }
+
+  .summary-card strong {
+    font-size: 1.5rem;
+  }
+
+  .merchant-name {
+    font-size: clamp(1.3rem, 10vw, 1.8rem);
+  }
+
+  .tx-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .tx-amount {
+    font-size: 0.95rem;
+  }
+
+  .qr-card img,
+  .empty-qr {
+    width: min(100%, 220px);
+    aspect-ratio: 1;
+  }
+
+  .qr-scanner-container {
+    min-height: 180px;
+  }
+
+  .qr-scanner-container #qr-scanner {
+    min-height: 180px;
+  }
+
+  .wallet-panel {
+    padding: 10px 12px;
+    gap: 4px;
+  }
+
+  .wallet-label {
+    font-size: 0.56rem;
+  }
+
+  .field-label {
+    font-size: 0.56rem;
+  }
+
+  .pill {
+    padding: 5px 9px;
+    font-size: 0.6rem;
+  }
+
+  .hero-badge {
+    padding: 5px 8px;
+    font-size: 0.58rem;
+  }
+
+  .eyebrow {
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+  }
+
+  .market-bars {
+    height: 70px;
+    gap: 4px;
+  }
+
+  .transaction-row {
+    padding: 12px 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .tx-main {
+    font-size: 0.9rem;
+  }
+
+  .tx-meta {
+    font-size: 0.78rem;
+  }
+
+  .compare-grid {
+    margin: 12px 0;
+  }
+
+  .compare-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .stitch-dual-grid {
+    gap: 12px;
+  }
+
+  .trust-list {
+    gap: 8px;
+  }
+
+  .auth-topbar {
+    margin-bottom: 0;
+  }
+
+  .form-stack {
+    gap: 12px;
+  }
+
+  .auth-shell {
+    padding: 12px;
+  }
+
+  .topnav-mobile {
+    top: 60px;
+  }
+
+  .topnav-mobile .nav-link {
+    padding: 12px 16px;
+    font-size: 0.85rem;
   }
 }
 
@@ -1102,6 +1532,8 @@ input:focus {
 .stitch-send-card {
   max-width: 760px;
   padding: 30px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .stitch-qr-label {
@@ -1138,6 +1570,15 @@ input:focus {
   .stitch-history-card {
     padding: 20px;
   }
+
+  .stitch-dashboard-header {
+    padding: 16px 20px;
+  }
+
+  .stitch-dual-grid,
+  .receive-grid {
+    gap: 16px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -1147,5 +1588,13 @@ input:focus {
   .stitch-history-card,
   .stitch-dashboard-header {
     padding: 16px;
+  }
+
+  .stitch-balance-card {
+    min-height: auto;
+  }
+
+  .stitch-dual-grid {
+    gap: 14px;
   }
 }
