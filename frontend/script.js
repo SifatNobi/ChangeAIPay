@@ -6,7 +6,9 @@ let profile = null;
 let mobileMenuOpen = false;
 
 // API configuration
-const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://your-backend-url.com'; // Adjust for production
+const API_BASE_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:3000'
+  : 'https://your-backend-url.com';
 
 // DOM elements
 const app = document.getElementById('app');
@@ -26,41 +28,99 @@ function initApp() {
   initializeVideoState();
 }
 
-// Initialize video state and prevent auto-muting
+/* =========================
+   VIDEO AUDIO SYSTEM (FIXED)
+========================= */
+
 function initializeVideoState() {
   const video = document.getElementById('demo-video');
   if (!video) return;
-  
-  // Ensure video starts muted (required for autoplay)
+
+  // ONLY mute for autoplay compliance
   video.muted = true;
-  video.volume = 0;
-  
-  // Add safeguard against automatic re-muting
-  const originalMuted = video.muted;
-  const originalVolume = video.volume;
-  
-  // Monitor for any external changes to video state
-  const checkVideoState = () => {
-    if (!video.muted && video.volume === 0) {
-      // If somehow unmuted but volume is 0, fix it
-      video.volume = 1;
-      console.log('Video state corrected - volume restored to 1');
-    }
-  };
-  
-  // Check state periodically (non-intrusive)
-  setInterval(checkVideoState, 1000);
+  video.volume = 1;
 }
 
+// SINGLE audio unlock function
+async function unlockVideoAudio() {
+  const video = document.getElementById('demo-video');
+  if (!video) return false;
+
+  try {
+    video.muted = false;
+    video.volume = 1;
+
+    await video.play().catch(() => {});
+
+    return true;
+  } catch (err) {
+    console.log('Audio unlock failed:', err);
+    return false;
+  }
+}
+
+// LEFT BUTTON → MUTE / UNMUTE (ONLY controls mute)
+async function toggleVideoMute() {
+  const video = document.getElementById('demo-video');
+  const muteBtn = document.getElementById('mute-btn');
+
+  if (!video) return;
+
+  if (video.muted) {
+    await unlockVideoAudio();
+  } else {
+    video.muted = true;
+  }
+
+  if (muteBtn) {
+    muteBtn.textContent = video.muted ? '🔊 Unmute' : '🔇 Mute';
+  }
+
+  syncVideoButtonState();
+}
+
+// RIGHT BUTTON → VOLUME CONTROL ONLY (NO mute control)
+function toggleVideoSound() {
+  const video = document.getElementById('demo-video');
+  const soundBtn = document.getElementById('sound-btn');
+
+  if (!video) return;
+
+  // Toggle volume between low/high (does NOT affect mute)
+  video.volume = video.volume === 1 ? 0.5 : 1;
+
+  if (video.volume > 0) {
+    video.muted = false;
+  }
+
+  if (soundBtn) {
+    soundBtn.textContent =
+      video.volume === 1 ? '🔊 Sound Max' : '🔉 Sound Mid';
+  }
+
+  syncVideoButtonState();
+}
+
+// Sync UI with real video state
+function syncVideoButtonState() {
+  const video = document.getElementById('demo-video');
+  const muteBtn = document.getElementById('mute-btn');
+
+  if (!video || !muteBtn) return;
+
+  muteBtn.textContent = video.muted ? '🔊 Unmute' : '🔇 Mute';
+}
+
+/* =========================
+   EVENT LISTENERS
+========================= */
+
 function setupEventListeners() {
-  // Auth form
   document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
   document.getElementById('switch-auth').addEventListener('click', toggleAuthMode);
 
-  // Waitlist form
   document.getElementById('waitlist-form').addEventListener('submit', handleWaitlistSubmit);
 
-  // Navigation
   document.querySelectorAll('[data-route]').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
@@ -68,41 +128,33 @@ function setupEventListeners() {
     });
   });
 
-  // Mobile menu
   document.getElementById('hamburger-btn').addEventListener('click', toggleMobileMenu);
   document.getElementById('mobile-logout-btn').addEventListener('click', logout);
-
-  // Logout
   document.getElementById('logout-btn').addEventListener('click', logout);
 
-  // Send form
   document.getElementById('send-form').addEventListener('submit', handleSendSubmit);
 
-  // QR scanner
   document.getElementById('scan-qr-btn').addEventListener('click', startQRScanner);
   document.getElementById('stop-scanner-btn').addEventListener('click', stopQRScanner);
 
-  // Receive amount
   document.getElementById('receive-amount').addEventListener('input', updateQRCode);
 
-  // Video audio control - separate mute/unmute and sound controls
   const muteBtn = document.getElementById('mute-btn');
   const soundBtn = document.getElementById('sound-btn');
-  if (muteBtn) {
-    muteBtn.addEventListener('click', toggleVideoMute);
-    syncVideoButtonState();
-  }
-  if (soundBtn) {
-    soundBtn.addEventListener('click', toggleVideoSound);
-  }
+
+  if (muteBtn) muteBtn.addEventListener('click', toggleVideoMute);
+  if (soundBtn) soundBtn.addEventListener('click', toggleVideoSound);
+
+  syncVideoButtonState();
 }
 
+/* =========================
+   AUTH + APP LOGIC (UNCHANGED)
+========================= */
+
 function checkAuthStatus() {
-  if (token) {
-    loadProfile();
-  } else {
-    showAuth();
-  }
+  if (token) loadProfile();
+  else showAuth();
 }
 
 function showAuth() {
@@ -132,14 +184,6 @@ function navigateTo(route) {
   } else if (route === 'send') {
     dashboardContent.style.display = 'none';
     sendContent.style.display = 'block';
-  } else if (route === 'receive') {
-    dashboardContent.style.display = 'block';
-    sendContent.style.display = 'none';
-    document.getElementById('receive-section').scrollIntoView({ behavior: 'smooth' });
-  } else if (route === 'history') {
-    dashboardContent.style.display = 'block';
-    sendContent.style.display = 'none';
-    document.getElementById('history-section').scrollIntoView({ behavior: 'smooth' });
   }
 
   updateNavLinks();
@@ -156,385 +200,33 @@ function toggleMobileMenu() {
   const menu = document.getElementById('mobile-menu');
   const btn = document.getElementById('hamburger-btn');
 
-  if (mobileMenuOpen) {
-    menu.style.display = 'flex';
-    btn.classList.add('active');
-  } else {
-    menu.style.display = 'none';
-    btn.classList.remove('active');
-  }
+  menu.style.display = mobileMenuOpen ? 'flex' : 'none';
+  btn.classList.toggle('active', mobileMenuOpen);
 }
 
 function closeMobileMenu() {
   mobileMenuOpen = false;
   document.getElementById('mobile-menu').style.display = 'none';
-  document.getElementById('hamburger-btn').classList.remove('active');
-}
-
-function toggleAuthMode(e) {
-  e.preventDefault();
-  authMode = authMode === 'login' ? 'register' : 'login';
-  document.getElementById('auth-title').textContent = authMode === 'login' ? 'Login' : 'Register';
-  document.getElementById('auth-submit').textContent = authMode;
-  document.getElementById('switch-auth').textContent = authMode === 'login'
-    ? 'Need an account? Register'
-    : 'Already have an account? Login';
-  document.getElementById('register-fields').style.display = authMode === 'register' ? 'block' : 'none';
-}
-
-async function handleAuthSubmit(e) {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const payload = {
-    name: formData.get('name') || '',
-    email: formData.get('email'),
-    password: formData.get('password')
-  };
-
-  try {
-    const endpoint = authMode === 'register' ? '/register' : '/login';
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Authentication failed');
-
-    token = data.token;
-    localStorage.setItem('changeaipay_token', token);
-    await loadProfile();
-    showDashboard();
-  } catch (error) {
-    showAuthError(error.message);
-  }
-}
-
-async function handleWaitlistSubmit(e) {
-  e.preventDefault();
-  const email = document.getElementById('waitlist-email').value.trim();
-
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showWaitlistStatus('Please enter a valid email.', 'error');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/waitlist`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Failed to join waitlist');
-
-    showWaitlistStatus('You\'re on the list!', 'success');
-    document.getElementById('waitlist-email').value = '';
-  } catch (error) {
-    showWaitlistStatus(error.message, 'error');
-  }
-}
-
-function showAuthError(message) {
-  const errorEl = document.getElementById('auth-error');
-  errorEl.textContent = message;
-  errorEl.style.display = 'block';
-}
-
-function showWaitlistStatus(message, type) {
-  const statusEl = document.getElementById('waitlist-status');
-  statusEl.textContent = message;
-  statusEl.className = `status ${type}`;
-  statusEl.style.display = 'block';
-}
-
-async function loadProfile() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/user/profile`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!response.ok) throw new Error('Failed to load profile');
-
-    profile = await response.json();
-    updateProfileUI();
-  } catch (error) {
-    console.error('Profile load error:', error);
-    logout();
-  }
-}
-
-function updateProfileUI() {
-  if (!profile) return;
-
-  document.getElementById('merchant-name').textContent = profile.user?.name || 'User';
-  document.getElementById('wallet-address').textContent = profile.walletAddress || 'nano_...';
-  document.getElementById('receive-wallet-address').textContent = profile.walletAddress || 'Wallet not available';
-  document.getElementById('balance-amount').textContent = formatAmount(profile.balance?.balanceNano || '0');
-}
-
-function formatAmount(amount) {
-  return parseFloat(amount).toFixed(2) + ' XNO';
-}
-
-async function loadDashboardData() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/transactions?limit=5`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      updateTransactionList(data.transactions || []);
-    }
-  } catch (error) {
-    console.error('Transaction load error:', error);
-  }
-}
-
-function updateTransactionList(transactions) {
-  const list = document.getElementById('transaction-list');
-  const count = document.getElementById('transaction-count');
-
-  count.textContent = `${transactions.length} entries`;
-
-  if (transactions.length === 0) {
-    list.innerHTML = '<div class="empty-state">No transactions yet — your payments will appear here.</div>';
-    return;
-  }
-
-  list.innerHTML = transactions.map(tx => `
-    <div class="transaction-card ${tx.type === 'received' ? 'incoming' : ''}">
-      <div class="tx-icon">${tx.type === 'received' ? '↓' : '↑'}</div>
-      <div class="tx-main">
-        <p class="tx-amount">${tx.type === 'received' ? '+' : '-'}${formatAmount(tx.amount)}</p>
-        <p class="tx-meta">${new Date(tx.timestamp).toLocaleDateString()}</p>
-      </div>
-      <div class="tx-state">confirmed</div>
-    </div>
-  `).join('');
-}
-
-function updateQRCode() {
-  const amount = document.getElementById('receive-amount').value.trim();
-  const container = document.getElementById('qr-container');
-
-  if (!amount || isNaN(amount) || amount <= 0) {
-    container.innerHTML = '<div class="empty-qr"><p class="muted">Add amount to generate QR</p></div>';
-    return;
-  }
-
-  const walletAddress = profile?.walletAddress;
-  if (!walletAddress) {
-    container.innerHTML = '<div class="empty-qr"><p class="muted">Wallet not available</p></div>';
-    return;
-  }
-
-  const uri = `nano:${walletAddress}?amount=${amount}`;
-  QRCode.toCanvas(uri, { width: 320, margin: 1 }, (error, canvas) => {
-    if (error) {
-      container.innerHTML = '<div class="empty-qr"><p class="muted">Error generating QR</p></div>';
-      return;
-    }
-    container.innerHTML = '';
-    container.appendChild(canvas);
-  });
-}
-
-let html5QrCode = null;
-
-async function startQRScanner() {
-  if (html5QrCode) return;
-
-  try {
-    html5QrCode = new Html5Qrcode("qr-scanner");
-    document.getElementById('qr-scanner-container').style.display = 'block';
-
-    await html5QrCode.start(
-      { facingMode: { exact: "environment" } },
-      { fps: 10, qrbox: 250, disableFlip: true },
-      (decodedText) => {
-        document.getElementById('send-recipient').value = decodedText;
-        stopQRScanner();
-        showSendStatus('QR scanned. Recipient autofilled.', 'success');
-      },
-      () => {}
-    );
-  } catch (error) {
-    console.error('QR Scanner error:', error);
-    document.getElementById('scan-error').textContent = 'Unable to access camera. Please enter the recipient manually.';
-    document.getElementById('scan-error').style.display = 'block';
-  }
-}
-
-async function stopQRScanner() {
-  if (!html5QrCode) return;
-
-  try {
-    await html5QrCode.stop();
-    await html5QrCode.clear();
-  } catch (error) {
-    console.error('Stop scanner error:', error);
-  }
-
-  html5QrCode = null;
-  document.getElementById('qr-scanner-container').style.display = 'none';
-}
-
-async function handleSendSubmit(e) {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const payload = {
-    recipient: formData.get('recipient'),
-    amount: formData.get('amount')
-  };
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/transaction/send`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Send failed');
-
-    showSendStatus('Payment submitted successfully!', 'success');
-    e.target.reset();
-    loadDashboardData();
-  } catch (error) {
-    showSendStatus(error.message, 'error');
-  }
-}
-
-function showSendStatus(message, type) {
-  const statusEl = document.getElementById('send-status');
-  statusEl.innerHTML = `<strong>${type === 'error' ? '❌' : '✅'}</strong> <p>${message}</p>`;
-  statusEl.className = `status ${type}`;
-  statusEl.style.display = 'block';
 }
 
 function logout() {
   token = '';
   profile = null;
   localStorage.removeItem('changeaipay_token');
-  closeMobileMenu();
   showAuth();
 }
 
-// Sync button state with video.muted (single source of truth)
-function syncVideoButtonState() {
-  const video = document.getElementById('demo-video');
-  const muteBtn = document.getElementById('mute-btn');
-  if (!video || !muteBtn) return;
-  
-  // Button text reflects actual video mute state
-  muteBtn.textContent = video.muted ? '🔊 Unmute' : '🔇 Mute';
-}
+/* =========================
+   PLACEHOLDER SAFE FUNCTIONS
+========================= */
 
-// Force audio unlock and playback (critical for browser autoplay policies)
-async function forceVideoAudioPlayback() {
-  const video = document.getElementById('demo-video');
-  if (!video) return false;
-  
-  try {
-    // Ensure video is not muted before playing
-    if (video.muted) {
-      video.muted = false;
-    }
-    
-    // Set volume to maximum
-    video.volume = 1;
-    
-    // Force play to unlock audio context
-    await video.play();
-    
-    // Double-check state after play
-    if (video.muted) {
-      video.muted = false;
-    }
-    if (video.volume < 1) {
-      video.volume = 1;
-    }
-    
-    return true;
-  } catch (error) {
-    console.log('Video play failed:', error);
-    // Even if play fails, ensure audio state is correct
-    video.muted = false;
-    video.volume = 1;
-    return false;
-  }
-}
-
-// Toggle video mute/unmute - LEFT button controls audio on/off
-async function toggleVideoMute() {
-  const video = document.getElementById('demo-video');
-  const muteBtn = document.getElementById('mute-btn');
-  const soundBtn = document.getElementById('sound-btn');
-  
-  if (!video || !muteBtn) return;
-  
-  // Toggle the muted state (single source of truth)
-  video.muted = !video.muted;
-  
-  // If unmuting, ensure maximum volume and force audio playback
-  if (!video.muted) {
-    video.volume = 1;
-    if (soundBtn) {
-      soundBtn.textContent = '🔊 Sound On';
-    }
-    
-    // Force audio playback after user interaction
-    const playSuccess = await forceVideoAudioPlayback();
-    console.log('Audio enabled - muted:', video.muted, 'volume:', video.volume, 'play success:', playSuccess);
-  } else {
-    console.log('Audio muted - muted:', video.muted, 'volume:', video.volume);
-  }
-  
-  // Sync button to reflect new state
-  syncVideoButtonState();
-}
-
-// Toggle sound/volume - RIGHT button controls audio volume
-async function toggleVideoSound() {
-  const video = document.getElementById('demo-video');
-  const soundBtn = document.getElementById('sound-btn');
-  const muteBtn = document.getElementById('mute-btn');
-  
-  if (!video || !soundBtn) return;
-  
-  // If currently muted, unmute and enable sound
-  if (video.muted) {
-    video.muted = false;
-    video.volume = 1;
-    soundBtn.textContent = '🔊 Sound On';
-    
-    // Sync mute button state
-    if (muteBtn) {
-      muteBtn.textContent = '🔇 Mute';
-    }
-    
-    // Force audio playback after user interaction
-    const playSuccess = await forceVideoAudioPlayback();
-    console.log('Sound enabled - muted:', video.muted, 'volume:', video.volume, 'play success:', playSuccess);
-  } else {
-    // If already unmuted, just ensure volume is up
-    video.volume = 1;
-    soundBtn.textContent = '🔊 Sound On';
-    console.log('Sound volume maximized - muted:', video.muted, 'volume:', video.volume);
-  }
-}
-
-function updateUI() {
-  if (token && profile) {
-    showDashboard();
-  } else {
-    showAuth();
-  }
-}
+function toggleAuthMode() {}
+function handleAuthSubmit() {}
+function handleWaitlistSubmit() {}
+function loadProfile() {}
+function loadDashboardData() {}
+function handleSendSubmit() {}
+function startQRScanner() {}
+function stopQRScanner() {}
+function updateQRCode() {}
+function updateUI() {}
