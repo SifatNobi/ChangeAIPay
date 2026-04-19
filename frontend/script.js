@@ -58,12 +58,15 @@ function setupEventListeners() {
   // Receive amount
   document.getElementById('receive-amount').addEventListener('input', updateQRCode);
 
-  // Video audio control - toggle mute/unmute
-  const unmuteBtn = document.getElementById('unmute-btn');
-  if (unmuteBtn) {
-    unmuteBtn.addEventListener('click', toggleVideoAudio);
-    // Initialize button state to match video state
+  // Video audio control - separate mute/unmute and sound controls
+  const muteBtn = document.getElementById('mute-btn');
+  const soundBtn = document.getElementById('sound-btn');
+  if (muteBtn) {
+    muteBtn.addEventListener('click', toggleVideoMute);
     syncVideoButtonState();
+  }
+  if (soundBtn) {
+    soundBtn.addEventListener('click', toggleVideoSound);
   }
 }
 
@@ -400,19 +403,20 @@ function logout() {
 // Sync button state with video.muted (single source of truth)
 function syncVideoButtonState() {
   const video = document.getElementById('demo-video');
-  const btn = document.getElementById('unmute-btn');
-  if (!video || !btn) return;
+  const muteBtn = document.getElementById('mute-btn');
+  if (!video || !muteBtn) return;
   
   // Button text reflects actual video mute state
-  btn.textContent = video.muted ? '🔊 Unmute' : '🔇 Mute';
+  muteBtn.textContent = video.muted ? '🔊 Unmute' : '🔇 Mute';
 }
 
-// Toggle video audio - uses video.muted as single source of truth
-async function toggleVideoAudio() {
+// Toggle video mute/unmute - LEFT button controls audio on/off
+async function toggleVideoMute() {
   const video = document.getElementById('demo-video');
-  const btn = document.getElementById('unmute-btn');
+  const muteBtn = document.getElementById('mute-btn');
+  const soundBtn = document.getElementById('sound-btn');
   
-  if (!video || !btn) return;
+  if (!video || !muteBtn) return;
   
   // Toggle the muted state
   video.muted = !video.muted;
@@ -420,9 +424,12 @@ async function toggleVideoAudio() {
   // If unmuting, ensure maximum volume
   if (!video.muted) {
     video.volume = 1;
+    if (soundBtn) {
+      soundBtn.textContent = '🔊 Sound On';
+    }
   }
   
-  // Always play the video when toggling audio
+  // Always attempt to play the video when toggling mute
   try {
     await video.play();
   } catch (error) {
@@ -432,6 +439,38 @@ async function toggleVideoAudio() {
   
   // Sync button to reflect new state
   syncVideoButtonState();
+}
+
+// Toggle sound/volume - RIGHT button controls audio volume
+async function toggleVideoSound() {
+  const video = document.getElementById('demo-video');
+  const soundBtn = document.getElementById('sound-btn');
+  const muteBtn = document.getElementById('mute-btn');
+  
+  if (!video || !soundBtn) return;
+  
+  // If currently muted, unmute and enable sound
+  if (video.muted) {
+    video.muted = false;
+    video.volume = 1;
+    soundBtn.textContent = '🔊 Sound On';
+    
+    // Sync mute button state
+    if (muteBtn) {
+      muteBtn.textContent = '🔇 Mute';
+    }
+  } else {
+    // If already unmuted, just ensure volume is up
+    video.volume = 1;
+    soundBtn.textContent = '🔊 Sound On';
+  }
+  
+  // Always attempt to play the video
+  try {
+    await video.play();
+  } catch (error) {
+    console.log('Video play request did not complete:', error);
+  }
 }
 
 function updateUI() {
