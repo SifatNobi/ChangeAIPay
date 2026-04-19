@@ -4,6 +4,7 @@ let authMode = 'login';
 let token = localStorage.getItem('changeaipay_token') || '';
 let profile = null;
 let mobileMenuOpen = false;
+let isVideoMuted = true; // Track video mute state
 
 // API configuration
 const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://your-backend-url.com'; // Adjust for production
@@ -396,24 +397,26 @@ function unmuteVideo() {
   const video = document.getElementById('demo-video');
   const unmuteBtn = document.getElementById('unmute-btn');
   
-  // Unmute the video
-  video.muted = false;
-  
-  // Ensure the video plays after unmuting (handles browser autoplay policies)
-  const playPromise = video.play();
-  if (playPromise !== undefined) {
-    playPromise
-      .then(() => {
-        // Video is playing with audio
-        unmuteBtn.style.display = 'none';
-      })
-      .catch(() => {
-        // Play might fail due to autoplay policy, but audio is still enabled
-        unmuteBtn.style.display = 'none';
+  if (isVideoMuted) {
+    // Unmute: Enable audio playback
+    video.volume = 1; // Ensure volume is at maximum
+    video.muted = false; // Disable mute attribute
+    isVideoMuted = false; // Update state
+    unmuteBtn.textContent = '🔇 Mute'; // Update button text
+    
+    // Ensure video plays with audio (handles browser autoplay policies)
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Play may fail due to browser autoplay policy, but audio is enabled
+        // Audio will play once video starts playing from user interaction
       });
+    }
   } else {
-    // Older browsers or synchronous play
-    unmuteBtn.style.display = 'none';
+    // Mute: Disable audio playback
+    video.muted = true; // Enable mute attribute
+    isVideoMuted = true; // Update state
+    unmuteBtn.textContent = '🔊 Unmute'; // Update button text
   }
 }
 
