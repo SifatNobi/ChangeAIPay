@@ -394,8 +394,27 @@ function logout() {
 
 function unmuteVideo() {
   const video = document.getElementById('demo-video');
+  const unmuteBtn = document.getElementById('unmute-btn');
+  
+  // Unmute the video
   video.muted = false;
-  document.getElementById('unmute-btn').style.display = 'none';
+  
+  // Ensure the video plays after unmuting (handles browser autoplay policies)
+  const playPromise = video.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        // Video is playing with audio
+        unmuteBtn.style.display = 'none';
+      })
+      .catch(() => {
+        // Play might fail due to autoplay policy, but audio is still enabled
+        unmuteBtn.style.display = 'none';
+      });
+  } else {
+    // Older browsers or synchronous play
+    unmuteBtn.style.display = 'none';
+  }
 }
 
 function updateUI() {
