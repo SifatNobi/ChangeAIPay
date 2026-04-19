@@ -23,6 +23,33 @@ function initApp() {
   setupEventListeners();
   checkAuthStatus();
   updateUI();
+  initializeVideoState();
+}
+
+// Initialize video state and prevent auto-muting
+function initializeVideoState() {
+  const video = document.getElementById('demo-video');
+  if (!video) return;
+  
+  // Ensure video starts muted (required for autoplay)
+  video.muted = true;
+  video.volume = 0;
+  
+  // Add safeguard against automatic re-muting
+  const originalMuted = video.muted;
+  const originalVolume = video.volume;
+  
+  // Monitor for any external changes to video state
+  const checkVideoState = () => {
+    if (!video.muted && video.volume === 0) {
+      // If somehow unmuted but volume is 0, fix it
+      video.volume = 1;
+      console.log('Video state corrected - volume restored to 1');
+    }
+  };
+  
+  // Check state periodically (non-intrusive)
+  setInterval(checkVideoState, 1000);
 }
 
 function setupEventListeners() {
@@ -410,6 +437,41 @@ function syncVideoButtonState() {
   muteBtn.textContent = video.muted ? '🔊 Unmute' : '🔇 Mute';
 }
 
+// Force audio unlock and playback (critical for browser autoplay policies)
+async function forceVideoAudioPlayback() {
+  const video = document.getElementById('demo-video');
+  if (!video) return false;
+  
+  try {
+    // Ensure video is not muted before playing
+    if (video.muted) {
+      video.muted = false;
+    }
+    
+    // Set volume to maximum
+    video.volume = 1;
+    
+    // Force play to unlock audio context
+    await video.play();
+    
+    // Double-check state after play
+    if (video.muted) {
+      video.muted = false;
+    }
+    if (video.volume < 1) {
+      video.volume = 1;
+    }
+    
+    return true;
+  } catch (error) {
+    console.log('Video play failed:', error);
+    // Even if play fails, ensure audio state is correct
+    video.muted = false;
+    video.volume = 1;
+    return false;
+  }
+}
+
 // Toggle video mute/unmute - LEFT button controls audio on/off
 async function toggleVideoMute() {
   const video = document.getElementById('demo-video');
@@ -418,23 +480,21 @@ async function toggleVideoMute() {
   
   if (!video || !muteBtn) return;
   
-  // Toggle the muted state
+  // Toggle the muted state (single source of truth)
   video.muted = !video.muted;
   
-  // If unmuting, ensure maximum volume
+  // If unmuting, ensure maximum volume and force audio playback
   if (!video.muted) {
     video.volume = 1;
     if (soundBtn) {
       soundBtn.textContent = '🔊 Sound On';
     }
-  }
-  
-  // Always attempt to play the video when toggling mute
-  try {
-    await video.play();
-  } catch (error) {
-    // Play may fail due to autoplay policy, but mute state is still set correctly
-    console.log('Video play request did not complete:', error);
+    
+    // Force audio playback after user interaction
+    const playSuccess = await forceVideoAudioPlayback();
+    console.log('Audio enabled - muted:', video.muted, 'volume:', video.volume, 'play success:', playSuccess);
+  } else {
+    console.log('Audio muted - muted:', video.muted, 'volume:', video.volume);
   }
   
   // Sync button to reflect new state
@@ -459,17 +519,15 @@ async function toggleVideoSound() {
     if (muteBtn) {
       muteBtn.textContent = '🔇 Mute';
     }
+    
+    // Force audio playback after user interaction
+    const playSuccess = await forceVideoAudioPlayback();
+    console.log('Sound enabled - muted:', video.muted, 'volume:', video.volume, 'play success:', playSuccess);
   } else {
     // If already unmuted, just ensure volume is up
     video.volume = 1;
     soundBtn.textContent = '🔊 Sound On';
-  }
-  
-  // Always attempt to play the video
-  try {
-    await video.play();
-  } catch (error) {
-    console.log('Video play request did not complete:', error);
+    console.log('Sound volume maximized - muted:', video.muted, 'volume:', video.volume);
   }
 }
 
