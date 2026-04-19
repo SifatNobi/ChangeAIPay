@@ -5,3 +5,6 @@ node_modules/
 dist/
 frontend/dist/
 
+
+# Local Netlify folder
+.netlify
