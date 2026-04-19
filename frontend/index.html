@@ -8,6 +8,7 @@
       name="description"
       content="ChangeAIPay is a Nano-powered fintech demo for instant zero-fee payments."
     />
+    <link rel="icon" href="public/assets/icon.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,15 +21,6 @@
   </head>
   <body>
     <div id="app">
-      <!-- Demo Video Section -->
-      <section id="demo-section" class="demo-section">
-        <video id="demo-video" autoplay muted loop playsinline>
-          <source src="/assets/demo.mp4" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
-        <button id="unmute-btn" class="unmute-btn">🔊 Unmute</button>
-      </section>
-
       <!-- Auth Section -->
       <div id="auth-section" class="auth-shell">
         <div class="stitch-orb orb-a"></div>
@@ -36,7 +28,7 @@
         <header class="auth-topbar">
           <div class="brand-lockup">
             <div class="brand-mark">
-              <span>⚡</span>
+              <img src="public/assets/icon.png" alt="ChangeAIPay" class="brand-icon" />
             </div>
             <h1 class="brand-title">ChangeAIPay</h1>
           </div>
@@ -44,7 +36,7 @@
         <div class="auth-panel">
           <div class="hero-copy">
             <div class="hero-badge">
-              <span class="bolt">⚡</span>
+              <img src="public/assets/icon.png" alt="" class="badge-icon" />
               <span>The Future of Value</span>
             </div>
             <h1>
@@ -59,7 +51,7 @@
           <div class="card auth-card glass-card auth-surface login-surface">
             <div class="brand-lockup auth-brand">
               <div class="brand-mark">
-                <span>⚡</span>
+                <img src="public/assets/icon.png" alt="ChangeAIPay" class="brand-icon" />
               </div>
               <strong>ChangeAIPay</strong>
             </div>
@@ -109,6 +101,16 @@
             </div>
           </div>
         </section>
+
+        <!-- Demo Video Section -->
+        <section id="demo-section" class="demo-section demo-section-auth">
+          <video id="demo-video" autoplay muted loop playsinline>
+            <source src="/assets/demo.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+          <button id="unmute-btn" class="unmute-btn">🔊 Unmute</button>
+        </section>
+
         <section class="card glass-card auth-waitlist-card">
           <span class="eyebrow">Join the waitlist</span>
           <p class="muted">Submit your email to reserve early access and product updates.</p>
@@ -134,7 +136,7 @@
         <header class="topbar glass-card">
           <div class="brand-lockup">
             <div class="brand-mark">
-              <span>⚡</span>
+              <img src="public/assets/icon.png" alt="ChangeAIPay" class="brand-icon" />
             </div>
             <strong class="brand-title">ChangeAIPay</strong>
           </div>
