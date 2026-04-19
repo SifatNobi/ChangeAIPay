@@ -4,7 +4,6 @@ let authMode = 'login';
 let token = localStorage.getItem('changeaipay_token') || '';
 let profile = null;
 let mobileMenuOpen = false;
-let isVideoMuted = true; // Track video mute state
 
 // API configuration
 const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://your-backend-url.com'; // Adjust for production
@@ -59,8 +58,13 @@ function setupEventListeners() {
   // Receive amount
   document.getElementById('receive-amount').addEventListener('input', updateQRCode);
 
-  // Video unmute
-  document.getElementById('unmute-btn').addEventListener('click', unmuteVideo);
+  // Video audio control - toggle mute/unmute
+  const unmuteBtn = document.getElementById('unmute-btn');
+  if (unmuteBtn) {
+    unmuteBtn.addEventListener('click', toggleVideoAudio);
+    // Initialize button state to match video state
+    syncVideoButtonState();
+  }
 }
 
 function checkAuthStatus() {
@@ -393,31 +397,41 @@ function logout() {
   showAuth();
 }
 
-function unmuteVideo() {
+// Sync button state with video.muted (single source of truth)
+function syncVideoButtonState() {
   const video = document.getElementById('demo-video');
-  const unmuteBtn = document.getElementById('unmute-btn');
+  const btn = document.getElementById('unmute-btn');
+  if (!video || !btn) return;
   
-  if (isVideoMuted) {
-    // Unmute: Enable audio playback
-    video.volume = 1; // Ensure volume is at maximum
-    video.muted = false; // Disable mute attribute
-    isVideoMuted = false; // Update state
-    unmuteBtn.textContent = '🔇 Mute'; // Update button text
-    
-    // Ensure video plays with audio (handles browser autoplay policies)
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Play may fail due to browser autoplay policy, but audio is enabled
-        // Audio will play once video starts playing from user interaction
-      });
-    }
-  } else {
-    // Mute: Disable audio playback
-    video.muted = true; // Enable mute attribute
-    isVideoMuted = true; // Update state
-    unmuteBtn.textContent = '🔊 Unmute'; // Update button text
+  // Button text reflects actual video mute state
+  btn.textContent = video.muted ? '🔊 Unmute' : '🔇 Mute';
+}
+
+// Toggle video audio - uses video.muted as single source of truth
+async function toggleVideoAudio() {
+  const video = document.getElementById('demo-video');
+  const btn = document.getElementById('unmute-btn');
+  
+  if (!video || !btn) return;
+  
+  // Toggle the muted state
+  video.muted = !video.muted;
+  
+  // If unmuting, ensure maximum volume
+  if (!video.muted) {
+    video.volume = 1;
   }
+  
+  // Always play the video when toggling audio
+  try {
+    await video.play();
+  } catch (error) {
+    // Play may fail due to autoplay policy, but mute state is still set correctly
+    console.log('Video play request did not complete:', error);
+  }
+  
+  // Sync button to reflect new state
+  syncVideoButtonState();
 }
 
 function updateUI() {
