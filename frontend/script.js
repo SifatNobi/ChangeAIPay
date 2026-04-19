@@ -34,27 +34,100 @@ function initApp() {
 
 function initializeVideoState() {
   const video = document.getElementById('demo-video');
-  if (!video) return;
+  if (!video) {
+    console.error('Demo video element not found!');
+    return;
+  }
 
-  // ONLY mute for autoplay compliance
+  // ONLY mute for autoplay compliance - volume stays at 1
   video.muted = true;
   video.volume = 1;
+
+  console.log('Video initialized - muted:', video.muted, 'volume:', video.volume);
+
+  // Add comprehensive error handling
+  video.addEventListener('error', (e) => {
+    console.error('Video loading error:', e.target.error);
+  });
+
+  video.addEventListener('loadeddata', () => {
+    console.log('Video loaded successfully, ready for audio unlock');
+  });
+
+  video.addEventListener('canplay', () => {
+    console.log('Video can play, audio should be available');
+  });
+
+  // Add global user interaction handler for audio unlock
+  document.addEventListener('click', handleUserInteraction, { once: true });
+  document.addEventListener('touchstart', handleUserInteraction, { once: true });
+
+  // Also try to unlock on any button click
+  document.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+      handleUserInteraction();
+    }
+  });
 }
 
-// SINGLE audio unlock function
+// Handle any user interaction to unlock audio context
+async function handleUserInteraction() {
+  const video = document.getElementById('demo-video');
+  if (!video) return;
+
+  try {
+    // Try to unlock audio context on first user interaction
+    if (video.muted) {
+      await video.play().catch(() => {});
+    }
+    console.log('User interaction detected - audio context ready');
+  } catch (err) {
+    console.log('User interaction audio unlock failed:', err);
+  }
+}
+
+// SINGLE audio unlock function - FORCE enables audio
 async function unlockVideoAudio() {
   const video = document.getElementById('demo-video');
   if (!video) return false;
 
   try {
+    // CRITICAL: Force unmute and max volume FIRST
     video.muted = false;
     video.volume = 1;
 
-    await video.play().catch(() => {});
+    // Force play to unlock browser audio context
+    await video.play();
 
-    return true;
+    // TRIPLE-check after play attempt (browsers can be stubborn)
+    setTimeout(() => {
+      if (video.muted) {
+        video.muted = false;
+        console.log('Forced unmute after timeout');
+      }
+      if (video.volume < 1) {
+        video.volume = 1;
+        console.log('Forced volume to 1 after timeout');
+      }
+    }, 100);
+
+    // Verify audio is actually working
+    console.log('Audio unlock attempt - final state: muted=', video.muted, 'volume=', video.volume);
+
+    return !video.muted && video.volume > 0;
   } catch (err) {
     console.log('Audio unlock failed:', err);
+    // Even on error, ensure correct state and try again
+    video.muted = false;
+    video.volume = 1;
+
+    // Some browsers need a second attempt
+    try {
+      await video.play();
+    } catch (retryErr) {
+      console.log('Retry play also failed:', retryErr);
+    }
+
     return false;
   }
 }
@@ -79,26 +152,60 @@ async function toggleVideoMute() {
   syncVideoButtonState();
 }
 
-// RIGHT BUTTON → VOLUME CONTROL ONLY (NO mute control)
-function toggleVideoSound() {
+// RIGHT BUTTON → ENABLE SOUND (forces audio unlock)
+async function toggleVideoSound() {
   const video = document.getElementById('demo-video');
   const soundBtn = document.getElementById('sound-btn');
+  const muteBtn = document.getElementById('mute-btn');
 
-  if (!video) return;
-
-  // Toggle volume between low/high (does NOT affect mute)
-  video.volume = video.volume === 1 ? 0.5 : 1;
-
-  if (video.volume > 0) {
-    video.muted = false;
+  if (!video || !soundBtn) {
+    console.error('Video or sound button not found');
+    return;
   }
 
-  if (soundBtn) {
-    soundBtn.textContent =
-      video.volume === 1 ? '🔊 Sound Max' : '🔉 Sound Mid';
+  console.log('Enable sound button clicked - current state: muted=', video.muted, 'volume=', video.volume);
+
+  // If video failed to load, try to reload it
+  if (video.error || video.networkState === 2) {
+    console.log('Video has error or failed to load, attempting reload...');
+    video.load();
+    await new Promise(resolve => {
+      video.addEventListener('loadeddata', resolve, { once: true });
+    });
   }
 
-  syncVideoButtonState();
+  // FORCE audio unlock - this is the main "enable sound" button
+  const audioEnabled = await unlockVideoAudio();
+
+  if (audioEnabled) {
+    soundBtn.textContent = '🔊 Sound On';
+    if (muteBtn) {
+      muteBtn.textContent = '🔇 Mute';
+    }
+    console.log('✅ Audio successfully enabled - muted:', video.muted, 'volume:', video.volume);
+  } else {
+    console.log('❌ Audio enable failed - check browser autoplay policies');
+    soundBtn.textContent = '🔇 Sound Failed';
+
+    // Last resort: try to create audio context manually
+    tryManualAudioUnlock();
+  }
+}
+
+// Manual audio unlock using Web Audio API
+function tryManualAudioUnlock() {
+  try {
+    if (window.AudioContext || window.webkitAudioContext) {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+          console.log('Web Audio API context resumed manually');
+        });
+      }
+    }
+  } catch (err) {
+    console.log('Manual audio unlock failed:', err);
+  }
 }
 
 // Sync UI with real video state
@@ -230,3 +337,50 @@ function startQRScanner() {}
 function stopQRScanner() {}
 function updateQRCode() {}
 function updateUI() {}
+
+/* =========================
+   DEBUG FUNCTIONS
+========================= */
+
+// Debug function - can be called from console
+window.debugVideo = function() {
+  const video = document.getElementById('demo-video');
+  if (!video) {
+    console.error('Video element not found');
+    return;
+  }
+
+  console.log('=== VIDEO DEBUG INFO ===');
+  console.log('muted:', video.muted);
+  console.log('volume:', video.volume);
+  console.log('paused:', video.paused);
+  console.log('readyState:', video.readyState);
+  console.log('networkState:', video.networkState);
+  console.log('error:', video.error);
+  console.log('currentSrc:', video.currentSrc);
+  console.log('duration:', video.duration);
+  console.log('audioTracks:', video.audioTracks ? video.audioTracks.length : 'N/A');
+  console.log('========================');
+};
+
+// Test audio function - creates a test tone
+window.testAudio = function() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5); // 0.5 second beep
+
+    console.log('Test audio beep played');
+  } catch (err) {
+    console.error('Test audio failed:', err);
+  }
+};
