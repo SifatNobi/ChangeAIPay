@@ -261,7 +261,7 @@ async function send(req, res) {
         }
       } else {
         // Unstructured Error
-        console.error(`[transactionController] ❌ Unstructured error: ${errorDetails}`);
+        console.error(`[transactionController] ❌ Unstructured error: ${String(err?.message || err)}`);
       }
 
       // CRITICAL: Only mark as failed if transaction was not already submitted

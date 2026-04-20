@@ -94,7 +94,13 @@ export default function LoginScreen({
             {error && <div className="status error">{error}</div>}
 
             <button className="primary-button auth-cta" disabled={loading} type="submit">
-              {loading ? "Loading..." : mode}
+              {loading
+                ? mode === "login"
+                  ? "Logging in..."
+                  : "Registering..."
+                : mode === "login"
+                ? "Login"
+                : "Register"}
             </button>
           </form>
 

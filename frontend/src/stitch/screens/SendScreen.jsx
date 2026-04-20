@@ -7,6 +7,7 @@ export default function SendScreen({ sendTransaction }) {
   const [loading, setLoading] = useState(false);
   const [scanActive, setScanActive] = useState(false);
   const [scanError, setScanError] = useState("");
+  const [permissionState, setPermissionState] = useState("idle");
   const scannerRef = useRef(null);
   
   // PHASE 11: Real-time confirmation polling
@@ -284,29 +285,73 @@ export default function SendScreen({ sendTransaction }) {
     }
   }
 
+  function normalizeScannedText(value) {
+    const text = String(value || "").trim();
+    if (!text) return "";
+
+    const nativeUri = text.replace(/^nano:/i, "").split("?")[0].trim();
+    const walletMatch = nativeUri.match(/nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}/i);
+    if (walletMatch) return walletMatch[0];
+
+    const fallbackMatch = text.match(/nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}/i);
+    if (fallbackMatch) return fallbackMatch[0];
+
+    return text;
+  }
+
+  async function requestCameraAccess() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error("Camera access is not supported by this browser.");
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    stream.getTracks().forEach((track) => {
+      if (track.stop) track.stop();
+    });
+    return true;
+  }
+
   async function openScanner() {
     if (scanActive || scannerRef.current) return;
     setScanError("");
+    setPermissionState("requesting");
 
     try {
+      await requestCameraAccess();
+      setPermissionState("granted");
       const { Html5Qrcode } = await import("html5-qrcode");
       const html5QrCode = new Html5Qrcode("qr-scanner");
       scannerRef.current = html5QrCode;
       setScanActive(true);
 
       await html5QrCode.start(
-        { facingMode: { exact: "environment" } },
-        { fps: 10, qrbox: 250, disableFlip: true },
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 260, height: 260 }, showTorchButton: true, rememberLastUsedCamera: true },
         (decodedText) => {
-          setForm((state) => ({ ...state, recipient: decodedText }));
-          setStatus({ type: "success", message: "QR scanned. Recipient autofilled.", txHash: null });
+          const recipient = normalizeScannedText(decodedText);
+          if (!recipient) {
+            setScanError("Scanned QR is not a valid Nano address or payment payload.");
+            return;
+          }
+
+          setForm((state) => ({ ...state, recipient }));
+          setStatus({ type: "success", message: "QR scanned and recipient auto-filled.", txHash: null });
           stopScanner();
         },
-        () => {}
+        () => {
+          // continue scanning silently
+        }
       );
     } catch (err) {
-      setScanError("Unable to access camera. Please enter the recipient manually.");
+      const reason = err?.name === "NotAllowedError" || err?.name === "SecurityError"
+        ? "Camera permission denied. Please allow access to scan QR codes."
+        : err?.name === "NotFoundError"
+        ? "No camera device found."
+        : String(err?.message || "Unable to access camera.");
+
+      setScanError(reason);
       setScanActive(false);
+      setPermissionState("denied");
       if (scannerRef.current) {
         scannerRef.current.clear().catch(() => {});
         scannerRef.current = null;
@@ -324,6 +369,7 @@ export default function SendScreen({ sendTransaction }) {
     }
     scannerRef.current = null;
     setScanActive(false);
+    setPermissionState("idle");
   }
 
   return (
@@ -364,8 +410,11 @@ export default function SendScreen({ sendTransaction }) {
           </div>
 
           {scanActive && (
-            <div className="qr-scanner-container">
+            <div className="qr-scanner-container active">
               <div id="qr-scanner" />
+              <div className="scanner-caption">
+                {permissionState === "requesting" ? "Requesting camera permission..." : "Point your camera at a QR code to scan."}
+              </div>
               <button type="button" className="ghost-button" onClick={stopScanner}>
                 Stop scanner
               </button>
