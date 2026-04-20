@@ -14,7 +14,8 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
       rel="stylesheet"
-    />
+    />
+
     <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-BW-k_VPG.css">
@@ -57,9 +58,9 @@
             </div>
             <h2 id="auth-title">Login</h2>
 
-            <form id="auth-form" class="form-stack">
+            <form id="auth-form" class="form-stack" novalidate>
               <div id="register-fields" style="display: none;">
-                <input name="name" placeholder="Name" required />
+                <input name="name" placeholder="Name" />
               </div>
               <input name="email" placeholder="Email" type="email" required />
               <input
@@ -88,12 +89,12 @@
           <span class="eyebrow">Instant, zero-fee payments using Nano</span>
           <h2>Save fees and settle instantly</h2>
           <p class="muted">
-            Merchants can save up to 2–5% per transaction. Consumers avoid hidden fees. Savings may vary based on usage.
+            Merchants can save up to 2ï¿½5% per transaction. Consumers avoid hidden fees. Savings may vary based on usage.
           </p>
           <div class="compare-grid">
             <div>
               <strong>Traditional payments</strong>
-              <p>2–5% fees</p>
+              <p>2ï¿½5% fees</p>
             </div>
             <div>
               <strong>Our system</strong>
@@ -129,7 +130,7 @@
           </form>
           <div id="waitlist-status" class="status" style="display: none;"></div>
         </section>
-        <div class="auth-meta">Powered by Nano Protocol • Instant settlement • Zero-fee</div>
+        <div class="auth-meta">Powered by Nano Protocol ï¿½ Instant settlement ï¿½ Zero-fee</div>
       </div>
 
       <!-- Dashboard Section -->
@@ -307,7 +308,7 @@
 
               <div class="list-grid" id="transaction-list">
                 <div class="empty-state">
-                  No transactions yet — your payments will appear here.
+                  No transactions yet ï¿½ your payments will appear here.
                 </div>
               </div>
             </section>
@@ -316,12 +317,12 @@
               <span class="eyebrow">Why choose ChangeAIPay</span>
               <h2>Instant, zero-fee payments using Nano</h2>
               <p class="muted">
-                Merchants can save up to 2–5% per transaction. Consumers avoid hidden fees. Savings may vary based on usage.
+                Merchants can save up to 2ï¿½5% per transaction. Consumers avoid hidden fees. Savings may vary based on usage.
               </p>
               <div class="compare-grid">
                 <div class="compare-card">
                   <strong>Traditional payments</strong>
-                  <p>2–5% fees</p>
+                  <p>2ï¿½5% fees</p>
                 </div>
                 <div class="compare-card highlight">
                   <strong>Our system</strong>
@@ -378,7 +379,7 @@
                 <div id="scan-error" class="status error" style="display: none;"></div>
                 <div id="send-status" class="status" style="display: none;"></div>
 
-                <div class="trust-note">Powered by Nano network • Instant settlement</div>
+                <div class="trust-note">Powered by Nano network ï¿½ Instant settlement</div>
 
                 <button class="primary-button" type="submit" id="send-submit">
                   Send
