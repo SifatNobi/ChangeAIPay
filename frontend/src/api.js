@@ -47,17 +47,23 @@ async function apiRequest(path, { method = "GET", token, body } = {}) {
 }
 
 export async function login({ email, password }) {
-  return apiRequest("/auth/login", {
+  console.log("[API] Calling login with email:", email);
+  const result = await apiRequest("/auth/login", {
     method: "POST",
     body: { email, password }
   });
+  console.log("[API] Login response:", result);
+  return result;
 }
 
 export async function register({ name, email, password }) {
-  return apiRequest("/auth/register", {
+  console.log("[API] Calling register with name:", name, "email:", email);
+  const result = await apiRequest("/auth/register", {
     method: "POST",
     body: { name, email, password }
   });
+  console.log("[API] Register response:", result);
+  return result;
 }
 
 export async function getUserProfile(token) {
@@ -73,10 +79,13 @@ export async function sendTransaction(token, { recipient, amount }) {
 }
 
 export async function joinWaitlist(email) {
-  return apiRequest("/waitlist", {
+  console.log("[API] Calling joinWaitlist with email:", email);
+  const result = await apiRequest("/waitlist", {
     method: "POST",
     body: { email }
   });
+  console.log("[API] Waitlist response:", result);
+  return result;
 }
 
 export async function getTransactionHistory(token, { limit = 50 } = {}) {

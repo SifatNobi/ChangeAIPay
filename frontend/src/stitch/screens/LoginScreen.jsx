@@ -15,8 +15,10 @@ export default function LoginScreen({
 
   function submit(e) {
     e.preventDefault();
+    console.log("[LoginScreen] Form submitted, mode:", mode);
     const fd = new FormData(e.currentTarget);
     const payload = Object.fromEntries(fd.entries());
+    console.log("[LoginScreen] Payload:", payload);
     onSubmit({
       name: String(payload.name || ""),
       email: String(payload.email || ""),
@@ -26,6 +28,7 @@ export default function LoginScreen({
 
   async function handleJoinWaitlist(e) {
     e.preventDefault();
+    console.log("[LoginScreen] Join waitlist clicked, email:", waitlistEmail);
     setWaitlistStatus({ type: "idle", message: "" });
     const email = String(waitlistEmail || "").trim();
 
@@ -36,10 +39,13 @@ export default function LoginScreen({
 
     setWaitlistLoading(true);
     try {
+      console.log("[LoginScreen] Calling joinWaitlist API");
       const result = await joinWaitlist(email);
+      console.log("[LoginScreen] Waitlist API success:", result);
       setWaitlistStatus({ type: "success", message: result.message || "You're on the list" });
       setWaitlistEmail("");
     } catch (err) {
+      console.log("[LoginScreen] Waitlist API error:", err);
       setWaitlistStatus({ type: "error", message: err?.message || "Unable to join the waitlist." });
     } finally {
       setWaitlistLoading(false);
