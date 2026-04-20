@@ -86,7 +86,7 @@ export default function LoginScreen({
 
           <form className="form-stack" onSubmit={submit} noValidate>
             {mode === "register" && (
-              <input name="name" placeholder="Name" required={mode === "register"} />
+              <input name="name" placeholder="Name" />
             )}
             <input name="email" placeholder="Email" required />
             <input
