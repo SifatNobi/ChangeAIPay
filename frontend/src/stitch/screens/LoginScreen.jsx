@@ -88,12 +88,11 @@ export default function LoginScreen({
             {mode === "register" && (
               <input name="name" placeholder="Name" />
             )}
-            <input name="email" placeholder="Email" required />
+            <input name="email" placeholder="Email" />
             <input
               name="password"
               type="password"
               placeholder="Password"
-              required
               minLength={8}
             />
 

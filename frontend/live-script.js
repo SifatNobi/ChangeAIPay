@@ -62,12 +62,11 @@
               <div id="register-fields" style="display: none;">
                 <input name="name" placeholder="Name" />
               </div>
-              <input name="email" placeholder="Email" type="email" required />
+              <input name="email" placeholder="Email" type="email" />
               <input
                 name="password"
                 type="password"
                 placeholder="Password"
-                required
                 minlength="8"
               />
 
@@ -122,7 +121,6 @@
               name="waitlistEmail"
               placeholder="Email"
               type="email"
-              required
             />
             <button class="primary-button auth-cta" type="submit" id="waitlist-submit">
               Join waitlist
