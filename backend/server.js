@@ -18,12 +18,6 @@ const app = express();
 
 console.log("🚀 Server booting...");
 
-/* ---------------- FETCH COMPAT (Render safety) ---------------- */
-const fetch =
-  global.fetch ||
-  ((...args) =>
-    import("node-fetch").then(({ default: fetch }) => fetch(...args)));
-
 /* ---------------- ENV CHECK ---------------- */
 
 function getEnv(name) {
@@ -34,6 +28,10 @@ function getEnv(name) {
   }
   return value;
 }
+
+// Check required environment variables
+const JWT_SECRET = getEnv("JWT_SECRET");
+const MONGO_URI = getEnv("MONGO_URI");
 
 /* ---------------- CORS ---------------- */
 
@@ -250,57 +248,6 @@ app.get("/balance/:account", async (req, res) => {
     return res.json(result);
   } catch (err) {
     return res.json({ success: false, data: null, error: "RPC failure", source: null });
-  }
-});
-
-// Authenticated: send from the caller's server-stored wallet key. Never accepts private keys from clients.
-app.post("/send", auth, async (req, res) => {
-  try {
-    const recipientInput = String(req.body?.recipient || req.body?.to || "").trim();
-    const amountNano = String(req.body?.amount || "").trim();
-
-    if (!recipientInput) {
-      return res.json({ success: false, data: null, error: "Recipient is required", source: null });
-    }
-    if (!amountNano) {
-      return res.json({ success: false, data: null, error: "Amount is required", source: null });
-    }
-
-    const sender = await User.findById(req.user.id).select("+privateKey");
-    if (!sender) {
-      return res.json({ success: false, data: null, error: "User not found", source: null });
-    }
-
-    if (!sender.walletAddress || !sender.privateKey) {
-      return res.json({ success: false, data: null, error: "Sender wallet is not ready", source: null });
-    }
-
-    const receiver = recipientInput.includes("@")
-      ? await User.findOne({ email: recipientInput.toLowerCase() }).lean()
-      : await User.findOne({ walletAddress: recipientInput }).lean();
-
-    if (!receiver) {
-      return res.json({ success: false, data: null, error: "Recipient user not found", source: null });
-    }
-
-    if (!receiver.walletAddress) {
-      return res.json({ success: false, data: null, error: "Recipient wallet is not ready", source: null });
-    }
-
-    if (String(receiver._id) === String(sender._id)) {
-      return res.json({ success: false, data: null, error: "Cannot send Nano to yourself", source: null });
-    }
-
-    const result = await sendNano({
-      privateKey: sender.privateKey,
-      fromAddress: sender.walletAddress,
-      toAddress: receiver.walletAddress,
-      amountNano
-    });
-
-    return res.json(result);
-  } catch (_err) {
-    return res.json({ success: false, data: null, error: "Failed to process Nano transaction", source: null });
   }
 });
 

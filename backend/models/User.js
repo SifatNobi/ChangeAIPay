@@ -1,25 +1,49 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
-const UserSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true, trim: true, maxlength: 80 },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true, maxlength: 200 },
-    password: { type: String, required: true, select: false },
-    walletAddress: { type: String, default: null },
-    // Secret key for signing Nano state blocks. Keep select=false.
-    privateKey: { type: String, default: null, select: false },
-    walletStatus: {
-      type: String,
-      enum: ["pending", "ready", "error"],
-      default: "pending"
-    },
-    walletCreatedAt: { type: Date, default: null },
-
-    // Internal Nano node wallet id for signing/sending (not exposed)
-    walletId: { type: String, default: null, select: false }
+const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true
   },
-  { timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" } }
-);
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  walletAddress: {
+    type: String,
+    default: ''
+  },
+  privateKey: {
+    type: String,
+    default: ''
+  },
+  walletStatus: {
+    type: String,
+    enum: ['pending', 'ready', 'error'],
+    default: 'pending'
+  },
+  walletCreatedAt: {
+    type: Date,
+    default: null
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
 
-module.exports = mongoose.model("User", UserSchema);
+// Method to compare passwords
+UserSchema.methods.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
 
+module.exports = mongoose.model('User', UserSchema);

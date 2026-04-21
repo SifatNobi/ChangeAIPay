@@ -1,0 +1,5 @@
+{
+    "github.copilot.chat.anthropic.contextEditing.mode": "clear-both",
+    "editor.maxTokenizationLineLength": 2500,
+    "github.copilot.chat.anthropic.thinking.budgetTokens": 2500
+}
