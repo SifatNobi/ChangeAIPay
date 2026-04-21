@@ -16,12 +16,25 @@ export default function LoginScreen({
   function submit(e) {
     e.preventDefault();
     console.log("[LoginScreen] Form submitted, mode:", mode);
+
     const fd = new FormData(e.currentTarget);
     const payload = Object.fromEntries(fd.entries());
-    console.log("[LoginScreen] Payload:", payload);
+
+    console.log("[LoginScreen] Raw payload:", payload);
+
+    // ✅ LOGIN FLOW (ONLY email + password)
+    if (mode === "login") {
+      onSubmit({
+        email: String(payload.email || "").trim(),
+        password: String(payload.password || "")
+      });
+      return;
+    }
+
+    // ✅ REGISTER FLOW (name + email + password)
     onSubmit({
-      name: String(payload.name || ""),
-      email: String(payload.email || ""),
+      name: String(payload.name || "").trim(),
+      email: String(payload.email || "").trim(),
       password: String(payload.password || "")
     });
   }
@@ -29,7 +42,9 @@ export default function LoginScreen({
   async function handleJoinWaitlist(e) {
     e.preventDefault();
     console.log("[LoginScreen] Join waitlist clicked, email:", waitlistEmail);
+
     setWaitlistStatus({ type: "idle", message: "" });
+
     const email = String(waitlistEmail || "").trim();
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -38,15 +53,25 @@ export default function LoginScreen({
     }
 
     setWaitlistLoading(true);
+
     try {
       console.log("[LoginScreen] Calling joinWaitlist API");
       const result = await joinWaitlist(email);
       console.log("[LoginScreen] Waitlist API success:", result);
-      setWaitlistStatus({ type: "success", message: result.message || "You're on the list" });
+
+      setWaitlistStatus({
+        type: "success",
+        message: result.message || "You're on the list"
+      });
+
       setWaitlistEmail("");
     } catch (err) {
       console.log("[LoginScreen] Waitlist API error:", err);
-      setWaitlistStatus({ type: "error", message: err?.message || "Unable to join the waitlist." });
+
+      setWaitlistStatus({
+        type: "error",
+        message: err?.message || "Unable to join the waitlist."
+      });
     } finally {
       setWaitlistLoading(false);
     }
@@ -56,22 +81,26 @@ export default function LoginScreen({
     <div className="auth-shell stitch-bg stitch-login-screen">
       <div className="stitch-orb orb-a" />
       <div className="stitch-orb orb-b" />
+
       <header className="auth-topbar">
         <div className="brand-lockup">
           <BrandMark size={44} />
           <h1 className="brand-title">ChangeAIPay</h1>
         </div>
       </header>
+
       <div className="auth-panel stitch-login-layout">
         <div className="hero-copy stitch-login-hero">
           <div className="hero-badge stitch-pill">
             <span className="bolt">⚡</span>
             <span>The Future of Value</span>
           </div>
+
           <h1>
             Zero-fee instant payments
             <span className="hero-highlight"> with Nano</span>
           </h1>
+
           <p className="muted">
             Experience the world&apos;s most efficient digital currency protocol.
           </p>
@@ -82,23 +111,46 @@ export default function LoginScreen({
             <BrandMark size={40} />
             <strong>ChangeAIPay</strong>
           </div>
+
           <h2>{mode === "login" ? "Login" : "Register"}</h2>
 
+          {/* ✅ FIXED FORM */}
           <form className="form-stack" onSubmit={submit} noValidate>
-          {mode === "register" && (
-            <input name="name" placeholder="Name" required />
-          )}
-            <input name="email" placeholder="Email" />
+
+            {/* NAME ONLY FOR REGISTER */}
+            {mode === "register" && (
+              <input
+                name="name"
+                placeholder="Name"
+                required
+                autoComplete="name"
+              />
+            )}
+
+            <input
+              name="email"
+              placeholder="Email"
+              type="email"
+              required
+              autoComplete="email"
+            />
+
             <input
               name="password"
               type="password"
               placeholder="Password"
+              required
               minLength={8}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
 
             {error && <div className="status error">{error}</div>}
 
-            <button className="primary-button auth-cta" disabled={loading} type="submit">
+            <button
+              className="primary-button auth-cta"
+              disabled={loading}
+              type="submit"
+            >
               {loading
                 ? mode === "login"
                   ? "Logging in..."
@@ -118,26 +170,37 @@ export default function LoginScreen({
           </p>
         </div>
       </div>
+
       <section className="card glass-card auth-about-card">
         <span className="eyebrow">Instant, zero-fee payments using Nano</span>
+
         <h2>Save fees and settle instantly</h2>
+
         <p className="muted">
-          Merchants can save up to 2–5% per transaction. Consumers avoid hidden fees. Savings may vary based on usage.
+          Merchants can save up to 2–5% per transaction. Consumers avoid hidden fees.
+          Savings may vary based on usage.
         </p>
+
         <div className="compare-grid">
           <div>
             <strong>Traditional payments</strong>
             <p>2–5% fees</p>
           </div>
+
           <div>
             <strong>Our system</strong>
             <p>0% fees</p>
           </div>
         </div>
       </section>
+
       <section className="card glass-card auth-waitlist-card">
         <span className="eyebrow">Join the waitlist</span>
-        <p className="muted">Submit your email to reserve early access and product updates.</p>
+
+        <p className="muted">
+          Submit your email to reserve early access and product updates.
+        </p>
+
         <form className="form-stack" onSubmit={handleJoinWaitlist}>
           <input
             value={waitlistEmail}
@@ -147,18 +210,26 @@ export default function LoginScreen({
             type="email"
             required
           />
-          <button className="primary-button auth-cta" disabled={waitlistLoading} type="submit">
+
+          <button
+            className="primary-button auth-cta"
+            disabled={waitlistLoading}
+            type="submit"
+          >
             {waitlistLoading ? "Joining..." : "Join waitlist"}
           </button>
         </form>
+
         {waitlistStatus.type !== "idle" && (
           <div className={`status ${waitlistStatus.type}`}>
             {waitlistStatus.message}
           </div>
         )}
       </section>
-      <div className="auth-meta">Powered by Nano Protocol • Instant settlement • Zero-fee</div>
+
+      <div className="auth-meta">
+        Powered by Nano Protocol • Instant settlement • Zero-fee
+      </div>
     </div>
   );
 }
-

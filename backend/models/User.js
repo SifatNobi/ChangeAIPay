@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+
   email: {
     type: String,
     required: true,
@@ -14,41 +15,63 @@ const UserSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
+
+  // 🔴 IMPORTANT FIX: hide password from queries by default
   password: {
     type: String,
-    required: true
+    required: true,
+    select: false
   },
+
   walletAddress: {
     type: String,
-    default: ''
+    default: ""
   },
-  // Optional internal wallet identifier (present in some flows)
+
   walletId: {
     type: String,
-    default: ''
+    default: ""
   },
+
   privateKey: {
     type: String,
-    default: ''
+    default: ""
   },
+
   walletStatus: {
     type: String,
-    enum: ['pending', 'active', 'failed'],
-    default: 'pending'
+    enum: ["pending", "active", "failed"],
+    default: "pending"
   },
+
   walletCreatedAt: {
     type: Date,
     default: null
   },
+
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
 
-// Method to compare passwords
-UserSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+/**
+ * 🔐 FIXED: safe password comparison method
+ * (prevents undefined crashes and keeps logic consistent)
+ */
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+  if (!this.password) return false;
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
-module.exports = mongoose.model('User', UserSchema);
+/**
+ * Optional: safer toJSON (prevents leaking password if ever selected)
+ */
+UserSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password;
+  delete obj.privateKey; // extra safety for wallet security
+  return obj;
+};
+
+module.exports = mongoose.model("User", UserSchema);
