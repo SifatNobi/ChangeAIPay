@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema({
   },
   walletStatus: {
     type: String,
-    enum: ['pending', 'ready', 'error'],
+    enum: ['pending', 'active', 'failed'],
     default: 'pending'
   },
   walletCreatedAt: {

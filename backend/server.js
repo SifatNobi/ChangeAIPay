@@ -11,7 +11,9 @@ const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user");
 const transactionRoutes = require("./routes/transaction");
 const waitlistRoutes = require("./routes/waitlist");
+const walletRoutes = require('./routes/wallet');
 const { callRpc, RPC_NODES, getNodeHealth, testRpcNodes } = require("./services/rpcClient");
+const walletQueue = require('./services/walletQueue');
 const auth = require("./middleware/auth");
 const User = require("./models/User");
 const { sendNano, getBalance, confirmTransaction, autoReceive } = require("./services/nanoWallet");
@@ -104,6 +106,10 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/transaction", transactionRoutes);
 app.use("/waitlist", waitlistRoutes);
+app.use("/wallet", walletRoutes);
+// Wallet queue worker startup (production-grade provisioning)
+walletQueue.startWorker();
+// Optional admin path to trigger retry (needs route mounted separately)
 
 /* ========== DEMO-READY RPC & HEALTH ROUTES (PHASE 7) ========== */
 

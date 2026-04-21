@@ -41,6 +41,7 @@ async function register(req, res) {
     if (existing) return res.status(409).json({ error: "Email already in use" });
 
     const hashed = await bcrypt.hash(password, 12);
+    // A) User Creation (mandatory; wallet provisioning decoupled)
     const user = await User.create({
       name,
       email,
@@ -48,29 +49,16 @@ async function register(req, res) {
       walletStatus: "pending"
     });
 
-    try {
-      const { privateKey, address } = await createWalletAndAccount();
-      user.privateKey = privateKey;
-      user.walletAddress = address;
-      user.walletStatus = "ready";
-      user.walletCreatedAt = new Date();
-      await user.save();
-    } catch (err) {
-      user.walletStatus = "error";
-      await user.save().catch(() => null);
-      await User.deleteOne({ _id: user._id });
-      return res.status(503).json({
-        error: "Failed to initialize Nano wallet",
-        details: String(err?.message || err)
-      });
-    }
+    // B) Wallet provisioning (async, non-blocking) via walletQueue
+    const walletQueue = require("../services/walletQueue");
+    walletQueue.enqueueWalletJob(user._id);
 
+    // C) Return signup success immediately; wallet may finish in background
     const token = signToken(user._id);
-    return res.status(201).json({
-      token,
-      user: serializeUser(user)
-    });
+    return res.status(201).json({ token, user: serializeUser(user) });
   } catch (err) {
+    // Do not leak wallet provisioning failures; report generic server error if something else goes wrong
+    console.error(`[auth] Signup error: ${String(err?.message || err)}`);
     return res.status(500).json({ error: "Server error", details: String(err?.message || err) });
   }
 }

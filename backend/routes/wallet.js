@@ -1,14 +1,15 @@
-const express = require("express");
-const auth = require("../middleware/auth");
-const { me, createWallet, balance, sendPayment, dashboard } = require("../controllers/walletController");
-
+const express = require('express');
 const router = express.Router();
+const walletQueue = require('../services/walletQueue');
 
-router.get("/me", auth, me);
-router.get("/dashboard", auth, dashboard);
-router.post("/create-wallet", auth, createWallet);
-router.get("/balance", auth, balance);
-router.post("/send-payment", auth, sendPayment);
+// Admin: retry wallet provisioning for a user
+router.post('/retry/:userId', async (req, res) => {
+  try {
+    await walletQueue.retryWalletForUser(req.params.userId);
+    res.json({ ok: true, message: 'Wallet provisioning re-queued' });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: String(err?.message || err) });
+  }
+});
 
 module.exports = router;
-
