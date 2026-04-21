@@ -5,7 +5,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const rateLimit = require("express-rate-limit");
 
-const authRoutes = require("./routes/auth");
+// Fixed: match actual filename auth.routes.js
+const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user");
 const transactionRoutes = require("./routes/transaction");
 const waitlistRoutes = require("./routes/waitlist");

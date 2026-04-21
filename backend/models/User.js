@@ -22,6 +22,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  // Optional internal wallet identifier (present in some flows)
+  walletId: {
+    type: String,
+    default: ''
+  },
   privateKey: {
     type: String,
     default: ''

@@ -21,6 +21,7 @@ function serializeUser(user) {
     email: user.email,
     walletAddress: user.walletAddress,
     walletStatus: user.walletStatus,
+    walletId: user.walletId,
     walletCreatedAt: user.walletCreatedAt,
     createdAt: user.createdAt
   };
