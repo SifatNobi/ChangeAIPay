@@ -395,7 +395,7 @@ async function pollConfirmation(txHash, maxAttempts = 20, delayMs = 500) {
   };
 }
 
-module.exports = {
+export {
   getBalance,
   sendNano,
   confirmTransaction,

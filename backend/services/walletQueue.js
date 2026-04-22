@@ -121,7 +121,7 @@ function startWorker(intervalMs = 5000) {
   setInterval(processDueJobs, intervalMs);
 }
 
-module.exports = {
+export {
   enqueueWalletJob,
   retryWalletForUser,
   processDueJobs,

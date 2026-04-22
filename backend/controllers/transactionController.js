@@ -421,4 +421,4 @@ async function status(req, res) {
   }
 }
 
-module.exports = { send, history, status };
+export { send, history, status };

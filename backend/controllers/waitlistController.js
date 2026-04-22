@@ -28,4 +28,4 @@ async function joinWaitlist(req, res) {
   }
 }
 
-module.exports = { joinWaitlist };
+export { joinWaitlist };

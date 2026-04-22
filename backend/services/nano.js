@@ -590,7 +590,7 @@ async function generateReceiveBlock({ privateKey, accountAddress, sourceHash }) 
   }
 }
 
-module.exports = {
+export {
   ERROR_TYPES,
   nanoToRaw,
   rawToNano,

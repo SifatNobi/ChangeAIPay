@@ -173,5 +173,5 @@ async function dashboard(req, res) {
   }
 }
 
-module.exports = { me, createWallet, balance, sendPayment, dashboard };
+export { me, createWallet, balance, sendPayment, dashboard };
 

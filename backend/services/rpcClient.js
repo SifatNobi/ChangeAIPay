@@ -281,5 +281,5 @@ async function testRpcNodes() {
   );
 }
 
-module.exports = { callRpc, RPC_NODES, getNodeHealth, testRpcNodes };
+export { callRpc, RPC_NODES, getNodeHealth, testRpcNodes };
 
