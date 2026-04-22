@@ -338,8 +338,9 @@ export default function SendScreen({ sendTransaction }) {
           setStatus({ type: "success", message: "QR scanned and recipient auto-filled.", txHash: null });
           stopScanner();
         },
-        () => {
-          // continue scanning silently
+        (error) => {
+          console.error("QR scanning error:", error);
+          setScanError("Error scanning QR code. Please try again.");
         }
       );
     } catch (err) {

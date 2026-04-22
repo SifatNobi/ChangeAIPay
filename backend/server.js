@@ -1,22 +1,29 @@
-const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, ".env") });
-
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const rateLimit = require("express-rate-limit");
+import path from 'path';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import express from "express";
+import cors from "cors";
+import mongoose from "mongoose";
+import rateLimit from "express-rate-limit";
 
 // Fixed: match actual filename auth.routes.js
-const authRoutes = require("./routes/auth.routes");
-const userRoutes = require("./routes/user");
-const transactionRoutes = require("./routes/transaction");
-const waitlistRoutes = require("./routes/waitlist");
-const walletRoutes = require('./routes/wallet');
-const { callRpc, RPC_NODES, getNodeHealth, testRpcNodes } = require("./services/rpcClient");
-const walletQueue = require('./services/walletQueue');
-const auth = require("./middleware/auth");
-const User = require("./models/User");
-const { sendNano, getBalance, confirmTransaction, autoReceive } = require("./services/nanoWallet");
+import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.js";
+import transactionRoutes from "./routes/transaction.js";
+import waitlistRoutes from "./routes/waitlist.js";
+import walletRoutes from './routes/wallet.js';
+import { callRpc, RPC_NODES, getNodeHealth, testRpcNodes } from "./services/rpcClient.js";
+import walletQueue from './services/walletQueue.js';
+import auth from "./middleware/auth.js";
+import User from "./models/User.js";
+import { sendNano, getBalance, confirmTransaction, autoReceive } from "./services/nanoWallet.js";
+
+const __filename = new URL(import.meta.url).pathname;
+// Proper __dirname for ESM via fileURLToPath equivalent
+const __filename2 = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename2);
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 

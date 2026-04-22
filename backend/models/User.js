@@ -1,77 +1,46 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
-const UserSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true, // required for signup
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+    },
+    walletAddress: String,
+    walletStatus: String,
+    walletId: String,
+    privateKey: String,
+    walletCreatedAt: Date,
   },
+  { timestamps: true }
+);
 
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true
-  },
+/* 🔐 Hash password before saving */
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
 
-  // 🔴 IMPORTANT FIX: hide password from queries by default
-  password: {
-    type: String,
-    required: true,
-    select: false
-  },
-
-  walletAddress: {
-    type: String,
-    default: ""
-  },
-
-  walletId: {
-    type: String,
-    default: ""
-  },
-
-  privateKey: {
-    type: String,
-    default: ""
-  },
-
-  walletStatus: {
-    type: String,
-    enum: ["pending", "active", "failed"],
-    default: "pending"
-  },
-
-  walletCreatedAt: {
-    type: Date,
-    default: null
-  },
-
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
-/**
- * 🔐 FIXED: safe password comparison method
- * (prevents undefined crashes and keeps logic consistent)
- */
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  if (!this.password) return false;
-  return bcrypt.compare(candidatePassword, this.password);
+/* 🔑 Compare password */
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
-/**
- * Optional: safer toJSON (prevents leaking password if ever selected)
- */
-UserSchema.methods.toJSON = function () {
-  const obj = this.toObject();
-  delete obj.password;
-  delete obj.privateKey; // extra safety for wallet security
-  return obj;
-};
-
-module.exports = mongoose.model("User", UserSchema);
+export default mongoose.model("User", userSchema);

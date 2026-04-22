@@ -1,234 +1,135 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { joinWaitlist } from "../../api";
-import BrandMark from "../components/BrandMark";
+import axios from "axios";
 
-export default function LoginScreen({
-  mode,
-  onSubmit,
-  loading,
-  error
-}) {
-  const [waitlistEmail, setWaitlistEmail] = useState("");
-  const [waitlistStatus, setWaitlistStatus] = useState({ type: "idle", message: "" });
-  const [waitlistLoading, setWaitlistLoading] = useState(false);
+const API = "http://localhost:5000/api/auth";
 
-  function submit(e) {
-    e.preventDefault();
-    console.log("[LoginScreen] Form submitted, mode:", mode);
+export default function LoginScreen({ setUser }) {
+  const [isSignup, setIsSignup] = useState(false);
 
-    const fd = new FormData(e.currentTarget);
-    const payload = Object.fromEntries(fd.entries());
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
-    console.log("[LoginScreen] Raw payload:", payload);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    // ✅ LOGIN FLOW (ONLY email + password)
-    if (mode === "login") {
-      onSubmit({
-        email: String(payload.email || "").trim(),
-        password: String(payload.password || "")
-      });
-      return;
-    }
-
-    // ✅ REGISTER FLOW (name + email + password)
-    onSubmit({
-      name: String(payload.name || "").trim(),
-      email: String(payload.email || "").trim(),
-      password: String(payload.password || "")
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
     });
-  }
+  };
 
-  async function handleJoinWaitlist(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("[LoginScreen] Join waitlist clicked, email:", waitlistEmail);
-
-    setWaitlistStatus({ type: "idle", message: "" });
-
-    const email = String(waitlistEmail || "").trim();
-
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setWaitlistStatus({ type: "error", message: "Please enter a valid email." });
-      return;
-    }
-
-    setWaitlistLoading(true);
+    setError("");
+    setLoading(true);
 
     try {
-      console.log("[LoginScreen] Calling joinWaitlist API");
-      const result = await joinWaitlist(email);
-      console.log("[LoginScreen] Waitlist API success:", result);
+      const url = isSignup ? `${API}/signup` : `${API}/login`;
 
-      setWaitlistStatus({
-        type: "success",
-        message: result.message || "You're on the list"
-      });
+      const payload = isSignup
+        ? form
+        : {
+            email: form.email,
+            password: form.password,
+          };
 
-      setWaitlistEmail("");
+      const res = await axios.post(url, payload);
+
+      localStorage.setItem("token", res.data.token);
+      setUser(res.data.user);
     } catch (err) {
-      console.log("[LoginScreen] Waitlist API error:", err);
-
-      setWaitlistStatus({
-        type: "error",
-        message: err?.message || "Unable to join the waitlist."
-      });
+      setError(err.response?.data?.message || "Something went wrong");
     } finally {
-      setWaitlistLoading(false);
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="auth-shell stitch-bg stitch-login-screen">
-      <div className="stitch-orb orb-a" />
-      <div className="stitch-orb orb-b" />
+    <div className="auth-shell">
+      <div className="auth-panel">
 
-      <header className="auth-topbar">
-        <div className="brand-lockup">
-          <BrandMark size={44} />
-          <h1 className="brand-title">ChangeAIPay</h1>
-        </div>
-      </header>
-
-      <div className="auth-panel stitch-login-layout">
-        <div className="hero-copy stitch-login-hero">
-          <div className="hero-badge stitch-pill">
-            <span className="bolt">⚡</span>
-            <span>The Future of Value</span>
-          </div>
-
+        {/* LEFT SIDE */}
+        <div className="hero-copy">
           <h1>
-            Zero-fee instant payments
-            <span className="hero-highlight"> with Nano</span>
+            Instant <span className="hero-highlight">Payments</span>
           </h1>
-
-          <p className="muted">
-            Experience the world&apos;s most efficient digital currency protocol.
-          </p>
+          <p>No fees. No delays. Just speed.</p>
         </div>
 
-        <div className="card auth-card glass-card auth-surface login-surface stitch-login-card">
-          <div className="brand-lockup auth-brand">
-            <BrandMark size={40} />
-            <strong>ChangeAIPay</strong>
-          </div>
+        {/* RIGHT SIDE FORM */}
+        <div className="card auth-card glass-card login-surface">
+          <h2>{isSignup ? "Create Account" : "Welcome Back"}</h2>
 
-          <h2>{mode === "login" ? "Login" : "Register"}</h2>
+          <form onSubmit={handleSubmit} noValidate>
 
-          {/* ✅ FIXED FORM */}
-          <form className="form-stack" onSubmit={submit} noValidate>
-
-            {/* NAME ONLY FOR REGISTER */}
-            {mode === "register" && (
+            {/* NAME (ONLY FOR SIGNUP) */}
+            {isSignup && (
               <input
+                type="text"
                 name="name"
                 placeholder="Name"
+                value={form.name}
+                onChange={handleChange}
                 required
-                autoComplete="name"
               />
             )}
 
+            {/* EMAIL */}
             <input
+              type="email"
               name="email"
               placeholder="Email"
-              type="email"
+              value={form.email}
+              onChange={handleChange}
               required
-              autoComplete="email"
             />
 
+            {/* PASSWORD */}
             <input
-              name="password"
               type="password"
+              name="password"
               placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
               required
-              minLength={8}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
 
-            {error && <div className="status error">{error}</div>}
+            {/* ERROR */}
+            {error && <p className="error">{error}</p>}
 
+            {/* BUTTON */}
             <button
+              type="submit"
               className="primary-button auth-cta"
               disabled={loading}
-              type="submit"
             >
               {loading
-                ? mode === "login"
-                  ? "Logging in..."
-                  : "Registering..."
-                : mode === "login"
-                ? "Login"
-                : "Register"}
+                ? "Please wait..."
+                : isSignup
+                ? "Sign Up"
+                : "Login"}
             </button>
           </form>
 
+          {/* SWITCH */}
           <p className="switch-copy">
-            <Link className="ghost-link" to={mode === "login" ? "/register" : "/login"}>
-              {mode === "login"
-                ? "Need an account? Register"
-                : "Already have an account? Login"}
-            </Link>
+            {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+            <span
+              style={{ color: "#54c3ff", cursor: "pointer" }}
+              onClick={() => {
+                setIsSignup(!isSignup);
+                setError("");
+              }}
+            >
+              {isSignup ? "Login" : "Sign up"}
+            </span>
           </p>
         </div>
-      </div>
 
-      <section className="card glass-card auth-about-card">
-        <span className="eyebrow">Instant, zero-fee payments using Nano</span>
-
-        <h2>Save fees and settle instantly</h2>
-
-        <p className="muted">
-          Merchants can save up to 2–5% per transaction. Consumers avoid hidden fees.
-          Savings may vary based on usage.
-        </p>
-
-        <div className="compare-grid">
-          <div>
-            <strong>Traditional payments</strong>
-            <p>2–5% fees</p>
-          </div>
-
-          <div>
-            <strong>Our system</strong>
-            <p>0% fees</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="card glass-card auth-waitlist-card">
-        <span className="eyebrow">Join the waitlist</span>
-
-        <p className="muted">
-          Submit your email to reserve early access and product updates.
-        </p>
-
-        <form className="form-stack" onSubmit={handleJoinWaitlist}>
-          <input
-            value={waitlistEmail}
-            onChange={(e) => setWaitlistEmail(e.target.value)}
-            name="waitlistEmail"
-            placeholder="Email"
-            type="email"
-            required
-          />
-
-          <button
-            className="primary-button auth-cta"
-            disabled={waitlistLoading}
-            type="submit"
-          >
-            {waitlistLoading ? "Joining..." : "Join waitlist"}
-          </button>
-        </form>
-
-        {waitlistStatus.type !== "idle" && (
-          <div className={`status ${waitlistStatus.type}`}>
-            {waitlistStatus.message}
-          </div>
-        )}
-      </section>
-
-      <div className="auth-meta">
-        Powered by Nano Protocol • Instant settlement • Zero-fee
       </div>
     </div>
   );
