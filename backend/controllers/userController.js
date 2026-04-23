@@ -1,6 +1,6 @@
-const User = require("../models/User");
-const { serializeUser } = require("./authController");
-const { getAccountBalance } = require("../services/nano");
+import User from "../models/User.js";
+import authController from "../controllers/authController.js";
+import { getAccountBalance } from "../services/nano.js";
 
 async function profile(req, res) {
   try {
@@ -25,7 +25,7 @@ async function profile(req, res) {
     }
 
     return res.json({
-      user: serializeUser(user),
+      user: authController.serializeUser(user),
       balance
     });
   } catch (err) {
@@ -33,4 +33,4 @@ async function profile(req, res) {
   }
 }
 
-export { profile };
+export default { profile };

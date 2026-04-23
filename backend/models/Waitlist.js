@@ -1,17 +1,15 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const WaitlistSchema = new mongoose.Schema({
+const waitlistSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
     unique: true,
-    lowercase: true,
-    trim: true
+    trim: true,
+    lowercase: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  joinedAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Waitlist', WaitlistSchema);
+const Waitlist = mongoose.model('Waitlist', waitlistSchema);
+export default Waitlist;

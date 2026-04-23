@@ -1,15 +1,12 @@
-const express = require('express');
+import express from 'express';
+import authController from '../controllers/authController.js';
+
 const router = express.Router();
-const walletQueue = require('../services/walletQueue');
 
-// Admin: retry wallet provisioning for a user
-router.post('/retry/:userId', async (req, res) => {
-  try {
-    await walletQueue.retryWalletForUser(req.params.userId);
-    res.json({ ok: true, message: 'Wallet provisioning re-queued' });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: String(err?.message || err) });
-  }
-});
+// Register new user
+router.post('/register', authController.register);
 
-module.exports = router;
+// Login existing user
+router.post('/login', authController.login);
+
+export default router;

@@ -5,9 +5,9 @@
  * - Persist job state (pending/in_progress/success/failed)
  * - Update User.walletStatus: pending -> active | failed
  */
-const WalletJob = require("../models/WalletJob");
-const User = require("../models/User");
-const { createWalletAndAccount } = require("./../services/nano");
+import WalletJob from "../models/WalletJob.js";
+import User from "../models/User.js";
+import { createWalletAndAccount } from "./../services/nano.js";
 
 let isWorkerRunning = false;
 const DELAYS = [1000, 2000, 4000, 8000, 16000]; // ms for retries 1..5
@@ -121,7 +121,7 @@ function startWorker(intervalMs = 5000) {
   setInterval(processDueJobs, intervalMs);
 }
 
-export {
+export default {
   enqueueWalletJob,
   retryWalletForUser,
   processDueJobs,
