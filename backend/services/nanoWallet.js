@@ -13,8 +13,8 @@
  * =============================================================================
  */
 
-const { callRpc } = require("./rpcClient");
-const { rawToNano, nanoToRaw, sendFromWallet, waitForConfirmation, generateReceiveBlock, ERROR_TYPES, getBlockInfo } = require("./nano");
+import { callRpc } from "./rpcClient.js";
+import { rawToNano, nanoToRaw, sendFromWallet, waitForConfirmation, generateReceiveBlock, ERROR_TYPES, getBlockInfo } from "./nano.js";
 
 /**
  * Get account balance with proper handling of new accounts

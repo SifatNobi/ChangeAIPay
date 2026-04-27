@@ -1,6 +1,6 @@
-const User = require("../models/User");
-const Transaction = require("../models/Transaction");
-const { nanoToRaw, sendFromWallet, waitForConfirmation, ERROR_TYPES, rawToNano } = require("../services/nano");
+import User from "../models/User.js";
+import Transaction from "../models/Transaction.js";
+import { nanoToRaw, sendFromWallet, waitForConfirmation, ERROR_TYPES, rawToNano } from "../services/nano.js";
 
 function normalizeHistoryStatus(status) {
   if (status === "failed") return "failed";
@@ -421,4 +421,4 @@ async function status(req, res) {
   }
 }
 
-export { send, history, status };
+export default { send, history, status };

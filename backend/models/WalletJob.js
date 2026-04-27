@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const WalletJobSchema = new mongoose.Schema({
   userId: {
@@ -44,4 +44,4 @@ WalletJobSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("WalletJob", WalletJobSchema);
+export default mongoose.model("WalletJob", WalletJobSchema);

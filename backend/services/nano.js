@@ -19,8 +19,8 @@
  * =============================================================================
  */
 
-const nanocurrency = require("nanocurrency");
-const { callRpc } = require("./rpcClient");
+import nanocurrency from "nanocurrency";
+import { callRpc } from "./rpcClient.js";
 
 // Error classification for demo-ready responses
 const ERROR_TYPES = {
