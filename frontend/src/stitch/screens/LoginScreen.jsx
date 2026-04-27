@@ -1,51 +1,36 @@
-import { useState } from "react";
-import axios from "axios";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const API = "http://localhost:5000/api/auth";
-
-export default function LoginScreen({ setUser }) {
-  const [isSignup, setIsSignup] = useState(false);
-
+export default function LoginScreen({ mode = "login", loading = false, error = "", onSubmit }) {
+  const navigate = useNavigate();
+  const isSignup = useMemo(() => mode === "register", [mode]);
   const [form, setForm] = useState({
     name: "",
     email: "",
-    password: "",
+    password: ""
   });
-
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const url = isSignup ? `${API}/signup` : `${API}/login`;
-
-      const payload = isSignup
-        ? form
-        : {
-            email: form.email,
-            password: form.password,
-          };
-
-      const res = await axios.post(url, payload);
-
-      localStorage.setItem("token", res.data.token);
-      setUser(res.data.user);
-    } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+    if (!onSubmit) {
+      return;
     }
+
+    const payload = isSignup
+      ? form
+      : {
+          email: form.email,
+          password: form.password
+        };
+
+    await onSubmit(payload);
   };
 
   return (
@@ -85,6 +70,7 @@ export default function LoginScreen({ setUser }) {
               placeholder="Email"
               value={form.email}
               onChange={handleChange}
+              autoComplete="email"
               required
             />
 
@@ -95,6 +81,7 @@ export default function LoginScreen({ setUser }) {
               placeholder="Password"
               value={form.password}
               onChange={handleChange}
+              autoComplete="current-password"
               required
             />
 
@@ -121,8 +108,7 @@ export default function LoginScreen({ setUser }) {
             <span
               style={{ color: "#54c3ff", cursor: "pointer" }}
               onClick={() => {
-                setIsSignup(!isSignup);
-                setError("");
+                navigate(isSignup ? "/login" : "/register");
               }}
             >
               {isSignup ? "Login" : "Sign up"}

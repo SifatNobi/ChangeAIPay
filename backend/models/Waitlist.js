@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const waitlistSchema = new mongoose.Schema({
   email: {
@@ -11,5 +11,4 @@ const waitlistSchema = new mongoose.Schema({
   joinedAt: { type: Date, default: Date.now }
 });
 
-const Waitlist = mongoose.model('Waitlist', waitlistSchema);
-export default Waitlist;
+export default mongoose.model("Waitlist", waitlistSchema);

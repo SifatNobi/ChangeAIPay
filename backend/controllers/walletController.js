@@ -1,6 +1,11 @@
-const User = require("../models/User");
-const Transaction = require("../models/Transaction");
-const { createWalletAndAccount, getAccountBalance, nanoToRaw, sendFromWallet } = require("../services/nano");
+import User from "../models/User.js";
+import Transaction from "../models/Transaction.js";
+import {
+  createWalletAndAccount,
+  getAccountBalance,
+  nanoToRaw,
+  sendFromWallet
+} from "../services/nano.js";
 
 async function me(req, res) {
   try {
@@ -174,4 +179,3 @@ async function dashboard(req, res) {
 }
 
 export { me, createWallet, balance, sendPayment, dashboard };
-

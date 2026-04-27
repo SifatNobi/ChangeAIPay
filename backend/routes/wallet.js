@@ -1,12 +1,14 @@
-import express from 'express';
-import authController from '../controllers/authController.js';
+import express from "express";
+import walletQueue from "../services/walletQueue.js";
 
 const router = express.Router();
 
-// Register new user
-router.post('/register', authController.register);
-
-// Login existing user
-router.post('/login', authController.login);
-
+router.post("/retry/:userId", async (req, res) => {
+  try {
+    await walletQueue.retryWalletForUser(req.params.userId);
+    res.json({ ok: true, message: "Wallet provisioning re-queued" });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: String(err?.message || err) });
+  }
+});
 export default router;

@@ -1,4 +1,4 @@
-const WaitlistEntry = require("../models/WaitlistEntry");
+import WaitlistEntry from "../models/WaitlistEntry.js";
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();

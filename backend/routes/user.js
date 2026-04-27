@@ -1,16 +1,9 @@
-import express from 'express';
-import walletQueue from '../services/walletQueue.js';
+import express from "express";
+import auth from "../middleware/auth.js";
+import userController from "../controllers/userController.js";
 
 const router = express.Router();
 
-// Admin: retry wallet provisioning for a user
-router.post('/retry/:userId', async (req, res) => {
-  try {
-    await walletQueue.retryWalletForUser(req.params.userId);
-    res.json({ ok: true, message: 'Wallet provisioning re-queued' });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: String(err?.message || err) });
-  }
-});
+router.get("/profile", auth, userController.profile);
 
 export default router;
