@@ -1,8 +1,8 @@
-const express = require("express");
-const { joinWaitlist } = require("../controllers/waitlistController");
+import express from "express";
+import { joinWaitlist } from "../controllers/waitlistController.js";
 
 const router = express.Router();
 
 router.post("/", joinWaitlist);
 
-module.exports = router;
+export default router;

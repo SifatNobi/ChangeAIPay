@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const WaitlistEntrySchema = new mongoose.Schema(
   {
@@ -19,4 +19,4 @@ const WaitlistEntrySchema = new mongoose.Schema(
   { timestamps: false }
 );
 
-module.exports = mongoose.model("WaitlistEntry", WaitlistEntrySchema);
+export default mongoose.model("WaitlistEntry", WaitlistEntrySchema);

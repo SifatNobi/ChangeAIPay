@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+  import.meta.env.VITE_API_BASE_URL || "https://changeaipay.onrender.com/api";
 
 const TOKEN_KEY = "changeaipay_token";
 
@@ -26,6 +26,7 @@ async function apiRequest(path, { method = "GET", token, body } = {}) {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {})
     },
+    credentials: "include",
     body: body ? JSON.stringify(body) : undefined
   });
 

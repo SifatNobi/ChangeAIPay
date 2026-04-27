@@ -1,4 +1,4 @@
-const Transaction = require("../models/Transaction");
+import Transaction from "../models/Transaction.js";
 
 async function list(req, res) {
   try {
@@ -35,4 +35,3 @@ async function list(req, res) {
 }
 
 export { list };
-
