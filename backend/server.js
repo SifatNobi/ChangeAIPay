@@ -44,10 +44,21 @@ const allowedOrigins = new Set(
     .filter(Boolean)
 );
 
+const allowedOriginPatterns = [
+  /^https:\/\/[a-z0-9-]+\.netlify\.app$/i,
+  /^https:\/\/[a-z0-9-]+--[a-z0-9-]+\.netlify\.app$/i
+];
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+  return allowedOriginPatterns.some((pattern) => pattern.test(origin));
+}
+
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
         return;
       }
