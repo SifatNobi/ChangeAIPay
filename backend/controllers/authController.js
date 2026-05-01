@@ -25,6 +25,14 @@ function serializeUser(user) {
   };
 }
 
+function serializeAuthUser(user) {
+  return {
+    id: user._id,
+    email: user.email,
+    walletAddress: user.walletAddress
+  };
+}
+
 async function register(req, res) {
   try {
     const name = String(req.body?.name || "").trim();
@@ -59,7 +67,10 @@ async function register(req, res) {
     res.status(201).json({
       success: true,
       token: signToken(user._id),
-      user: serializeUser(user)
+      user: {
+        ...serializeUser(user),
+        ...serializeAuthUser(user)
+      }
     });
   } catch (err) {
     console.error("Signup error:", err);
@@ -86,7 +97,10 @@ async function login(req, res) {
     return res.json({
       success: true,
       token,
-      user: serializeUser(user)
+      user: {
+        ...serializeUser(user),
+        ...serializeAuthUser(user)
+      }
     });
   } catch (err) {
     console.error("Login error:", err);
