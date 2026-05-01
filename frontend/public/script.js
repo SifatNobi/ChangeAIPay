@@ -334,6 +334,7 @@ async function apiRequest(path, { method = "GET", token = "", body, timeoutMs = 
 
 function updateProfileUi(user) {
   appState.user = user || appState.user || null;
+  window.currentUser = appState.user || null;
   const name = appState.user?.name || "ChangeAIPay User";
   const address = appState.user?.walletAddress || "Wallet not available";
 
@@ -389,42 +390,71 @@ function renderEmptyQr(message) {
   ui.qrContainer.innerHTML = `<div class="empty-qr"><p class="muted">${escapeHtml(message)}</p></div>`;
 }
 
-function renderQr() {
-  if (!ui.qrContainer) return;
-  const address = String(appState.user?.walletAddress || "").trim();
+function getWalletAddress() {
+  if (window.currentUser && window.currentUser.walletAddress) {
+    return String(window.currentUser.walletAddress).trim();
+  }
 
-  if (!address || !address.startsWith("nano_")) {
-    console.error("Cannot render Nano QR: missing or invalid Nano address.");
-    renderEmptyQr("Wallet not available");
+  const el1 = document.getElementById("wallet-address");
+  if (el1 && el1.textContent.trim()) {
+    return el1.textContent.trim();
+  }
+
+  const el2 = document.getElementById("receive-wallet-address");
+  if (el2 && el2.textContent.trim()) {
+    return el2.textContent.trim();
+  }
+
+  return null;
+}
+
+function isValidNanoAddress(addr) {
+  return /^(nano|xrb)_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$/.test(String(addr || ""));
+}
+
+function renderNanoQR() {
+  const container = document.getElementById("qr-container");
+  if (!container) return;
+
+  const address = getWalletAddress();
+  console.log("Wallet used for QR:", address);
+
+  if (!address || !isValidNanoAddress(address)) {
+    console.error("Invalid Nano address:", address);
+    container.innerHTML = `
+      <div class="empty-qr">
+        <p class="muted">Wallet not available</p>
+      </div>
+    `;
     return;
   }
 
-  const uri = `nano:${address}`;
-  if (!uri) {
-    renderEmptyQr("Invalid payment data");
-    return;
-  }
+  const amountInput = document.getElementById("receive-amount");
+  const amount = amountInput && amountInput.value ? amountInput.value : "";
+  const uri = amount ? `nano:${address}?amount=${amount}` : `nano:${address}`;
 
-  const currentRequest = ++appState.qrRequestId;
-  if (!window.QRCode || typeof window.QRCode.toDataURL !== "function") {
-    console.error("Cannot render Nano QR: QRCode library unavailable.");
+  container.innerHTML = "";
+
+  if (typeof window.QRCode !== "function") {
+    console.error("QR generator unavailable.");
     renderEmptyQr("QR generator unavailable");
     return;
   }
 
-  Promise.resolve(window.QRCode.toDataURL(uri, { margin: 1, width: 320 }))
-    .then((dataUrl) => {
-      if (currentRequest !== appState.qrRequestId) return;
-      const img = document.createElement("img");
-      img.alt = "Payment QR code";
-      img.src = dataUrl;
-      ui.qrContainer.innerHTML = "";
-      ui.qrContainer.appendChild(img);
-    })
-    .catch(() => {
-      if (currentRequest !== appState.qrRequestId) return;
-      renderEmptyQr("Failed to generate QR");
+  try {
+    new window.QRCode(container, {
+      text: uri,
+      width: 200,
+      height: 200
     });
+  } catch (error) {
+    console.error("Failed to generate QR:", error);
+    renderEmptyQr("Failed to generate QR");
+  }
+}
+
+function renderQr() {
+  renderNanoQR();
 }
 
 function normalizeScannedText(value) {
@@ -694,6 +724,7 @@ async function handleAuthSubmit(event) {
 
     appState.token = token;
     setToken(token);
+    window.currentUser = authData?.user || null;
     updateProfileUi(authData?.user || null);
     updateBalanceUi("0");
     showDashboardView();
@@ -737,6 +768,7 @@ function handleLogout() {
   clearToken();
   appState.token = "";
   appState.user = null;
+  window.currentUser = null;
   appState.balanceNano = "0";
   renderTransactions([]);
   updateProfileUi(null);
@@ -814,7 +846,11 @@ function setupAuthEvents() {
 }
 
 function setupDashboardEvents() {
-  if (ui.receiveAmountInput) ui.receiveAmountInput.addEventListener("input", renderQr);
+  if (ui.receiveAmountInput) {
+    ui.receiveAmountInput.addEventListener("input", () => {
+      renderNanoQR();
+    });
+  }
   if (ui.sendForm) ui.sendForm.addEventListener("submit", handleSendSubmit);
   if (ui.scanQrBtn) ui.scanQrBtn.addEventListener("click", () => {
     void openScanner();
@@ -958,6 +994,7 @@ function initPage() {
 window.addEventListener("DOMContentLoaded", () => {
   try {
     initPage();
+    setTimeout(renderNanoQR, 300);
   } catch (error) {
     console.error("Initialization error:", error);
     showAuthView();
