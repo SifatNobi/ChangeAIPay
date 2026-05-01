@@ -7,6 +7,7 @@ const ROUTES = new Set(["dashboard", "send", "receive", "history"]);
 const ui = {};
 let WALLET_CACHE = null;
 let qrScanner = null;
+let lastQR = "";
 
 window.APP_STATE = {
   wallet: null,
@@ -502,7 +503,9 @@ function renderNanoQR() {
 
     const amountInput = document.getElementById("receive-amount");
     const amount = amountInput?.value?.trim();
-    const uri = amount ? `nano:${address}?amount=${amount}` : `nano:${address}`;
+    const rawAmount = amount ? parseFloat(amount) : null;
+    const raw = Number.isFinite(rawAmount) && rawAmount > 0 ? Math.round(rawAmount * 1e30) : null;
+    const uri = raw ? `nano:${address}?amount=${raw}` : `nano:${address}`;
 
     container.innerHTML = "";
 
@@ -530,6 +533,15 @@ function renderNanoQR() {
 
 function renderQr() {
   renderNanoQR();
+}
+
+function triggerScanFeedback() {
+  if (navigator.vibrate) navigator.vibrate(100);
+  document.body.style.transition = "0.1s";
+  document.body.style.opacity = "0.6";
+  setTimeout(() => {
+    document.body.style.opacity = "1";
+  }, 100);
 }
 
 function parseNanoURI(text) {
@@ -607,6 +619,7 @@ async function onScanSuccess(decodedText) {
 
   if (window.APP_STATE.lastScan === decodedText) return;
   window.APP_STATE.lastScan = decodedText;
+  triggerScanFeedback();
 
   const parsed = parseNanoURI(decodedText);
 
@@ -629,16 +642,23 @@ function startScanner() {
   setScanError("");
   ui.qrScannerContainer.style.display = "block";
 
-  qrScanner = new window.Html5Qrcode("qr-scanner");
-  window.html5QrCode = qrScanner;
-  appState.scanner = qrScanner;
+  window.Html5Qrcode.getCameras()
+    .then((devices) => {
+      let cameraId = devices?.[0]?.id;
+      const backCam = devices?.find((d) => String(d?.label || "").toLowerCase().includes("back"));
+      if (backCam) cameraId = backCam.id;
 
-  qrScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      onScanSuccess,
-      () => {}
-    )
+      qrScanner = new window.Html5Qrcode("qr-scanner");
+      window.html5QrCode = qrScanner;
+      appState.scanner = qrScanner;
+
+      return qrScanner.start(
+        cameraId || { facingMode: "environment" },
+        { fps: 12, qrbox: 250 },
+        onScanSuccess,
+        () => {}
+      );
+    })
     .then(() => {
       window.APP_STATE.scannerActive = true;
     })
@@ -806,6 +826,9 @@ function setupRoutes() {
 
   window.addEventListener("hashchange", () => {
     renderRoute(getRouteFromHash(), { scroll: true });
+    if (window.location.hash !== "#send") {
+      stopScanner();
+    }
   });
 
   renderRoute(getRouteFromHash(), { scroll: false });
@@ -1024,6 +1047,35 @@ function setupDashboardEvents() {
   if (ui.stopScannerBtn) ui.stopScannerBtn.addEventListener("click", () => {
     void stopScanner();
   });
+  if (ui.qrContainer) {
+    ui.qrContainer.addEventListener("click", () => {
+      const address = getWalletAddress();
+      if (!address) return;
+      const amount = document.getElementById("receive-amount")?.value;
+      const parsed = amount ? parseFloat(amount) : null;
+      const raw = Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed * 1e30) : null;
+      const link = raw ? `nano:${address}?amount=${raw}` : `nano:${address}`;
+      window.location.href = link;
+    });
+  }
+  if (ui.receiveWalletAddress) {
+    ui.receiveWalletAddress.addEventListener("click", () => {
+      const addr = getWalletAddress();
+      if (!addr || !navigator.clipboard?.writeText) return;
+      navigator.clipboard.writeText(addr).then(() => {
+        console.log("📋 Address copied");
+      }).catch(() => {});
+    });
+  }
+}
+
+function smartRenderQR() {
+  const addr = getWalletAddress() || "";
+  const amt = document.getElementById("receive-amount")?.value || "";
+  const current = `${addr}|${amt}`;
+  if (current === lastQR) return;
+  lastQR = current;
+  renderNanoQR();
 }
 
 function setupMobileMenu() {
@@ -1182,3 +1234,17 @@ window.addEventListener("load", () => {
     renderNanoQR();
   }, 600);
 });
+
+window.addEventListener("error", (e) => {
+  if (String(e?.message || "").toLowerCase().includes("camera")) {
+    console.warn("Camera error -> fallback active");
+  }
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopScanner();
+  }
+});
+
+setInterval(smartRenderQR, 500);
