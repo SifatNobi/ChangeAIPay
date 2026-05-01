@@ -8,6 +8,7 @@ const ui = {};
 let WALLET_CACHE = null;
 let qrScanner = null;
 let lastQR = "";
+let lastScanTime = 0;
 
 window.APP_STATE = {
   wallet: null,
@@ -384,10 +385,11 @@ function updateProfileUi(user) {
   }
   const name = appState.user?.name || "ChangeAIPay User";
   const address = appState.user?.walletAddress || "Wallet not available";
+  const displayAddress = appState.user?.walletAddress ? formatAddress(appState.user.walletAddress) : address;
 
   if (ui.merchantName) ui.merchantName.textContent = name;
-  if (ui.walletAddress) ui.walletAddress.textContent = address;
-  if (ui.receiveWalletAddress) ui.receiveWalletAddress.textContent = address;
+  if (ui.walletAddress) ui.walletAddress.textContent = displayAddress;
+  if (ui.receiveWalletAddress) ui.receiveWalletAddress.textContent = displayAddress;
   renderQr();
 }
 
@@ -437,6 +439,12 @@ function renderEmptyQr(message) {
   ui.qrContainer.innerHTML = `<div class="empty-qr"><p class="muted">${escapeHtml(message)}</p></div>`;
 }
 
+function formatAddress(addr) {
+  const safe = String(addr || "").trim();
+  if (safe.length < 18) return safe;
+  return `${safe.slice(0, 10)}...${safe.slice(-6)}`;
+}
+
 function getWalletAddress() {
   if (window.APP_STATE.wallet) return window.APP_STATE.wallet;
 
@@ -460,6 +468,10 @@ function getWalletAddress() {
 function isValidNanoAddress(addr) {
   if (!addr) return false;
   return /^(nano|xrb)_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$/.test(addr);
+}
+
+function sanitizeInput(str) {
+  return String(str || "").replace(/[^\w.:?=&-]/g, "").trim();
 }
 
 function ensureQRCodeLib(callback) {
@@ -547,11 +559,20 @@ function triggerScanFeedback() {
 function parseNanoURI(text) {
   try {
     if (!text) return null;
-    let clean = text.trim();
-    if (clean.startsWith("nano:")) clean = clean.slice(5);
-    if (clean.startsWith("xrb:")) clean = clean.slice(4);
+    let clean = sanitizeInput(text);
+
+    if (!clean.startsWith("nano:") && !clean.startsWith("xrb:")) {
+      console.warn("Blocked non-nano QR");
+      return null;
+    }
+
+    clean = clean.replace("nano:", "").replace("xrb:", "");
 
     const [address, query] = clean.split("?");
+    if (!isValidNanoAddress(address)) {
+      console.warn("Invalid address blocked:", address);
+      return null;
+    }
     let amount = "";
 
     if (query) {
@@ -560,13 +581,18 @@ function parseNanoURI(text) {
     }
 
     return {
-      address: address?.trim(),
-      amount: amount?.trim()
+      address,
+      amount
     };
   } catch (e) {
-    console.error("Parse error:", e);
+    console.error("Secure parse failed:", e);
     return null;
   }
+}
+
+async function confirmAutofill(data) {
+  const preview = `${data.address.slice(0, 10)}...${data.address.slice(-6)}`;
+  return confirm(`Send to:\n${preview}\n\nProceed?`);
 }
 
 function waitForElement(id, timeout = 5000) {
@@ -593,6 +619,14 @@ function goToSendPage() {
 }
 
 async function autofillFromQR(data) {
+  if (!data || !isValidNanoAddress(data.address)) {
+    console.warn("Blocked autofill");
+    return;
+  }
+
+  const approved = await confirmAutofill(data);
+  if (!approved) return;
+
   try {
     await goToSendPage();
     const recipient = await waitForElement("send-recipient");
@@ -606,22 +640,35 @@ async function autofillFromQR(data) {
       amount.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
-    console.log("✅ AUTOFILL SUCCESS:", data);
+    console.log("Secure autofill applied");
   } catch (err) {
-    console.error("❌ AUTOFILL FAILED:", err);
+    console.error("Autofill failed:", err);
   }
+}
+
+function canScan() {
+  const now = Date.now();
+  if (now - lastScanTime < 2000) return false;
+  lastScanTime = now;
+  return true;
 }
 
 async function onScanSuccess(decodedText) {
   if (!decodedText) return;
 
-  console.log("📸 RAW SCAN:", decodedText);
+  const normalized = String(decodedText).trim();
+  if (!canScan()) return;
 
-  if (window.APP_STATE.lastScan === decodedText) return;
-  window.APP_STATE.lastScan = decodedText;
+  if (!normalized.startsWith("nano:") && !normalized.startsWith("xrb:")) {
+    console.warn("Blocked malicious QR");
+    return;
+  }
+
+  if (window.APP_STATE.lastScan === normalized) return;
+  window.APP_STATE.lastScan = normalized;
   triggerScanFeedback();
 
-  const parsed = parseNanoURI(decodedText);
+  const parsed = parseNanoURI(normalized);
 
   if (!parsed || !parsed.address) {
     console.error("❌ INVALID QR");
@@ -1040,6 +1087,27 @@ function setupDashboardEvents() {
       renderNanoQR();
     });
   }
+  if (ui.sendRecipientInput) {
+    ui.sendRecipientInput.setAttribute("autocomplete", "off");
+    ui.sendRecipientInput.addEventListener("paste", (e) => {
+      const text = (e.clipboardData || window.clipboardData)?.getData("text") || "";
+
+      if (!text.includes("nano_") && !text.includes("xrb_")) {
+        e.preventDefault();
+        alert("Only Nano addresses allowed");
+        return;
+      }
+
+      const parsed = parseNanoURI(text.startsWith("nano:") || text.startsWith("xrb:") ? text : `nano:${text}`);
+      if (!parsed) {
+        e.preventDefault();
+        alert("Invalid address blocked");
+      }
+    });
+  }
+  if (ui.sendAmountInput) {
+    ui.sendAmountInput.setAttribute("autocomplete", "off");
+  }
   if (ui.sendForm) ui.sendForm.addEventListener("submit", handleSendSubmit);
   if (ui.scanQrBtn) ui.scanQrBtn.addEventListener("click", () => {
     void openScanner();
@@ -1202,6 +1270,11 @@ function restoreSession() {
 
 function initPage() {
   cacheElements();
+  document.querySelectorAll("input").forEach((input) => {
+    if (input.id === "send-recipient" || input.id === "send-amount") {
+      input.setAttribute("autocomplete", "off");
+    }
+  });
   setAuthMode("login");
   setupAuthEvents();
   setupDashboardEvents();
