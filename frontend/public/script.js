@@ -270,8 +270,10 @@ function handleUnauthorized(message = "Session expired. Please login again.") {
   appState.unauthorizedHandled = true;
 
   clearToken();
+  localStorage.removeItem("user");
   appState.token = "";
   appState.user = null;
+  window.currentUser = null;
   appState.balanceNano = "0";
   appState.transactions = [];
   renderTransactions([]);
@@ -335,6 +337,9 @@ async function apiRequest(path, { method = "GET", token = "", body, timeoutMs = 
 function updateProfileUi(user) {
   appState.user = user || appState.user || null;
   window.currentUser = appState.user || null;
+  if (appState.user) {
+    localStorage.setItem("user", JSON.stringify(appState.user));
+  }
   const name = appState.user?.name || "ChangeAIPay User";
   const address = appState.user?.walletAddress || "Wallet not available";
 
@@ -392,17 +397,13 @@ function renderEmptyQr(message) {
 
 function getWalletAddress() {
   if (window.currentUser && window.currentUser.walletAddress) {
-    return String(window.currentUser.walletAddress).trim();
+    return String(window.currentUser.walletAddress);
   }
 
-  const el1 = document.getElementById("wallet-address");
-  const el2 = document.getElementById("receive-wallet-address");
-  const raw1 = el1?.textContent?.trim();
-  const raw2 = el2?.textContent?.trim();
-  const full = raw1 || raw2;
-  if (!full || full.includes("...")) return null;
-
-  return full;
+  const el = document.getElementById("wallet-address");
+  const val = el?.textContent?.trim();
+  if (!val || val.includes("...")) return null;
+  return val;
 }
 
 function isValidNanoAddress(addr) {
@@ -477,17 +478,52 @@ function renderQr() {
   renderNanoQR();
 }
 
-function normalizeScannedText(value) {
-  const text = String(value || "").trim();
-  if (!text) return "";
+function parseNanoURI(uri) {
+  try {
+    if (!uri) return null;
+    const clean = String(uri).replace("nano:", "").replace("xrb:", "");
+    const [address, query] = clean.split("?");
+    let amount = "";
+    if (query) {
+      const params = new URLSearchParams(query);
+      amount = params.get("amount") || "";
+    }
+    return {
+      address: address?.trim(),
+      amount: amount?.trim()
+    };
+  } catch (err) {
+    console.error("Failed to parse QR:", err);
+    return null;
+  }
+}
 
-  const nativeUri = text.replace(/^nano:/i, "").split("?")[0].trim();
-  const walletMatch = nativeUri.match(/nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}/i);
-  if (walletMatch) return walletMatch[0];
+function onScanSuccess(decodedText) {
+  console.log("Scanned QR:", decodedText);
+  const result = parseNanoURI(decodedText);
 
-  const fallbackMatch = text.match(/nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}/i);
-  if (fallbackMatch) return fallbackMatch[0];
-  return text;
+  if (!result || !result.address) {
+    if (ui.scanError) {
+      ui.scanError.style.display = "block";
+      ui.scanError.textContent = "Invalid QR code";
+    }
+    return;
+  }
+
+  if (ui.sendRecipientInput) {
+    ui.sendRecipientInput.value = result.address;
+  }
+
+  if (ui.sendAmountInput && result.amount) {
+    ui.sendAmountInput.value = result.amount;
+  }
+
+  if (ui.qrScannerContainer) {
+    ui.qrScannerContainer.style.display = "none";
+  }
+
+  console.log("Autofill complete:", result);
+  void stopScanner();
 }
 
 async function openScanner() {
@@ -505,16 +541,7 @@ async function openScanner() {
     await appState.scanner.start(
       { facingMode: "environment" },
       { fps: 10, qrbox: { width: 260, height: 260 }, rememberLastUsedCamera: true, showTorchButtonIfSupported: true },
-      (decodedText) => {
-        const recipient = normalizeScannedText(decodedText);
-        if (!recipient) {
-          setScanError("Scanned QR is not valid.");
-          return;
-        }
-        if (ui.sendRecipientInput) ui.sendRecipientInput.value = recipient;
-        setSendStatus("success", "QR scanned and recipient filled.");
-        stopScanner().catch(() => {});
-      },
+      onScanSuccess,
       () => {}
     );
   } catch (error) {
@@ -745,6 +772,7 @@ async function handleAuthSubmit(event) {
     appState.token = token;
     setToken(token);
     window.currentUser = authData?.user || null;
+    localStorage.setItem("user", JSON.stringify(authData?.user || null));
     updateProfileUi(authData?.user || null);
     setTimeout(() => {
       renderNanoQR();
@@ -789,6 +817,7 @@ async function handleWaitlistSubmit(event) {
 
 function handleLogout() {
   clearToken();
+  localStorage.removeItem("user");
   appState.token = "";
   appState.user = null;
   window.currentUser = null;
@@ -987,6 +1016,16 @@ function setupVideoEvents() {
 }
 
 function restoreSession() {
+  const savedUser = localStorage.getItem("user");
+  if (savedUser) {
+    try {
+      window.currentUser = JSON.parse(savedUser);
+      appState.user = window.currentUser;
+    } catch {
+      localStorage.removeItem("user");
+    }
+  }
+
   const token = getToken();
   if (!token || isExpiredToken(token)) {
     clearToken();
