@@ -396,61 +396,81 @@ function getWalletAddress() {
   }
 
   const el1 = document.getElementById("wallet-address");
-  if (el1 && el1.textContent.trim()) {
-    return el1.textContent.trim();
-  }
-
   const el2 = document.getElementById("receive-wallet-address");
-  if (el2 && el2.textContent.trim()) {
-    return el2.textContent.trim();
-  }
+  const raw1 = el1?.textContent?.trim();
+  const raw2 = el2?.textContent?.trim();
+  const full = raw1 || raw2;
+  if (!full || full.includes("...")) return null;
 
-  return null;
+  return full;
 }
 
 function isValidNanoAddress(addr) {
-  return /^(nano|xrb)_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$/.test(String(addr || ""));
+  if (!addr) return false;
+  return /^(nano|xrb)_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$/.test(addr);
+}
+
+function ensureQRCodeLib(callback) {
+  if (window.QRCode) {
+    callback();
+    return;
+  }
+
+  const existing = document.querySelector('script[data-qrcode-lib="qrcodejs"]');
+  if (existing) {
+    existing.addEventListener("load", callback, { once: true });
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.src = "https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js";
+  script.setAttribute("data-qrcode-lib", "qrcodejs");
+  script.onload = callback;
+  script.onerror = () => {
+    console.error("Failed to load QRCode library");
+  };
+  document.head.appendChild(script);
 }
 
 function renderNanoQR() {
   const container = document.getElementById("qr-container");
   if (!container) return;
 
-  const address = getWalletAddress();
-  console.log("Wallet used for QR:", address);
+  ensureQRCodeLib(() => {
+    const address = getWalletAddress();
+    console.log("Wallet used for QR:", address);
 
-  if (!address || !isValidNanoAddress(address)) {
-    console.error("Invalid Nano address:", address);
-    container.innerHTML = `
-      <div class="empty-qr">
-        <p class="muted">Wallet not available</p>
-      </div>
-    `;
-    return;
-  }
+    if (!address || !isValidNanoAddress(address)) {
+      console.error("Invalid Nano address:", address);
+      container.innerHTML = `
+        <div class="empty-qr">
+          <p class="muted">Wallet not available</p>
+        </div>
+      `;
+      return;
+    }
 
-  const amountInput = document.getElementById("receive-amount");
-  const amount = amountInput && amountInput.value ? amountInput.value : "";
-  const uri = amount ? `nano:${address}?amount=${amount}` : `nano:${address}`;
+    const amountInput = document.getElementById("receive-amount");
+    const amount = amountInput?.value?.trim();
+    const uri = amount ? `nano:${address}?amount=${amount}` : `nano:${address}`;
 
-  container.innerHTML = "";
+    container.innerHTML = "";
 
-  if (typeof window.QRCode !== "function") {
-    console.error("QR generator unavailable.");
-    renderEmptyQr("QR generator unavailable");
-    return;
-  }
-
-  try {
-    new window.QRCode(container, {
-      text: uri,
-      width: 200,
-      height: 200
-    });
-  } catch (error) {
-    console.error("Failed to generate QR:", error);
-    renderEmptyQr("Failed to generate QR");
-  }
+    try {
+      new window.QRCode(container, {
+        text: uri,
+        width: 200,
+        height: 200
+      });
+    } catch (err) {
+      console.error("QR generator unavailable.", err);
+      container.innerHTML = `
+        <div class="empty-qr">
+          <p class="muted">QR failed to load</p>
+        </div>
+      `;
+    }
+  });
 }
 
 function renderQr() {
@@ -726,6 +746,9 @@ async function handleAuthSubmit(event) {
     setToken(token);
     window.currentUser = authData?.user || null;
     updateProfileUi(authData?.user || null);
+    setTimeout(() => {
+      renderNanoQR();
+    }, 200);
     updateBalanceUi("0");
     showDashboardView();
     renderRoute(getRouteFromHash(), { scroll: false });
