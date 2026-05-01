@@ -109,16 +109,17 @@ function buildNanoUri(address, amount) {
 }
 
 function getToken() {
-  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem("token") || "";
+  return (localStorage.getItem(TOKEN_KEY) || localStorage.getItem("token") || "").trim();
 }
 
 function setToken(token) {
-  if (!token) {
+  const normalizedToken = String(token || "").trim();
+  if (!normalizedToken) {
     clearToken();
     return;
   }
-  localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem("token", token);
+  localStorage.setItem(TOKEN_KEY, normalizedToken);
+  localStorage.setItem("token", normalizedToken);
 }
 
 function clearToken() {
@@ -287,13 +288,14 @@ function handleUnauthorized(message = "Session expired. Please login again.") {
 async function apiRequest(path, { method = "GET", token = "", body, timeoutMs = 15000 } = {}) {
   const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
   const timeout = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  const requestToken = String(token || "").trim();
 
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method,
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
+        ...(requestToken ? { Authorization: `Bearer ${requestToken}` } : {})
       },
       credentials: "include",
       body: body ? JSON.stringify(body) : undefined,
@@ -311,7 +313,7 @@ async function apiRequest(path, { method = "GET", token = "", body, timeoutMs = 
       const error = new Error(data?.error || data?.message || `Request failed (${response.status})`);
       error.status = response.status;
       error.data = data;
-      if (response.status === 401 && token) {
+      if (response.status === 401 && requestToken) {
         handleUnauthorized();
       }
       throw error;
@@ -390,19 +392,14 @@ function renderEmptyQr(message) {
 function renderQr() {
   if (!ui.qrContainer) return;
   const address = String(appState.user?.walletAddress || "").trim();
-  const amount = String(ui.receiveAmountInput?.value || "").trim();
 
-  if (!address) {
+  if (!address || !address.startsWith("nano_")) {
+    console.error("Cannot render Nano QR: missing or invalid Nano address.");
     renderEmptyQr("Wallet not available");
     return;
   }
 
-  if (!amount) {
-    renderEmptyQr("Add amount to generate QR");
-    return;
-  }
-
-  const uri = buildNanoUri(address, amount);
+  const uri = `nano:${address}`;
   if (!uri) {
     renderEmptyQr("Invalid payment data");
     return;
@@ -410,6 +407,7 @@ function renderQr() {
 
   const currentRequest = ++appState.qrRequestId;
   if (!window.QRCode || typeof window.QRCode.toDataURL !== "function") {
+    console.error("Cannot render Nano QR: QRCode library unavailable.");
     renderEmptyQr("QR generator unavailable");
     return;
   }
@@ -567,9 +565,7 @@ function updateActiveNav(route) {
   if (!ui.routeLinks?.length) return;
   ui.routeLinks.forEach((link) => {
     const linkRoute = String(link.getAttribute("data-route") || "").toLowerCase();
-    const active =
-      route === linkRoute ||
-      ((route === "receive" || route === "history") && linkRoute === route);
+    const active = route === linkRoute;
     link.classList.toggle("active", active);
   });
 }
@@ -581,6 +577,13 @@ function renderRoute(route, { scroll = true } = {}) {
   if (ui.dashboardContent) ui.dashboardContent.style.display = isSend ? "none" : "";
   if (ui.sendContent) ui.sendContent.style.display = isSend ? "" : "none";
   updateActiveNav(appState.currentRoute);
+
+  if (appState.currentRoute === "receive") {
+    renderQr();
+  }
+  if (appState.currentRoute === "history") {
+    renderTransactions(appState.transactions);
+  }
 
   if (!scroll) return;
 
@@ -607,7 +610,13 @@ function renderRoute(route, { scroll = true } = {}) {
 function setupRoutes() {
   if (ui.routeLinks?.length) {
     ui.routeLinks.forEach((link) => {
-      link.addEventListener("click", () => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        const route = String(link.getAttribute("data-route") || "").toLowerCase();
+        if (ROUTES.has(route)) {
+          window.location.hash = route;
+          renderRoute(route, { scroll: true });
+        }
         closeMobileMenu();
       });
     });
