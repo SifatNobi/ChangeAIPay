@@ -70,6 +70,14 @@ app.use(
 );
 
 app.use(express.json({ limit: "1mb" }));
+app.use((req, res, next) => {
+  res.setTimeout(10000, () => {
+    if (res.headersSent) return;
+    console.error("Request timed out:", req.originalUrl);
+    res.status(408).json({ error: "Request timeout" });
+  });
+  next();
+});
 
 app.get("/", (_req, res) => {
   res.json({
@@ -254,6 +262,12 @@ app.get("/confirm/:hash", async (req, res) => {
   }
 });
 
+app.use((err, req, res, _next) => {
+  console.error("Server error:", err);
+  if (res.headersSent) return;
+  res.status(500).json({ error: "Internal server error" });
+});
+
 app.use((req, res) => {
   res.status(404).json({
     error: "Route not found",
@@ -276,7 +290,10 @@ async function start() {
   }
 
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 10000
+    });
     console.log("MongoDB connected");
   } catch (err) {
     console.error("MongoDB connection failed:", err);

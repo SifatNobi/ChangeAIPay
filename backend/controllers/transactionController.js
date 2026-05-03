@@ -294,12 +294,13 @@ async function send(req, res) {
 
 async function history(req, res) {
   try {
-    const limit = Math.min(Number(req.query?.limit || 50), 100);
+    const limit = Math.min(Number(req.query?.limit || 50), 50);
     const items = await Transaction.find({
       $or: [{ sender: req.user.id }, { receiver: req.user.id }]
     })
       .sort({ timestamp: -1 })
       .limit(limit)
+      .maxTimeMS(5000)
       .populate("sender", "email walletAddress")
       .populate("receiver", "email walletAddress")
       .lean();

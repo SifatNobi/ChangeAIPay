@@ -1,14 +1,14 @@
 import express from "express";
 import walletQueue from "../services/walletQueue.js";
+import safeRoute from "../middleware/safeRoute.js";
 
 const router = express.Router();
 
-router.post("/retry/:userId", async (req, res) => {
-  try {
+router.post(
+  "/retry/:userId",
+  safeRoute(async (req, res) => {
     await walletQueue.retryWalletForUser(req.params.userId);
     res.json({ ok: true, message: "Wallet provisioning re-queued" });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: String(err?.message || err) });
-  }
-});
+  })
+);
 export default router;

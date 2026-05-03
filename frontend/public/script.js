@@ -590,6 +590,23 @@ function parseNanoURI(text) {
   }
 }
 
+async function safeFetch(path, options = {}, retries = 2) {
+  const method = options.method || "GET";
+  const token = options.token || "";
+  const body = options.body;
+  const timeoutMs = options.timeoutMs || 5000;
+
+  try {
+    return await apiRequest(path, { method, token, body, timeoutMs });
+  } catch (err) {
+    if (retries > 0) {
+      console.warn("Retrying:", path);
+      return safeFetch(path, options, retries - 1);
+    }
+    throw err;
+  }
+}
+
 async function confirmAutofill(data) {
   const preview = `${data.address.slice(0, 10)}...${data.address.slice(-6)}`;
   return confirm(`Send to:\n${preview}\n\nProceed?`);
@@ -883,10 +900,18 @@ function setupRoutes() {
 
 async function loadProfile(token, { silent = true } = {}) {
   try {
-    const result = await apiRequest("/user/profile", { token, timeoutMs: 12000 });
+    const result = await safeFetch("/user/profile", { token, timeoutMs: 5000 }, 2);
     if (result?.user) updateProfileUi(result.user);
     if (result?.balance?.balanceNano !== undefined) updateBalanceUi(result.balance.balanceNano);
   } catch (error) {
+    const cachedWallet = localStorage.getItem("walletAddress");
+    if (cachedWallet) {
+      updateProfileUi({
+        ...(window.APP_STATE.user || {}),
+        walletAddress: cachedWallet
+      });
+      return;
+    }
     if (!silent && error?.status !== 401) {
       console.warn("Profile refresh failed:", error?.message || error);
     }
@@ -895,7 +920,7 @@ async function loadProfile(token, { silent = true } = {}) {
 
 async function loadHistory(token, { silent = true } = {}) {
   try {
-    const result = await apiRequest("/transaction/history?limit=15", { token, timeoutMs: 12000 });
+    const result = await safeFetch("/transaction/history?limit=15", { token, timeoutMs: 5000 }, 2);
     renderTransactions(result?.transactions || []);
   } catch (error) {
     if (!silent && error?.status !== 401) {
