@@ -1,22 +1,33 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { getToken } from "../api";
+import { sendAIChat, getAIHistory } from "../api";
+import { FINA_AI_IMAGE } from "../constants/branding";
 import "./AIAssistant.css";
 
-const FINA_IMAGE = "https://photos.app.goo.gl/ChtosMU8yiVXbFVa9";
+export const FINA_IMAGE = FINA_AI_IMAGE;
 
 const QUICK_ACTIONS = [
-  { label: "Check Balance", action: "balance" },
-  { label: "Send Crypto", action: "send" },
-  { label: "Receive", action: "receive" },
-  { label: "Transaction History", action: "history" },
-  { label: "Help", action: "help" }
+  { label: "💰 Check Balance", action: "check my balance", icon: "balance" },
+  { label: "💸 Send Crypto", action: "send crypto", icon: "send" },
+  { label: "📥 Receive", action: "how do I receive", icon: "receive" },
+  { label: "📊 Transaction History", action: "show my transactions", icon: "history" },
+  { label: "📈 Spending Insights", action: "my spending insights", icon: "insight" },
+  { label: "🆘 Help", action: "help me", icon: "help" }
 ];
 
 const INITIAL_MESSAGE = {
   id: "welcome",
   role: "assistant",
-  content: "Hello! I'm Fina, your AI assistant for ChangeAIPay. How can I help you today?",
-  timestamp: new Date().toISOString()
+  content: "👋 Hello! I'm Fina, your ChangeAIPay AI assistant!\n\nI can help you with:\n• 💸 Sending & receiving crypto\n• 💰 Checking your balance\n• 📊 Transaction insights\n• 💡 Financial recommendations\n\nWhat would you like to do today?",
+  timestamp: new Date().toISOString(),
+  intent: "greeting"
 };
+
+function handleActionClick(action, onNavigate) {
+  if (action.type === "navigate" && onNavigate) {
+    onNavigate(action.target);
+  }
+}
 
 export default function AIAssistant({ userId, onNavigate }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,6 +35,7 @@ export default function AIAssistant({ userId, onNavigate }) {
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = useCallback(() => {
@@ -33,6 +45,24 @@ export default function AIAssistant({ userId, onNavigate }) {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  const loadHistory = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const data = await getAIHistory(token);
+      if (data?.history?.length > 0) {
+        setMessages([INITIAL_MESSAGE, ...data.history.slice(-10)]);
+      }
+    } catch (err) {
+      console.log("No chat history");
+    }
+  };
 
   const handleSend = useCallback(async () => {
     if (!input.trim() || isLoading) return;
@@ -47,15 +77,22 @@ export default function AIAssistant({ userId, onNavigate }) {
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await getAIResponse(userMessage.content);
-      
+      const token = getToken();
+      const response = await sendAIChat(token, input.trim(), {
+        page: "assistant",
+        userId
+      });
+
       const aiMessage = {
         id: `msg_${Date.now()}`,
         role: "assistant",
         content: response.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        intent: response.intent,
+        actions: response.actions || []
       };
 
       setMessages(prev => [...prev, aiMessage]);
@@ -63,25 +100,18 @@ export default function AIAssistant({ userId, onNavigate }) {
       const errorMessage = {
         id: `msg_${Date.now()}`,
         role: "assistant",
-        content: "I'm having trouble connecting. Please try again later.",
+        content: "I apologize, but I'm having trouble processing your request right now. Please try again.",
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, errorMessage]);
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading]);
+  }, [input, isLoading, userId]);
 
   const handleQuickAction = useCallback((action) => {
-    const actionMessages = {
-      balance: "How can I check my balance?",
-      send: "How do I send Nano?",
-      receive: "How do I receive payments?",
-      history: "Where can I see my transaction history?",
-      help: "I need help with ChangeAIPay"
-    };
-
-    setInput(actionMessages[action] || "Help me");
+    setInput(action);
   }, []);
 
   const handleKeyPress = useCallback((e) => {
@@ -100,6 +130,7 @@ export default function AIAssistant({ userId, onNavigate }) {
       >
         <img src={FINA_IMAGE} alt="Fina AI Assistant" className="ai-float-avatar" />
         <span className="ai-float-indicator">AI</span>
+        <span className="ai-float-pulse"></span>
       </button>
     );
   }
@@ -134,7 +165,20 @@ export default function AIAssistant({ userId, onNavigate }) {
                   <img src={FINA_IMAGE} alt="Fina" className="ai-message-avatar" />
                 )}
                 <div className="ai-message-content">
-                  <p>{msg.content}</p>
+                  <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
+                  {msg.actions && msg.actions.length > 0 && (
+                    <div className="ai-message-actions">
+                      {msg.actions.map((action, i) => (
+                        <button
+                          key={i}
+                          className="ai-action-btn"
+                          onClick={() => handleActionClick(action, onNavigate)}
+                        >
+                          {getActionLabel(action)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -150,13 +194,18 @@ export default function AIAssistant({ userId, onNavigate }) {
                 </div>
               </div>
             )}
+            {error && (
+              <div className="ai-error">
+                <span>⚠️ Connection issue. Try again.</span>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
           <div className="ai-quick-actions">
-            {QUICK_ACTIONS.map((action) => (
+            {QUICK_ACTIONS.map((action, index) => (
               <button
-                key={action.action}
+                key={index}
                 className="ai-quick-btn"
                 onClick={() => handleQuickAction(action.action)}
               >
@@ -171,7 +220,7 @@ export default function AIAssistant({ userId, onNavigate }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask Fina..."
+              placeholder="Ask Fina anything..."
               disabled={isLoading}
             />
             <button onClick={handleSend} disabled={!input.trim() || isLoading}>
@@ -186,42 +235,11 @@ export default function AIAssistant({ userId, onNavigate }) {
   );
 }
 
-function getAIResponse(message) {
-  const lower = message.toLowerCase();
-  
-  if (lower.includes("balance") || lower.includes("how much")) {
-    return {
-      message: "To check your balance, go to your Dashboard. Your current Nano balance is displayed there along with your wallet address. Would you like me to guide you there?"
-    };
-  } else if (lower.includes("send") || lower.includes("transfer")) {
-    return {
-      message: "To send Nano, click on 'Send' in the navigation, enter the recipient's wallet address and amount, then confirm the transaction. It's instant with zero fees!"
-    };
-  } else if (lower.includes("receive") || lower.includes("qr")) {
-    return {
-      message: "To receive Nano, go to your Dashboard and use the 'Generate QR' feature. Share the QR code with the sender, or copy your wallet address directly."
-    };
-  } else if (lower.includes("history") || lower.includes("transaction")) {
-    return {
-      message: "You can view all your transaction history in the History section of your Dashboard. Each transaction shows the amount, direction, status, and timestamp."
-    };
-  } else if (lower.includes("help") || lower.includes("support")) {
-    return {
-      message: "I'm here to help! You can ask me about:\n• Sending and receiving Nano\n• Checking your balance\n• Transaction history\n• Wallet setup\n• Security tips\n\nWhat would you like to know?"
-    };
-  } else if (lower.includes("fee") || lower.includes("cost")) {
-    return {
-      message: "ChangeAIPay has ZERO fees for all transactions! The Nano network processes payments instantly without any transaction costs. It's one of the main benefits of using Nano!"
-    };
-  } else if (lower.includes("nano") || lower.includes("crypto")) {
-    return {
-      message: "Nano is a decentralized, fee-less cryptocurrency that enables instant, feeless transactions. It's designed for everyday payments and is one of the fastest digital currencies available."
-    };
-  }
-  
-  return {
-    message: "Thanks for reaching out! I'm here to help with any questions about ChangeAIPay, Nano payments, or your account. What would you like to know?"
-  };
+function getActionLabel(action) {
+  if (action.type === "navigate") return "Go to Dashboard";
+  if (action.type === "balance") return `Balance: ${action.value} XNO`;
+  if (action.type === "transactions") return `${action.count} Transactions`;
+  return action.type || "Action";
 }
 
 export { FINA_IMAGE, QUICK_ACTIONS };

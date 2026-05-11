@@ -189,3 +189,85 @@ button {
     padding: 20px;
   }
 }
+
+/* =========================
+   ROLE SELECTOR
+   ========================= */
+
+.auth-logo {
+  margin-bottom: 24px;
+}
+
+.auth-brand-logo {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+}
+
+.role-selector {
+  margin-bottom: 20px;
+}
+
+.role-label {
+  display: block;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 12px;
+}
+
+.role-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.role-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(22, 22, 22, 0.8);
+  border: 2px solid rgba(84, 195, 255, 0.15);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-option:hover {
+  border-color: rgba(84, 195, 255, 0.3);
+  background: rgba(84, 195, 255, 0.05);
+}
+
+.role-option.selected {
+  border-color: #54c3ff;
+  background: rgba(84, 195, 255, 0.1);
+}
+
+.role-option input {
+  display: none;
+}
+
+.role-icon {
+  font-size: 24px;
+}
+
+.role-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.role-text strong {
+  font-size: 14px;
+  color: #fff;
+}
+
+.role-text small {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 500px) {
+  .role-options {
+    grid-template-columns: 1fr;
+  }
+}

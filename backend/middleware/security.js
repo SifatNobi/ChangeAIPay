@@ -19,7 +19,13 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ error: "Invalid token" });
     }
     
-    const user = await User.findById(decoded.userId).select("+password");
+    const userId = decoded.sub || decoded.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ error: "Invalid token payload" });
+    }
+    
+    const user = await User.findById(userId).select("+password");
     
     if (!user) {
       return res.status(401).json({ error: "User not found" });

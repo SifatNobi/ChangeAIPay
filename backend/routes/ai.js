@@ -12,12 +12,18 @@ router.post("/chat", optionalAuthMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    const userId = req.user?._id?.toString() || "anonymous";
+    const userId = req.user?._id?.toString();
+    
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
     
     const response = await aiChat(userId, message, {
       ...context,
-      role: req.user?.role || "guest",
-      page: context?.page || "unknown"
+      userId,
+      role: req.user?.role || "user",
+      page: context?.page || "assistant",
+      email: req.user?.email
     });
 
     res.json(response);

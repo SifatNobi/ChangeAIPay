@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
 
 export default function LoginScreen({ mode = "login", loading = false, error = "", onSubmit }) {
   const navigate = useNavigate();
@@ -7,7 +8,8 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
   const [form, setForm] = useState({
     name: "",
     email: "",
-    password: ""
+    password: "",
+    role: "user"
   });
 
   const handleChange = (e) => {
@@ -39,6 +41,9 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
 
         {/* LEFT SIDE */}
         <div className="hero-copy">
+          <div className="auth-logo">
+            <img src={COMPANY_LOGO} alt={COMPANY_NAME} className="auth-brand-logo" />
+          </div>
           <h1>
             Instant <span className="hero-highlight">Payments</span>
           </h1>
@@ -49,6 +54,43 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
         <div className="card auth-card glass-card login-surface">
           <h2>{isSignup ? "Create Account" : "Welcome Back"}</h2>
 
+          {/* ROLE SELECTION FOR SIGNUP */}
+          {isSignup && (
+            <div className="role-selector">
+              <label className="role-label">I want to:</label>
+              <div className="role-options">
+                <label className={`role-option ${form.role === "user" ? "selected" : ""}`}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="user"
+                    checked={form.role === "user"}
+                    onChange={handleChange}
+                  />
+                  <span className="role-icon">👤</span>
+                  <span className="role-text">
+                    <strong>Use</strong>
+                    <small>Send & receive payments</small>
+                  </span>
+                </label>
+                <label className={`role-option ${form.role === "merchant" ? "selected" : ""}`}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="merchant"
+                    checked={form.role === "merchant"}
+                    onChange={handleChange}
+                  />
+                  <span className="role-icon">🏪</span>
+                  <span className="role-text">
+                    <strong>Sell</strong>
+                    <small>Accept payments</small>
+                  </span>
+                </label>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} noValidate>
 
             {/* NAME (ONLY FOR SIGNUP) */}
@@ -56,7 +98,7 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
               <input
                 type="text"
                 name="name"
-                placeholder="Name"
+                placeholder="Full Name"
                 value={form.name}
                 onChange={handleChange}
                 required
@@ -97,7 +139,7 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
               {loading
                 ? "Please wait..."
                 : isSignup
-                ? "Sign Up"
+                ? `Sign Up as ${form.role === "merchant" ? "Merchant" : "User"}`
                 : "Login"}
             </button>
           </form>

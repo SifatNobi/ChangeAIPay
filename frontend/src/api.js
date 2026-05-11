@@ -74,10 +74,10 @@ export async function sendTransaction(token, { recipient, amount }) {
   });
 }
 
-export async function joinWaitlist(email) {
+export async function joinWaitlist({ email, phone }) {
   return apiRequest("/waitlist", {
     method: "POST",
-    body: { email }
+    body: { email, phone }
   });
 }
 
