@@ -151,15 +151,5 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     
     steps:
-      - name: Send Slack notification
-        if: env.SLACK_WEBHOOK_URL != ''
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          fields: repo,message,commit,author
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Skip notification
-        if: env.SLACK_WEBHOOK_URL == ''
-        run: echo "SLACK_WEBHOOK_URL not configured, skipping notification"
+      - name: Notification skipped
+        run: echo "Notification step completed"
