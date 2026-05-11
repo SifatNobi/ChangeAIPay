@@ -109,3 +109,30 @@ export async function clearAIHistory(token) {
 export async function getAISuggestions(token) {
   return apiRequest("/ai/suggestions", { token });
 }
+
+export async function getSubscriptionPlans() {
+  return apiRequest("/subscription/plans");
+}
+
+export async function getCurrentSubscription(token) {
+  return apiRequest("/subscription/current", { token });
+}
+
+export async function changeSubscriptionPlan(token, planId) {
+  return apiRequest("/subscription/change", {
+    method: "POST",
+    token,
+    body: { planId }
+  });
+}
+
+export async function getSubscriptionUsage(token) {
+  return apiRequest("/subscription/usage", { token });
+}
+
+export async function cancelSubscription(token) {
+  return apiRequest("/subscription/cancel", {
+    method: "POST",
+    token
+  });
+}

@@ -17,6 +17,7 @@ import walletRoutes from "./routes/wallet.js";
 import paymentRoutes from "./routes/payment.js";
 import adminRoutes from "./routes/admin.js";
 import aiRoutes from "./routes/ai.js";
+import subscriptionRoutes from "./routes/subscription.js";
 import { callRpc, getNodeHealth, RPC_NODES, testRpcNodes } from "./services/rpcClient.js";
 import walletQueue from "./services/walletQueue.js";
 import { confirmTransaction, getBalance } from "./services/nanoWallet.js";
@@ -136,6 +137,7 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 
 walletQueue.startWorker();
 
