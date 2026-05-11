@@ -66,18 +66,18 @@ export async function getUserProfile(token) {
   return apiRequest("/user/profile", { token });
 }
 
-export async function sendTransaction(token, { recipient, amount }) {
+export async function sendTransaction(token, payload) {
   return apiRequest("/transaction/send", {
     method: "POST",
     token,
-    body: { recipient, amount }
+    body: payload
   });
 }
 
-export async function joinWaitlist({ email, phone }) {
+export async function joinWaitlist(email) {
   return apiRequest("/waitlist", {
     method: "POST",
-    body: { email, phone }
+    body: { email }
   });
 }
 
@@ -85,216 +85,4 @@ export async function getTransactionHistory(token, { limit = 50 } = {}) {
   const qs = new URLSearchParams();
   if (limit) qs.set("limit", String(limit));
   return apiRequest(`/transaction/history?${qs.toString()}`, { token });
-}
-
-export async function sendAIChat(token, message, context = {}) {
-  return apiRequest("/ai/chat", {
-    method: "POST",
-    token,
-    body: { message, context }
-  });
-}
-
-export async function getAIHistory(token) {
-  return apiRequest("/ai/history", { token });
-}
-
-export async function clearAIHistory(token) {
-  return apiRequest("/ai/history", {
-    method: "DELETE",
-    token
-  });
-}
-
-export async function getAISuggestions(token) {
-  return apiRequest("/ai/suggestions", { token });
-}
-
-export async function getSubscriptionPlans() {
-  return apiRequest("/subscription/plans");
-}
-
-export async function getCurrentSubscription(token) {
-  return apiRequest("/subscription/current", { token });
-}
-
-export async function changeSubscriptionPlan(token, planId) {
-  return apiRequest("/subscription/change", {
-    method: "POST",
-    token,
-    body: { planId }
-  });
-}
-
-export async function getSubscriptionUsage(token) {
-  return apiRequest("/subscription/usage", { token });
-}
-
-export async function cancelSubscription(token) {
-  return apiRequest("/subscription/cancel", {
-    method: "POST",
-    token
-  });
-}
-
-export async function getMerchantPlans() {
-  return apiRequest("/merchant-subscription/plans");
-}
-
-export async function getMerchantSubscription(token) {
-  return apiRequest("/merchant-subscription/current", { token });
-}
-
-export async function updateMerchantRevenue(token, annualRevenue) {
-  return apiRequest("/merchant-subscription/revenue-update", {
-    method: "POST",
-    token,
-    body: { annualRevenue }
-  });
-}
-
-export async function getMerchantAnalytics(token) {
-  return apiRequest("/merchant-subscription/analytics", { token });
-}
-
-export async function getCashFlowPrediction(token) {
-  return apiRequest("/merchant-subscription/cashflow", { token });
-}
-
-export async function getLifetimeValueData(token) {
-  return apiRequest("/merchant-subscription/ltv", { token });
-}
-
-export async function sendPayment(token, { recipient, amount, note }) {
-  return apiRequest("/payments/send", {
-    method: "POST",
-    token,
-    body: { recipient, amount, note }
-  });
-}
-
-export async function requestPayment(token, { amount, description, expiresIn }) {
-  return apiRequest("/payments/request", {
-    method: "POST",
-    token,
-    body: { amount, description, expiresIn }
-  });
-}
-
-export async function getPaymentHistory(token, { limit, offset, type } = {}) {
-  const qs = new URLSearchParams();
-  if (limit) qs.set("limit", String(limit));
-  if (offset) qs.set("offset", String(offset));
-  if (type) qs.set("type", type);
-  return apiRequest(`/payments/history?${qs.toString()}`, { token });
-}
-
-export async function getTransactionDetails(token, transactionId) {
-  return apiRequest(`/payments/${transactionId}`, { token });
-}
-
-export async function verifyRecipient(token, address) {
-  return apiRequest("/payments/verify-recipient", {
-    method: "POST",
-    token,
-    body: { address }
-  });
-}
-
-export async function calculateFX(token, { amount, fromCurrency, toCurrency }) {
-  return apiRequest("/payments/convert", {
-    method: "POST",
-    token,
-    body: { amount, fromCurrency, toCurrency }
-  });
-}
-
-export async function getSmartRouting(token, { amount, destination }) {
-  return apiRequest("/payments/route", {
-    method: "POST",
-    token,
-    body: { amount, destination }
-  });
-}
-
-export async function undoPayment(token, transactionId) {
-  return apiRequest(`/payments/${transactionId}/undo`, {
-    method: "POST",
-    token
-  });
-}
-
-export async function getPaymentTranscript(token, transactionId) {
-  return apiRequest(`/payments/${transactionId}/transcript`, { token });
-}
-
-export async function getBillingPlans(token, currency = "EUR") {
-  return apiRequest(`/billing/plans?currency=${currency}`, { token });
-}
-
-export async function createBillingCheckout(token, { planId, currency, paymentMethod }) {
-  return apiRequest("/billing/checkout", {
-    method: "POST",
-    token,
-    body: { planId, currency, paymentMethod }
-  });
-}
-
-export async function processBillingPayment(token, { sessionId, paymentMethod }) {
-  return apiRequest("/billing/process", {
-    method: "POST",
-    token,
-    body: { sessionId, paymentMethod }
-  });
-}
-
-export async function getPaymentMethods(token) {
-  return apiRequest("/billing/methods", { token });
-}
-
-export async function getBillingHistory(token) {
-  return apiRequest("/billing/history", { token });
-}
-
-export async function getBillingAnalytics(token) {
-  return apiRequest("/billing/analytics", { token });
-}
-
-export async function pauseSubscriptionBilling(token, reason) {
-  return apiRequest("/billing/pause", {
-    method: "POST",
-    token,
-    body: { reason }
-  });
-}
-
-export async function resumeSubscriptionBilling(token) {
-  return apiRequest("/billing/resume", {
-    method: "POST",
-    token
-  });
-}
-
-export async function changePlanWithProration(token, { newPlanId, paymentMethod }) {
-  return apiRequest("/billing/change-plan", {
-    method: "POST",
-    token,
-    body: { newPlanId, paymentMethod }
-  });
-}
-
-export async function getSubscriptionAnalytics(token) {
-  return apiRequest("/billing/subscription-analytics", { token });
-}
-
-export async function getAIRecommendations(token) {
-  return apiRequest("/billing/ai-recommendations", { token });
-}
-
-export async function getPlanComparison(token, plans = "edge,prime,apex") {
-  return apiRequest(`/billing/plan-comparison?plans=${plans}`, { token });
-}
-
-export async function getRenewalReminder(token) {
-  return apiRequest("/billing/renewal-reminder", { token });
 }

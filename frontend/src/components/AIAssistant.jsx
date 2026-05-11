@@ -29,7 +29,41 @@ function handleActionClick(action, onNavigate) {
   }
 }
 
-export default function AIAssistant({ userId, onNavigate }) {
+function buildPaymentContextMessage(context) {
+  const lines = [
+    "I detected a scanned QR payment that is ready to review.",
+    context.merchant ? `Merchant: ${context.merchant}` : "Merchant: unknown",
+    `Recipient: ${context.recipient || context.destination || "unknown address"}`,
+    `Amount: ${context.amount || "TBD"} ${context.currency || "XNO"}`,
+  ];
+
+  if (context.note) {
+    lines.push(`Note: ${context.note}`);
+  }
+  if (context.reference) {
+    lines.push(`Reference: ${context.reference}`);
+  }
+
+  if (context.currency && context.currency !== "XNO") {
+    lines.push("This payment uses a non-XNO currency, so an FX conversion may be applied.");
+  }
+
+  const highValue = parseFloat(context.amount || "0") > 100;
+  if (highValue) {
+    lines.push("High-value payment detected. Please verify the merchant and recipient before sending.");
+  }
+
+  if (!context.merchant) {
+    lines.push("I recommend confirming the merchant identity before completing this transfer.");
+  } else {
+    lines.push("If the merchant looks correct, you can continue to the send screen for confirmation.");
+  }
+
+  lines.push("I can help you choose the best route, explain the details, or warn you of suspicious activity.");
+  return lines.join("\n");
+}
+
+export default function AIAssistant({ userId, paymentContext, onNavigate }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
@@ -37,6 +71,8 @@ export default function AIAssistant({ userId, onNavigate }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
+  const token = getToken();
+  const contextNotificationRef = useRef(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -48,7 +84,26 @@ export default function AIAssistant({ userId, onNavigate }) {
 
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, [token]);
+
+  useEffect(() => {
+    if (!paymentContext?.rawValue) return;
+    const contextSignature = `${paymentContext.rawValue}-${paymentContext.amount}-${paymentContext.recipient}`;
+    if (contextNotificationRef.current === contextSignature) return;
+
+    contextNotificationRef.current = contextSignature;
+    setIsOpen(true);
+
+    const assistantMessage = {
+      id: `ctx_${Date.now()}`,
+      role: "assistant",
+      content: buildPaymentContextMessage(paymentContext),
+      timestamp: new Date().toISOString(),
+      intent: "payment_context"
+    };
+
+    setMessages((prev) => [...prev, assistantMessage]);
+  }, [paymentContext]);
 
   const loadHistory = async () => {
     const token = getToken();
@@ -67,6 +122,12 @@ export default function AIAssistant({ userId, onNavigate }) {
   const handleSend = useCallback(async () => {
     if (!input.trim() || isLoading) return;
 
+    const token = getToken();
+    if (!token) {
+      setError("Please login to chat with Fina.");
+      return;
+    }
+
     const userMessage = {
       id: `msg_${Date.now()}`,
       role: "user",
@@ -74,13 +135,12 @@ export default function AIAssistant({ userId, onNavigate }) {
       timestamp: new Date().toISOString()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
     setError(null);
 
     try {
-      const token = getToken();
       const response = await sendAIChat(token, input.trim(), {
         page: "assistant",
         userId
@@ -95,7 +155,7 @@ export default function AIAssistant({ userId, onNavigate }) {
         actions: response.actions || []
       };
 
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
       const errorMessage = {
         id: `msg_${Date.now()}`,
@@ -103,7 +163,7 @@ export default function AIAssistant({ userId, onNavigate }) {
         content: "I apologize, but I'm having trouble processing your request right now. Please try again.",
         timestamp: new Date().toISOString()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
       setError(err.message);
     } finally {
       setIsLoading(false);

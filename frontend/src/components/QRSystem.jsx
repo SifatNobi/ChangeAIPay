@@ -4,6 +4,7 @@ import "./QRSystem.css";
 
 const NANO_ADDRESS_REGEX = /^nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$/i;
 const SCAN_COOLDOWN = 2000;
+const DUPLICATE_SCAN_WINDOW = 10000;
 
 export function useQRScanner({ onScan, onError }) {
   const [isScanning, setIsScanning] = useState(false);
@@ -13,26 +14,25 @@ export function useQRScanner({ onScan, onError }) {
   const lastScanTimeRef = useRef(0);
 
   const validateNanoAddress = useCallback((text) => {
-    const cleaned = text.trim().replace(/^nano:/i, "").split("?")[0];
-    
+    const cleaned = String(text || "").trim().replace(/^nano:/i, "").split("?")[0];
     if (NANO_ADDRESS_REGEX.test(cleaned)) {
       return { valid: true, address: cleaned, type: "nano_address" };
     }
 
-    const uriMatch = text.match(/nano:([13][13456789abcdefghijkmnopqrstuwxyz]{59})/i);
+    const uriMatch = String(text || "").match(/nano:([13][13456789abcdefghijkmnopqrstuwxyz]{59})/i);
     if (uriMatch) {
       return { valid: true, address: uriMatch[1], type: "nano_uri" };
     }
 
     try {
-      const url = new URL(text);
+      const url = new URL(String(text || ""));
       if (url.protocol === "nano:" && url.pathname) {
-        return { valid: true, address: url.pathname.replace("/", ""), type: "nano_protocol" };
+        return { valid: true, address: url.pathname.replace(/^\/+/, ""), type: "nano_protocol" };
       }
     } catch {}
 
     try {
-      const params = new URLSearchParams(text.split("?")[1]);
+      const params = new URLSearchParams(String(text || "").split("?")[1] || "");
       const nanoParam = params.get("nano") || params.get("address") || params.get("to");
       if (nanoParam && NANO_ADDRESS_REGEX.test(nanoParam)) {
         return { valid: true, address: nanoParam, type: "url_param" };
@@ -42,33 +42,135 @@ export function useQRScanner({ onScan, onError }) {
     return { valid: false, address: null, type: null };
   }, []);
 
+  const parsePaymentPayload = useCallback((text) => {
+    const rawValue = String(text || "").trim();
+    if (!rawValue) {
+      return { valid: false, rawValue: "" };
+    }
+
+    const payload = {
+      valid: false,
+      rawValue,
+      type: null,
+      address: null,
+      recipient: null,
+      destination: null,
+      amount: null,
+      currency: "XNO",
+      merchant: "",
+      note: "",
+      reference: "",
+      metadata: {}
+    };
+
+    try {
+      const jsonPayload = JSON.parse(rawValue);
+      if (jsonPayload && typeof jsonPayload === "object") {
+        payload.type = jsonPayload.type || jsonPayload.source || "json_payment";
+        payload.address = jsonPayload.recipient || jsonPayload.address || jsonPayload.wallet || jsonPayload.destination;
+        payload.recipient = payload.address;
+        payload.destination = jsonPayload.destination || payload.address;
+        payload.amount = jsonPayload.amount ?? jsonPayload.value ?? jsonPayload.total ?? null;
+        payload.currency = jsonPayload.currency || jsonPayload.currency_code || jsonPayload.asset || payload.currency;
+        payload.merchant = jsonPayload.merchant || jsonPayload.merchantName || jsonPayload.payee || jsonPayload.business || "";
+        payload.note = jsonPayload.note || jsonPayload.message || jsonPayload.description || "";
+        payload.reference = jsonPayload.reference || jsonPayload.memo || jsonPayload.note || "";
+        payload.metadata = jsonPayload.metadata || {};
+      }
+    } catch {
+      // not JSON, continue
+    }
+
+    if (!payload.address) {
+      try {
+        let parseable = rawValue;
+        if (/^[a-zA-Z0-9_]+:[^/]/.test(rawValue) && !rawValue.includes("//")) {
+          parseable = rawValue.replace(/^([^:]+):/, "$1://");
+        }
+        const url = new URL(parseable);
+        const params = url.searchParams;
+        if (url.protocol === "nano:") {
+          payload.address = url.pathname.replace(/^\/+/, "");
+        }
+        payload.destination = payload.destination || payload.address;
+        payload.address = payload.address || params.get("address") || params.get("recipient") || params.get("wallet") || params.get("to") || params.get("destination");
+        payload.amount = payload.amount ?? params.get("amount") || params.get("value") || params.get("total");
+        payload.currency = params.get("currency") || params.get("asset") || payload.currency;
+        payload.merchant = payload.merchant || params.get("merchant") || params.get("label") || params.get("payee") || "";
+        payload.note = payload.note || params.get("note") || params.get("message") || params.get("description") || "";
+        payload.reference = payload.reference || params.get("reference") || params.get("memo") || "";
+
+        const metadata = {};
+        params.forEach((value, key) => {
+          if (!["address", "recipient", "wallet", "to", "destination", "amount", "value", "total", "currency", "asset", "merchant", "label", "payee", "note", "message", "description", "reference", "memo"].includes(key)) {
+            metadata[key] = value;
+          }
+        });
+        payload.metadata = { ...payload.metadata, ...metadata };
+      } catch {
+        // ignore invalid URL formats
+      }
+    }
+
+    if (!payload.address) {
+      const validation = validateNanoAddress(rawValue);
+      if (validation.valid) {
+        payload.address = validation.address;
+        payload.recipient = validation.address;
+        payload.destination = validation.address;
+        payload.type = validation.type;
+      }
+    }
+
+    if (payload.address) {
+      payload.valid = true;
+      payload.recipient = payload.recipient || payload.address;
+      payload.destination = payload.destination || payload.address;
+      payload.type = payload.type || "payment_payload";
+    }
+
+    return payload;
+  }, [validateNanoAddress]);
+
   const handleScanSuccess = useCallback((decodedText) => {
     const now = Date.now();
     if (now - lastScanTimeRef.current < SCAN_COOLDOWN) {
       return;
     }
-    lastScanTimeRef.current = now;
-
-    const validation = validateNanoAddress(decodedText);
-    
-    if (validation.valid) {
-      setLastScanned({
-        address: validation.address,
-        timestamp: new Date().toISOString(),
-        rawValue: decodedText
-      });
-      onScan?.({
-        address: validation.address,
-        type: validation.type,
-        rawValue: decodedText
-      });
-    } else {
-      onError?.({
-        message: "Invalid QR code. Not a valid Nano address.",
-        rawValue: decodedText
-      });
+    const parsed = parsePaymentPayload(decodedText);
+    if (decodedText === lastScanTextRef.current && now - lastScanTimeRef.current < DUPLICATE_SCAN_WINDOW) {
+      return;
     }
-  }, [validateNanoAddress, onScan, onError]);
+    lastScanTimeRef.current = now;
+    lastScanTextRef.current = decodedText;
+
+    if (!parsed.valid) {
+      onError?.({
+        message: "Invalid or unsupported QR payment payload.",
+        rawValue: decodedText
+      });
+      return;
+    }
+
+    setLastScanned({
+      ...parsed,
+      timestamp: new Date().toISOString()
+    });
+
+    onScan?.({
+      recipient: parsed.recipient,
+      destination: parsed.destination,
+      amount: parsed.amount != null ? parseFloat(parsed.amount) : 0,
+      currency: parsed.currency || "XNO",
+      merchant: parsed.merchant,
+      note: parsed.note,
+      reference: parsed.reference,
+      metadata: parsed.metadata,
+      rawValue: parsed.rawValue,
+      source: "qr",
+      payloadType: parsed.type
+    });
+  }, [onError, onScan, parsePaymentPayload]);
 
   const startScanning = useCallback(async (elementId) => {
     if (scannerRef.current) return;
@@ -161,19 +263,44 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
   const [mode, setMode] = useState("receive");
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState("XNO");
+  const [merchant, setMerchant] = useState("");
+  const [destination, setDestination] = useState("");
   const [note, setNote] = useState("");
+  const [reference, setReference] = useState("");
   const [scannedData, setScannedData] = useState(null);
   const [error, setError] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
 
   const { startScanning, stopScanning, validateNanoAddress, hasPermission } = useQRScanner({
-    onScan: (data) => {
+    onScan: async (data) => {
       setScannedData(data);
-      setRecipient(data.address);
+      setRecipient(data.recipient || data.destination || "");
+      setAmount(data.amount != null ? String(data.amount) : "");
+      setCurrency(data.currency || "XNO");
+      setMerchant(data.merchant || "");
+      setDestination(data.destination || data.recipient || "");
+      setNote(data.note || "");
+      setReference(data.reference || "");
       setIsScanning(false);
+      await stopScanning();
+
+      onPaymentReady?.({
+        recipient: data.recipient,
+        amount: data.amount,
+        currency: data.currency,
+        merchant: data.merchant,
+        destination: data.destination,
+        note: data.note,
+        reference: data.reference,
+        metadata: data.metadata,
+        rawValue: data.rawValue,
+        source: data.source,
+        scannedFromQR: true
+      });
     },
     onError: (err) => {
-      setError(err.message);
+      setError(err.message || "Unable to scan QR code.");
     }
   });
 
@@ -190,7 +317,6 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     const validation = validateNanoAddress(recipient);
     if (!validation.valid) {
       setError("Invalid Nano address");
@@ -200,21 +326,28 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
     onPaymentReady?.({
       recipient: validation.address,
       amount: parseFloat(amount) || 0,
+      currency,
+      merchant,
+      destination: destination || validation.address,
       note,
-      scannedFromQR: !!scannedData
+      reference,
+      metadata: {},
+      rawValue: recipient,
+      source: "manual",
+      scannedFromQR: false
     });
   };
 
   return (
     <div className="qr-payment-scanner">
       <div className="qr-mode-tabs">
-        <button 
+        <button
           className={mode === "receive" ? "active" : ""}
           onClick={() => setMode("receive")}
         >
           Receive
         </button>
-        <button 
+        <button
           className={mode === "send" ? "active" : ""}
           onClick={() => setMode("send")}
         >
@@ -245,7 +378,7 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
               <button className="ghost-button" onClick={handleStartScan}>
                 Try Again
               </button>
-              <button 
+              <button
                 className="ghost-button"
                 onClick={() => setMode("manual")}
               >
@@ -257,8 +390,10 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
           {(scannedData || recipient) && (
             <div className="scanned-info">
               <div className="address-preview">
-                {scannedData?.address || recipient}
+                {scannedData?.recipient || scannedData?.destination || recipient}
               </div>
+              {scannedData?.merchant && <div className="merchant-preview">Merchant: {scannedData.merchant}</div>}
+              {scannedData?.amount != null && <div className="amount-preview">Amount: {scannedData.amount} {scannedData.currency || "XNO"}</div>}
             </div>
           )}
 
@@ -283,12 +418,30 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
             />
             <input
               type="text"
+              placeholder="Merchant (optional)"
+              value={merchant}
+              onChange={(e) => setMerchant(e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Destination (optional)"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+            />
+            <input
+              type="text"
               placeholder="Note (optional)"
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
-            <button 
-              type="submit" 
+            <input
+              type="text"
+              placeholder="Reference (optional)"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+            />
+            <button
+              type="submit"
               className="primary-button"
               disabled={!recipient || !amount}
             >
@@ -304,6 +457,12 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
           <div className="receive-placeholder">
             Your wallet QR will appear here
           </div>
+        </div>
+      )}
+
+      {mode === "send" && onCancel && (
+        <div className="qr-navigation-actions">
+          <button className="ghost-button" onClick={onCancel}>Back to dashboard</button>
         </div>
       )}
     </div>
