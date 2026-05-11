@@ -14,7 +14,7 @@ import {
 import { 
   getRecommendations, 
   getPlanComparison as getPlanComparisonFromAI, 
-  getRenewalReminder, 
+  getRenewalReminder as getRenewalReminderService, 
   generateFinaMessage,
   PLANS_CONFIG 
 } from "../services/recommendationEngine.js";
@@ -483,7 +483,7 @@ export async function getPlanComparison(req, res) {
 export async function getRenewalReminder(req, res) {
   try {
     const userId = req.user._id;
-    const reminder = await getRenewalReminder(userId);
+    const reminder = await getRenewalReminderService(userId);
 
     res.json({ success: true, reminder });
   } catch (err) {
