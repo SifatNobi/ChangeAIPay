@@ -164,3 +164,66 @@ export async function getCashFlowPrediction(token) {
 export async function getLifetimeValueData(token) {
   return apiRequest("/merchant-subscription/ltv", { token });
 }
+
+export async function sendPayment(token, { recipient, amount, note }) {
+  return apiRequest("/payments/send", {
+    method: "POST",
+    token,
+    body: { recipient, amount, note }
+  });
+}
+
+export async function requestPayment(token, { amount, description, expiresIn }) {
+  return apiRequest("/payments/request", {
+    method: "POST",
+    token,
+    body: { amount, description, expiresIn }
+  });
+}
+
+export async function getPaymentHistory(token, { limit, offset, type } = {}) {
+  const qs = new URLSearchParams();
+  if (limit) qs.set("limit", String(limit));
+  if (offset) qs.set("offset", String(offset));
+  if (type) qs.set("type", type);
+  return apiRequest(`/payments/history?${qs.toString()}`, { token });
+}
+
+export async function getTransactionDetails(token, transactionId) {
+  return apiRequest(`/payments/${transactionId}`, { token });
+}
+
+export async function verifyRecipient(token, address) {
+  return apiRequest("/payments/verify-recipient", {
+    method: "POST",
+    token,
+    body: { address }
+  });
+}
+
+export async function calculateFX(token, { amount, fromCurrency, toCurrency }) {
+  return apiRequest("/payments/convert", {
+    method: "POST",
+    token,
+    body: { amount, fromCurrency, toCurrency }
+  });
+}
+
+export async function getSmartRouting(token, { amount, destination }) {
+  return apiRequest("/payments/route", {
+    method: "POST",
+    token,
+    body: { amount, destination }
+  });
+}
+
+export async function undoPayment(token, transactionId) {
+  return apiRequest(`/payments/${transactionId}/undo`, {
+    method: "POST",
+    token
+  });
+}
+
+export async function getPaymentTranscript(token, transactionId) {
+  return apiRequest(`/payments/${transactionId}/transcript`, { token });
+}

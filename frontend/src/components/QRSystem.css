@@ -1,0 +1,154 @@
+.qr-payment-scanner {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.qr-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.qr-mode-tabs button {
+  flex: 1;
+  padding: 12px;
+  background: rgba(22, 22, 22, 0.8);
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.qr-mode-tabs button.active {
+  background: linear-gradient(135deg, #0f2760, #1e6be0);
+  border-color: #54c3ff;
+  color: #fff;
+}
+
+.scan-btn {
+  padding: 16px;
+  font-size: 16px;
+}
+
+.scanner-view {
+  position: relative;
+}
+
+.qr-reader {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  min-height: 300px;
+}
+
+.qr-reader video {
+  width: 100%;
+  height: auto;
+}
+
+.qr-reader-container {
+  width: 100%;
+  min-height: 300px;
+}
+
+.qr-error {
+  padding: 12px;
+  background: rgba(255, 144, 139, 0.15);
+  border: 1px solid rgba(255, 144, 139, 0.3);
+  border-radius: 8px;
+  color: #ff908b;
+  font-size: 14px;
+  margin: 12px 0;
+}
+
+.qr-permission-error {
+  padding: 20px;
+  text-align: center;
+  background: rgba(84, 195, 255, 0.1);
+  border-radius: 12px;
+  margin: 12px 0;
+}
+
+.qr-permission-error p {
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 16px;
+}
+
+.qr-permission-error button {
+  margin: 4px;
+}
+
+.scanned-info {
+  padding: 12px;
+  background: rgba(0, 214, 125, 0.1);
+  border: 1px solid rgba(0, 214, 125, 0.3);
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+.address-preview {
+  font-family: monospace;
+  font-size: 13px;
+  color: #00d67d;
+  word-break: break-all;
+}
+
+.payment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.payment-form input {
+  padding: 14px 16px;
+  background: rgba(22, 22, 22, 0.95);
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.payment-form input:focus {
+  border-color: rgba(84, 195, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(84, 195, 255, 0.1);
+}
+
+.payment-form input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.address-input {
+  font-family: monospace;
+  font-size: 13px !important;
+}
+
+.receive-mode {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.receive-mode p {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 24px;
+}
+
+.receive-placeholder {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  background: rgba(84, 195, 255, 0.1);
+  border: 2px dashed rgba(84, 195, 255, 0.3);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+}
