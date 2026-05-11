@@ -13,7 +13,7 @@ import {
 } from "../services/subscriptionAutomation.js";
 import { 
   getRecommendations, 
-  getPlanComparison, 
+  getPlanComparison as getPlanComparisonFromAI, 
   getRenewalReminder, 
   generateFinaMessage,
   PLANS_CONFIG 
@@ -471,7 +471,7 @@ export async function getPlanComparison(req, res) {
     const { plans = "edge,prime,apex" } = req.query;
     const planIds = plans.split(",");
 
-    const comparison = await getPlanComparison(userId, planIds);
+    const comparison = await getPlanComparisonFromAI(userId, planIds);
 
     res.json({ success: true, comparison });
   } catch (err) {
