@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import Transaction from "../models/Transaction.js";
 import { convertFiatToNano, getCurrentRates } from "./conversionService.js";
 import logger from "./logger.js";
-import { sendEmail } from "./emailService.js";
+import emailService from "./emailService.js";
 
 const PLANS_CONFIG = {
   edge: { fiatPrice: 24.99, name: "Edge", periodDays: 30 },
@@ -361,7 +361,7 @@ class SubscriptionAutomationService {
     `;
 
     try {
-      await sendEmail(user.email, "Subscription Renewed - ChangeAIPay", emailHtml);
+      await emailService.sendEmail(user.email, "Subscription Renewed - ChangeAIPay", emailHtml);
     } catch (err) {
       logger.warn("Failed to send renewal email", { error: err.message });
     }
@@ -386,7 +386,7 @@ class SubscriptionAutomationService {
     `;
 
     try {
-      await sendEmail(user.email, "Payment Due - ChangeAIPay", emailHtml);
+      await emailService.sendEmail(user.email, "Payment Due - ChangeAIPay", emailHtml);
     } catch (err) {
       logger.warn("Failed to send payment due email", { error: err.message });
     }
@@ -411,7 +411,7 @@ class SubscriptionAutomationService {
     `;
 
     try {
-      await sendEmail(user.email, "Payment Retry - ChangeAIPay", emailHtml);
+      await emailService.sendEmail(user.email, "Payment Retry - ChangeAIPay", emailHtml);
     } catch (err) {
       logger.warn("Failed to send retry email", { error: err.message });
     }
@@ -437,7 +437,7 @@ class SubscriptionAutomationService {
     `;
 
     try {
-      await sendEmail(user.email, "Subscription Ended - ChangeAIPay", emailHtml);
+      await emailService.sendEmail(user.email, "Subscription Ended - ChangeAIPay", emailHtml);
     } catch (err) {
       logger.warn("Failed to send subscription ended email", { error: err.message });
     }
