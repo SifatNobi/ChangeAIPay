@@ -17,6 +17,7 @@ function serializeUser(user) {
     id: user._id,
     name: user.name,
     email: user.email,
+    role: user.role || "user",
     walletAddress: user.walletAddress,
     walletStatus: user.walletStatus,
     walletId: user.walletId,
@@ -38,6 +39,10 @@ async function register(req, res) {
     const name = String(req.body?.name || "").trim();
     const email = String(req.body?.email || "").trim().toLowerCase();
     const password = String(req.body?.password || "");
+    const role = String(req.body?.role || "user").toLowerCase();
+
+    const validRoles = ["user", "merchant"];
+    const userRole = validRoles.includes(role) ? role : "user";
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: "Name, email and password are required" });
@@ -50,7 +55,13 @@ async function register(req, res) {
     const existing = await User.findOne({ email }).lean();
     if (existing) return res.status(409).json({ error: "Email already in use" });
 
-    const user = await User.create({ name, email, password, walletStatus: "pending" });
+    const user = await User.create({ 
+      name, 
+      email, 
+      password, 
+      role: userRole,
+      walletStatus: "pending" 
+    });
 
     try {
       const { privateKey, address } = await createWalletAndAccount();
@@ -90,8 +101,25 @@ async function login(req, res) {
     const user = await User.findOne({ email }).select("+password");
     if (!user) return res.status(400).json({ error: "Invalid credentials" });
 
+    if (user.status === "suspended") {
+      return res.status(403).json({ error: "Account suspended. Contact support." });
+    }
+
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(400).json({ error: "Invalid credentials" });
+
+    user.security = user.security || {};
+    user.security.lastLoginAt = new Date();
+    user.security.loginHistory = user.security.loginHistory || [];
+    user.security.loginHistory.unshift({
+      ip: req.ip || req.connection?.remoteAddress,
+      userAgent: req.get("user-agent"),
+      timestamp: new Date()
+    });
+    if (user.security.loginHistory.length > 10) {
+      user.security.loginHistory = user.security.loginHistory.slice(0, 10);
+    }
+    await user.save().catch(() => {});
 
     const token = signToken(user._id);
     return res.json({
@@ -100,7 +128,8 @@ async function login(req, res) {
       user: {
         ...serializeUser(user),
         ...serializeAuthUser(user)
-      }
+      },
+      role: user.role || "user"
     });
   } catch (err) {
     console.error("Login error:", err);

@@ -1,0 +1,53 @@
+name: Auto Commit Changes
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Commit message'
+        required: false
+        default: 'Update changes'
+
+jobs:
+  auto-commit:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Stage changes
+        run: |
+          git add -A
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --cached --quiet; then
+            echo "no_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "no_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit changes
+        if: steps.changes.outputs.no_changes == 'false'
+        run: |
+          git commit -m "${{ github.event.inputs.message || 'Auto-commit from GitHub Actions' }}"
+
+      - name: Push changes
+        if: steps.changes.outputs.no_changes == 'false'
+        run: |
+          git push

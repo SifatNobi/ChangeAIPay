@@ -1,5 +1,6 @@
 import path from "path";
 import { fileURLToPath } from "url";
+import { createServer } from "http";
 
 import cors from "cors";
 import dotenv from "dotenv";
@@ -7,14 +8,27 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import mongoose from "mongoose";
 
+import config from "./config/index.js";
 import authRoutes from "./routes/auth.routes.js";
 import transactionRoutes from "./routes/transaction.js";
 import userRoutes from "./routes/user.js";
 import waitlistRoutes from "./routes/waitlist.js";
 import walletRoutes from "./routes/wallet.js";
+import paymentRoutes from "./routes/payment.js";
+import adminRoutes from "./routes/admin.js";
+import aiRoutes from "./routes/ai.js";
+import subscriptionRoutes from "./routes/subscription.js";
+import merchantSubscriptionRoutes from "./routes/merchantSubscription.js";
+import paymentRoutes from "./routes/payments.js";
+import billingRoutes from "./routes/billing.js";
+import webhookRoutes from "./routes/webhook.js";
+import { startSubscriptionAutomation } from "./services/subscriptionAutomation.js";
 import { callRpc, getNodeHealth, RPC_NODES, testRpcNodes } from "./services/rpcClient.js";
 import walletQueue from "./services/walletQueue.js";
 import { confirmTransaction, getBalance } from "./services/nanoWallet.js";
+import { requestLogger, errorLogger } from "./services/logger.js";
+import { securityHeaders, inputSanitization } from "./middleware/security.js";
+import wsManager from "./services/websocket.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,6 +84,10 @@ app.use(
 );
 
 app.use(express.json({ limit: "1mb" }));
+app.use(securityHeaders);
+app.use(inputSanitization);
+app.use(requestLogger);
+
 app.use((req, res, next) => {
   res.setTimeout(10000, () => {
     if (res.headersSent) return;
@@ -121,6 +139,14 @@ app.use("/api/user", userRoutes);
 app.use("/api/transaction", transactionRoutes);
 app.use("/api/waitlist", waitlistRoutes);
 app.use("/api/wallet", walletRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/subscription", subscriptionRoutes);
+app.use("/api/merchant-subscription", merchantSubscriptionRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/billing", billingRoutes);
+app.use("/api/webhook", webhookRoutes);
 
 walletQueue.startWorker();
 
@@ -262,6 +288,8 @@ app.get("/confirm/:hash", async (req, res) => {
   }
 });
 
+app.use(errorLogger);
+
 app.use((err, req, res, _next) => {
   console.error("Server error:", err);
   if (res.headersSent) return;
@@ -300,7 +328,18 @@ async function start() {
     process.exit(1);
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const server = createServer(app);
+  
+  if (config.websocket.enabled) {
+    wsManager.initialize(server);
+  }
+
+  startSubscriptionAutomation();
+  
+  const { default: webhookService } = await import("./services/webhookService.js");
+  webhookService.initialize();
+
+  server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
   });
 }

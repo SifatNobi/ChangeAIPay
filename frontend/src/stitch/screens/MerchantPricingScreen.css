@@ -1,0 +1,285 @@
+.merchant-pricing-page {
+  min-height: 100vh;
+  padding: 40px 24px 60px;
+  background: 
+    radial-gradient(circle at 100% 0, rgba(84, 195, 255, 0.12), transparent 30%),
+    radial-gradient(circle at 0 100%, rgba(33, 182, 248, 0.1), transparent 30%),
+    #000;
+}
+
+.merchant-pricing-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.merchant-pricing-header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 12px;
+  background: linear-gradient(135deg, #fff, #54c3ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.merchant-pricing-header p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.merchant-pricing-fina {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.merchant-pricing-fina .fina-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid rgba(84, 195, 255, 0.4);
+  margin-bottom: 12px;
+  box-shadow: 0 0 30px rgba(84, 195, 255, 0.2);
+}
+
+.merchant-pricing-fina p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 15px;
+}
+
+.merchant-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.merchant-plan-card {
+  background: rgba(18, 18, 18, 0.9);
+  border: 1px solid rgba(84, 195, 255, 0.15);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.merchant-plan-card:hover {
+  border-color: rgba(84, 195, 255, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.merchant-plan-card.popular {
+  border-color: #54c3ff;
+  background: linear-gradient(180deg, rgba(15, 39, 96, 0.4) 0%, rgba(18, 18, 18, 0.9) 100%);
+  box-shadow: 0 0 40px rgba(84, 195, 255, 0.15);
+}
+
+.merchant-plan-card.current {
+  border-color: rgba(0, 214, 125, 0.4);
+}
+
+.merchant-plan-card.popular .popular-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #0f2760, #1e6be0);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.plan-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.revenue-badge {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(84, 195, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.pricing-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.price-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: rgba(84, 195, 255, 0.05);
+  border-radius: 10px;
+}
+
+.price-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 4px;
+}
+
+.price-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #54c3ff;
+}
+
+.plan-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.4;
+  margin: 0 0 16px;
+  min-height: 34px;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  flex: 1;
+}
+
+.plan-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 4px 0;
+}
+
+.plan-features li.included {
+  color: #fff;
+}
+
+.plan-features li.not-included {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.plan-features li .feature-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.plan-features li.included .feature-icon {
+  background: rgba(0, 214, 125, 0.2);
+  color: #00d67d;
+}
+
+.plan-features li.not-included .feature-icon {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.plan-cta {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.plan-cta.current {
+  background: rgba(0, 214, 125, 0.15);
+  border: 1px solid rgba(0, 214, 125, 0.3);
+  color: #00d67d;
+  cursor: default;
+}
+
+.merchant-pricing-footer {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.feature-legend {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.legend-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+.legend-item:first-child .legend-icon {
+  background: rgba(0, 214, 125, 0.2);
+  color: #00d67d;
+}
+
+.legend-item:last-child .legend-icon {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.merchant-pricing-footer p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .merchant-plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .merchant-pricing-page {
+    padding: 24px 16px 40px;
+  }
+
+  .merchant-pricing-header h1 {
+    font-size: 28px;
+  }
+
+  .merchant-plans-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-row {
+    flex-direction: column;
+  }
+}

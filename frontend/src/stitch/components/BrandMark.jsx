@@ -1,8 +1,7 @@
 import { useState } from "react";
+import { COMPANY_LOGO } from "../../constants/branding";
 
-const DEFAULT_LOGO_SRC = "/assets/icon.png";
-
-export default function BrandMark({ size = 52, src = DEFAULT_LOGO_SRC }) {
+export default function BrandMark({ size = 52, src = COMPANY_LOGO }) {
   const [failed, setFailed] = useState(false);
 
   return (
@@ -10,7 +9,7 @@ export default function BrandMark({ size = 52, src = DEFAULT_LOGO_SRC }) {
       {!failed ? (
         <img
           src={src}
-          alt="logo"
+          alt="ChangeAIPay"
           onError={() => setFailed(true)}
           style={{
             width: "100%",
