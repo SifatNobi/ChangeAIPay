@@ -37,18 +37,6 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-function getRequiredEnv(name) {
-  const value = process.env[name];
-  if (!value) {
-    console.error(`Missing required environment variable: ${name}`);
-    process.exit(1);
-  }
-  return value;
-}
-
-getRequiredEnv("MONGO_URI");
-getRequiredEnv("JWT_SECRET");
-
 const allowedOrigins = new Set(
   (process.env.CORS_ORIGINS ||
     "https://changeaipay.netlify.app,http://localhost:5173,http://127.0.0.1:5173")
@@ -315,14 +303,24 @@ async function start() {
     console.warn("RPC_NODES not configured. Falling back to default public nodes.");
   }
 
-  try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 10000
-    });
-    console.log("MongoDB connected");
-  } catch (err) {
-    console.error("MongoDB connection failed:", err);
+  // Retry MongoDB connection
+  let mongoConnected = false;
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      await mongoose.connect(config.mongodb.uri, config.mongodb.options);
+      console.log("MongoDB connected");
+      mongoConnected = true;
+      break;
+    } catch (err) {
+      console.error(`MongoDB connection attempt ${attempt} failed:`, err);
+      if (attempt < 5) {
+        console.log(`Retrying in 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+  }
+  if (!mongoConnected) {
+    console.error("Failed to connect to MongoDB after 5 attempts. Exiting.");
     process.exit(1);
   }
 

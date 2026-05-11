@@ -2,14 +2,10 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import { createWalletAndAccount } from "../services/nano.js";
 import bcrypt from "bcryptjs";
+import config from "../config/index.js";
 
 function signToken(userId) {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("JWT_SECRET is not configured");
-  }
-
-  return jwt.sign({ sub: String(userId) }, secret, { expiresIn: "7d" });
+  return jwt.sign({ sub: String(userId) }, config.jwt.secret, { expiresIn: config.jwt.expiry });
 }
 
 function serializeUser(user) {
