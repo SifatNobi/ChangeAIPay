@@ -1,6 +1,6 @@
 import Transaction from "../models/Transaction.js";
 import User from "../models/User.js";
-import { sendTransaction as sendNanoTransaction } from "../services/nanoWallet.js";
+import { sendNano as sendNanoTransaction } from "../services/nanoWallet.js";
 import { analyzeTransaction, getSmartConfirmation } from "../services/fraudDetection.js";
 import logger from "../services/logger.js";
 import wsManager from "../services/websocket.js";
