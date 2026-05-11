@@ -227,3 +227,74 @@ export async function undoPayment(token, transactionId) {
 export async function getPaymentTranscript(token, transactionId) {
   return apiRequest(`/payments/${transactionId}/transcript`, { token });
 }
+
+export async function getBillingPlans(token, currency = "EUR") {
+  return apiRequest(`/billing/plans?currency=${currency}`, { token });
+}
+
+export async function createBillingCheckout(token, { planId, currency, paymentMethod }) {
+  return apiRequest("/billing/checkout", {
+    method: "POST",
+    token,
+    body: { planId, currency, paymentMethod }
+  });
+}
+
+export async function processBillingPayment(token, { sessionId, paymentMethod }) {
+  return apiRequest("/billing/process", {
+    method: "POST",
+    token,
+    body: { sessionId, paymentMethod }
+  });
+}
+
+export async function getPaymentMethods(token) {
+  return apiRequest("/billing/methods", { token });
+}
+
+export async function getBillingHistory(token) {
+  return apiRequest("/billing/history", { token });
+}
+
+export async function getBillingAnalytics(token) {
+  return apiRequest("/billing/analytics", { token });
+}
+
+export async function pauseSubscriptionBilling(token, reason) {
+  return apiRequest("/billing/pause", {
+    method: "POST",
+    token,
+    body: { reason }
+  });
+}
+
+export async function resumeSubscriptionBilling(token) {
+  return apiRequest("/billing/resume", {
+    method: "POST",
+    token
+  });
+}
+
+export async function changePlanWithProration(token, { newPlanId, paymentMethod }) {
+  return apiRequest("/billing/change-plan", {
+    method: "POST",
+    token,
+    body: { newPlanId, paymentMethod }
+  });
+}
+
+export async function getSubscriptionAnalytics(token) {
+  return apiRequest("/billing/subscription-analytics", { token });
+}
+
+export async function getAIRecommendations(token) {
+  return apiRequest("/billing/ai-recommendations", { token });
+}
+
+export async function getPlanComparison(token, plans = "edge,prime,apex") {
+  return apiRequest(`/billing/plan-comparison?plans=${plans}`, { token });
+}
+
+export async function getRenewalReminder(token) {
+  return apiRequest("/billing/renewal-reminder", { token });
+}

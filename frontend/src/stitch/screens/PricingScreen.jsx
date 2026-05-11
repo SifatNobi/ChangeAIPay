@@ -73,6 +73,7 @@ const PLANS = [
     price: 64.99,
     period: "month",
     description: "Autonomous AI payments, AI negotiator, life events",
+    tagline: "Ultimate AI Automation",
     features: [
       { text: "Autonomous AI Payments", included: true },
       { text: "AI Negotiator", included: true },
@@ -86,7 +87,9 @@ const PLANS = [
     ],
     limits: { fxFee: "0.58%", monthlyCap: "Unlimited", fxFree: "$6,000/mo" },
     cta: "Upgrade to Apex",
-    popular: false
+    popular: false,
+    legendary: true,
+    legendaryTitle: "Legendary Choice"
   }
 ];
 
@@ -161,11 +164,15 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
           return (
             <div 
               key={plan.id} 
-              className={`pricing-card glass-card ${plan.popular ? "popular" : ""} ${state}`}
+              className={`pricing-card glass-card ${plan.popular ? "popular" : ""} ${plan.legendary ? "legendary" : ""} ${state}`}
             >
               {plan.popular && <div className="popular-badge">Most Popular</div>}
+              {plan.legendary && <div className="legendary-badge">{plan.legendaryTitle || "Legendary Choice"}</div>}
               
               <div className="plan-header">
+                {plan.legendary && plan.tagline && (
+                  <p className="legendary-tagline">{plan.tagline}</p>
+                )}
                 <h2>{plan.name}</h2>
                 <div className="plan-price">
                   <span className="currency">$</span>

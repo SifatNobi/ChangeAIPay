@@ -20,6 +20,9 @@ import aiRoutes from "./routes/ai.js";
 import subscriptionRoutes from "./routes/subscription.js";
 import merchantSubscriptionRoutes from "./routes/merchantSubscription.js";
 import paymentRoutes from "./routes/payments.js";
+import billingRoutes from "./routes/billing.js";
+import webhookRoutes from "./routes/webhook.js";
+import { startSubscriptionAutomation } from "./services/subscriptionAutomation.js";
 import { callRpc, getNodeHealth, RPC_NODES, testRpcNodes } from "./services/rpcClient.js";
 import walletQueue from "./services/walletQueue.js";
 import { confirmTransaction, getBalance } from "./services/nanoWallet.js";
@@ -142,6 +145,8 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/merchant-subscription", merchantSubscriptionRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/billing", billingRoutes);
+app.use("/api/webhook", webhookRoutes);
 
 walletQueue.startWorker();
 
@@ -328,6 +333,11 @@ async function start() {
   if (config.websocket.enabled) {
     wsManager.initialize(server);
   }
+
+  startSubscriptionAutomation();
+  
+  const { default: webhookService } = await import("./services/webhookService.js");
+  webhookService.initialize();
 
   server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
