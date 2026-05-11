@@ -136,3 +136,31 @@ export async function cancelSubscription(token) {
     token
   });
 }
+
+export async function getMerchantPlans() {
+  return apiRequest("/merchant-subscription/plans");
+}
+
+export async function getMerchantSubscription(token) {
+  return apiRequest("/merchant-subscription/current", { token });
+}
+
+export async function updateMerchantRevenue(token, annualRevenue) {
+  return apiRequest("/merchant-subscription/revenue-update", {
+    method: "POST",
+    token,
+    body: { annualRevenue }
+  });
+}
+
+export async function getMerchantAnalytics(token) {
+  return apiRequest("/merchant-subscription/analytics", { token });
+}
+
+export async function getCashFlowPrediction(token) {
+  return apiRequest("/merchant-subscription/cashflow", { token });
+}
+
+export async function getLifetimeValueData(token) {
+  return apiRequest("/merchant-subscription/ltv", { token });
+}
