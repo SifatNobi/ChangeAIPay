@@ -390,6 +390,6 @@ export const getRenewalReminder = (userId) =>
   recommendationEngine.getRenewalReminder(userId);
 export const generateFinaMessage = (rec) => 
   recommendationEngine.generateFinaRecommendationMessage(rec);
-export const PLANS_CONFIG = PLANS_CONFIG;
+export { PLANS_CONFIG };
 
 export default recommendationEngine;
