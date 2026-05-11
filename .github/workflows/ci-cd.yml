@@ -85,7 +85,7 @@ jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.NETLIFY_AUTH_TOKEN != ''
     
     steps:
       - name: Checkout code
@@ -114,7 +114,7 @@ jobs:
   deploy-backend:
     runs-on: ubuntu-latest
     needs: lint-and-test
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.RENDER_SERVICE_ID != ''
     
     environment: production
     
@@ -146,14 +146,19 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: [deploy-frontend, deploy-backend]
-    if: ${{ always() && secrets.SLACK_WEBHOOK_URL != '' }}
+    needs: [lint-and-test, build]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     
     steps:
       - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Skip notification
+        if: env.SLACK_WEBHOOK_URL == ''
+        run: echo "SLACK_WEBHOOK_URL not configured, skipping notification"
