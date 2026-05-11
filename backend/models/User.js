@@ -1,45 +1,117 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
-const userSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true
-    },
-    password: {
-      type: String,
-      required: true,
-      minlength: 8,
-      select: true
-    },
-    walletAddress: String,
-    walletStatus: String,
-    walletId: String,
-    privateKey: String,
-    walletCreatedAt: Date
+const userSchema = new mongoose.Schema({
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+    index: true
   },
-  { timestamps: true }
-);
+  password: {
+    type: String,
+    required: true,
+    minlength: 8,
+    select: false
+  },
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 100
+  },
+  role: {
+    type: String,
+    enum: ["user", "merchant", "admin"],
+    default: "user"
+  },
+  walletAddress: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
+  walletPrivateKey: {
+    type: String,
+    select: false
+  },
+  profile: {
+    avatar: String,
+    phone: String,
+    country: String,
+    timezone: String
+  },
+  preferences: {
+    notifications: {
+      email: { type: Boolean, default: true },
+      push: { type: Boolean, default: true },
+      sms: { type: Boolean, default: false }
+    },
+    currency: { type: String, default: "XNO" },
+    language: { type: String, default: "en" },
+    theme: { type: String, enum: ["light", "dark", "system"], default: "dark" }
+  },
+  verification: {
+    emailVerified: { type: Boolean, default: false },
+    identityVerified: { type: Boolean, default: false },
+    kycLevel: { type: Number, default: 0, min: 0, max: 3 }
+  },
+  security: {
+    twoFactorEnabled: { type: Boolean, default: false },
+    twoFactorSecret: { type: String, select: false },
+    lastLoginAt: Date,
+    loginHistory: [{
+      ip: String,
+      userAgent: String,
+      timestamp: { type: Date, default: Date.now }
+    }]
+  },
+  limits: {
+    daily: { type: Number, default: 1000 },
+    monthly: { type: Number, default: 10000 }
+  },
+  status: {
+    type: String,
+    enum: ["active", "suspended", "banned"],
+    default: "active"
+  }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
 
-userSchema.pre("save", async function (next) {
+userSchema.index({ createdAt: -1 });
+userSchema.index({ role: 1, status: 1 });
+
+userSchema.pre("save", async function(next) {
   if (!this.isModified("password")) return next();
-
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  return bcrypt.compare(enteredPassword, this.password);
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.toPublicJSON = function() {
+  return {
+    id: this._id,
+    email: this.email,
+    name: this.name,
+    role: this.role,
+    walletAddress: this.walletAddress,
+    profile: this.profile,
+    preferences: this.preferences,
+    verification: {
+      emailVerified: this.verification?.emailVerified,
+      identityVerified: this.verification?.identityVerified,
+      kycLevel: this.verification?.kycLevel
+    },
+    status: this.status,
+    createdAt: this.createdAt
+  };
 };
 
 export default mongoose.model("User", userSchema);

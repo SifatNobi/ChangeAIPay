@@ -4,13 +4,14 @@ export const API_BASE_URL =
 const TOKEN_KEY = "changeaipay_token";
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem("token") || "";
+  return (localStorage.getItem(TOKEN_KEY) || localStorage.getItem("token") || "").trim();
 }
 
 export function setToken(token) {
-  if (!token) return clearToken();
-  localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem("token", token);
+  const normalizedToken = String(token || "").trim();
+  if (!normalizedToken) return clearToken();
+  localStorage.setItem(TOKEN_KEY, normalizedToken);
+  localStorage.setItem("token", normalizedToken);
 }
 
 export function clearToken() {
@@ -19,11 +20,12 @@ export function clearToken() {
 }
 
 async function apiRequest(path, { method = "GET", token, body } = {}) {
+  const requestToken = String(token || "").trim();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
+      ...(requestToken ? { Authorization: `Bearer ${requestToken}` } : {})
     },
     credentials: "include",
     body: body ? JSON.stringify(body) : undefined
@@ -83,4 +85,27 @@ export async function getTransactionHistory(token, { limit = 50 } = {}) {
   const qs = new URLSearchParams();
   if (limit) qs.set("limit", String(limit));
   return apiRequest(`/transaction/history?${qs.toString()}`, { token });
+}
+
+export async function sendAIChat(token, message, context = {}) {
+  return apiRequest("/ai/chat", {
+    method: "POST",
+    token,
+    body: { message, context }
+  });
+}
+
+export async function getAIHistory(token) {
+  return apiRequest("/ai/history", { token });
+}
+
+export async function clearAIHistory(token) {
+  return apiRequest("/ai/history", {
+    method: "DELETE",
+    token
+  });
+}
+
+export async function getAISuggestions(token) {
+  return apiRequest("/ai/suggestions", { token });
 }
