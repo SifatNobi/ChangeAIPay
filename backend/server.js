@@ -19,7 +19,7 @@ import adminRoutes from "./routes/admin.js";
 import aiRoutes from "./routes/ai.js";
 import subscriptionRoutes from "./routes/subscription.js";
 import merchantSubscriptionRoutes from "./routes/merchantSubscription.js";
-import paymentRoutes from "./routes/payments.js";
+import paymentsRoutes from "./routes/payments.js";
 import billingRoutes from "./routes/billing.js";
 import webhookRoutes from "./routes/webhook.js";
 import { startSubscriptionAutomation } from "./services/subscriptionAutomation.js";
@@ -144,7 +144,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/merchant-subscription", merchantSubscriptionRoutes);
-app.use("/api/payments", paymentRoutes);
+app.use("/api/payments", paymentsRoutes);
 app.use("/api/billing", billingRoutes);
 app.use("/api/webhook", webhookRoutes);
 
