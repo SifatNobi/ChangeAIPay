@@ -4,7 +4,7 @@ import { sendAIChat, getAIHistory } from "../api";
 import { FINA_AI_IMAGE } from "../constants/branding";
 import "./AIAssistant.css";
 
-export const FINA_IMAGE = FINA_AI_IMAGE;
+const FINA_IMAGE = FINA_AI_IMAGE;
 
 const QUICK_ACTIONS = [
   { label: "💰 Check Balance", action: "check my balance", icon: "balance" },

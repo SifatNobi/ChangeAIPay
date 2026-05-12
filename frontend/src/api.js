@@ -48,6 +48,50 @@ async function apiRequest(path, { method = "GET", token, body } = {}) {
   return data;
 }
 
+export { apiRequest };
+
+export async function sendAIChat(token, message, context = {}) {
+  return apiRequest("/ai/chat", {
+    method: "POST",
+    token,
+    body: { message, context }
+  });
+}
+
+export async function getAIHistory(token) {
+  return apiRequest("/ai/history", { token });
+}
+
+export async function getPaymentHistory(token, { limit = 20 } = {}) {
+  const qs = new URLSearchParams();
+  if (limit) qs.set("limit", String(limit));
+  return apiRequest(`/payments/history?${qs.toString()}`, { token });
+}
+
+export async function getCurrentSubscription(token) {
+  return apiRequest("/subscription/current", { token });
+}
+
+export async function getSubscriptionUsage(token) {
+  return apiRequest("/subscription/usage", { token });
+}
+
+export async function getMerchantSubscription(token) {
+  return apiRequest("/merchant-subscription/current", { token });
+}
+
+export async function getMerchantAnalytics(token) {
+  return apiRequest("/merchant-subscription/analytics", { token });
+}
+
+export async function getCashFlowPrediction(token) {
+  return apiRequest("/merchant-subscription/cashflow", { token });
+}
+
+export async function getLifetimeValueData(token) {
+  return apiRequest("/merchant-subscription/ltv", { token });
+}
+
 export async function login({ email, password }) {
   return apiRequest("/auth/login", {
     method: "POST",

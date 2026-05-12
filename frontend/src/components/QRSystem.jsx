@@ -94,7 +94,7 @@ export function useQRScanner({ onScan, onError }) {
         }
         payload.destination = payload.destination || payload.address;
         payload.address = payload.address || params.get("address") || params.get("recipient") || params.get("wallet") || params.get("to") || params.get("destination");
-        payload.amount = payload.amount ?? params.get("amount") || params.get("value") || params.get("total");
+        payload.amount = payload.amount ?? (params.get("amount") || params.get("value") || params.get("total"));
         payload.currency = params.get("currency") || params.get("asset") || payload.currency;
         payload.merchant = payload.merchant || params.get("merchant") || params.get("label") || params.get("payee") || "";
         payload.note = payload.note || params.get("note") || params.get("message") || params.get("description") || "";
