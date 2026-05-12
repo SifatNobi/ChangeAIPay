@@ -11,6 +11,7 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
     password: "",
     role: "user"
   });
+  const isLogin = !isSignup;
 
   const handleChange = (e) => {
     setForm({
@@ -54,10 +55,9 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
         <div className="card auth-card glass-card login-surface">
           <h2>{isSignup ? "Create Account" : "Welcome Back"}</h2>
 
-          {/* ROLE SELECTION FOR SIGNUP */}
-          {isSignup && (
+          {(isSignup || isLogin) && (
             <div className="role-selector">
-              <label className="role-label">I want to:</label>
+              <label className="role-label">I am signing in as:</label>
               <div className="role-options">
                 <label className={`role-option ${form.role === "user" ? "selected" : ""}`}>
                   <input
@@ -69,7 +69,7 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
                   />
                   <span className="role-icon">👤</span>
                   <span className="role-text">
-                    <strong>Use</strong>
+                    <strong>User</strong>
                     <small>Send & receive payments</small>
                   </span>
                 </label>
@@ -83,7 +83,7 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
                   />
                   <span className="role-icon">🏪</span>
                   <span className="role-text">
-                    <strong>Sell</strong>
+                    <strong>Merchant</strong>
                     <small>Accept payments</small>
                   </span>
                 </label>
@@ -143,6 +143,11 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
                 : "Login"}
             </button>
           </form>
+
+          <div className="auth-quick-links">
+            <button type="button" className="ghost-button" onClick={() => navigate("/waitlist")}>Join Waitlist</button>
+            <button type="button" className="ghost-button" onClick={() => navigate("/pricing")}>View Pricing</button>
+          </div>
 
           {/* SWITCH */}
           <p className="switch-copy">

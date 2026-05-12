@@ -19,7 +19,7 @@
     "mongoose": "^8.0.3",
     "nanocurrency": "^2.5.0",
     "node-fetch": "^3.3.2",
-    "nodemailer": "^6.9.8",
+    "nodemailer": "^8.0.7",
     "qrcode": "^1.5.3",
     "ws": "^8.16.0"
   },

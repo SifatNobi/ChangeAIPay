@@ -89,11 +89,11 @@ app.get("/", (_req, res) => {
     ok: true,
     service: "ChangeAIPay backend",
     routes: {
-      auth: "/api/auth",
-      user: "/api/user",
-      transaction: "/api/transaction",
-      waitlist: "/api/waitlist",
-      wallet: "/api/wallet",
+      auth: "/auth",
+      user: "/user",
+      transaction: "/transaction",
+      waitlist: "/waitlist",
+      wallet: "/wallet",
       health: "/health"
     }
   });
@@ -112,7 +112,7 @@ app.get("/test", (_req, res) => {
 });
 
 app.use(
-  "/api/auth",
+  "/auth",
   rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 50,
@@ -121,18 +121,18 @@ app.use(
   })
 );
 
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
-app.use("/api/transaction", transactionRoutes);
-app.use("/api/waitlist", waitlistRoutes);
-app.use("/api/wallet", walletRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/ai", aiRoutes);
-app.use("/api/subscription", subscriptionRoutes);
-app.use("/api/merchant-subscription", merchantSubscriptionRoutes);
-app.use("/api/payments", paymentsRoutes);
-app.use("/api/billing", billingRoutes);
-app.use("/api/webhook", webhookRoutes);
+app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
+app.use("/transaction", transactionRoutes);
+app.use("/waitlist", waitlistRoutes);
+app.use("/wallet", walletRoutes);
+app.use("/admin", adminRoutes);
+app.use("/ai", aiRoutes);
+app.use("/subscription", subscriptionRoutes);
+app.use("/merchant-subscription", merchantSubscriptionRoutes);
+app.use("/payments", paymentsRoutes);
+app.use("/billing", billingRoutes);
+app.use("/webhook", webhookRoutes);
 
 walletQueue.startWorker();
 

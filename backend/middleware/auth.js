@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import config from "../config/index.js";
 
 const auth = (req, res, next) => {
   try {
@@ -10,7 +9,7 @@ const auth = (req, res, next) => {
       return res.status(401).json({ message: "No authentication token, access denied" });
     }
 
-    const decoded = jwt.verify(token, config.jwt.secret);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = {
       ...decoded,
       id: decoded.id || decoded.sub
