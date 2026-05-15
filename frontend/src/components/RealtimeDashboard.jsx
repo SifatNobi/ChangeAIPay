@@ -313,14 +313,14 @@ export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE }) {
   );
 }
 
-export function GoalProgress({ goals = [] }) {
+export function GoalProgress({ goals = [], onEdit, onDelete }) {
   return (
     <div className="goal-progress">
       {goals.map((goal, index) => {
         const progress = Math.min((goal.current / goal.target) * 100, 100);
         
         return (
-          <div key={index} className="goal-item">
+          <div key={goal.id || index} className="goal-item">
             <div className="goal-header">
               <span className="goal-name">{goal.name}</span>
               <span className="goal-progress-text">
@@ -336,7 +336,21 @@ export function GoalProgress({ goals = [] }) {
                 }}
               />
             </div>
-            <span className="goal-percentage">{progress.toFixed(0)}%</span>
+            <div className="goal-footer">
+              <span className="goal-percentage">{progress.toFixed(0)}%</span>
+              <div className="goal-actions">
+                {onEdit && (
+                  <button className="goal-action-btn edit-btn" onClick={() => onEdit(goal)}>
+                    Edit
+                  </button>
+                )}
+                {onDelete && (
+                  <button className="goal-action-btn delete-btn" onClick={() => onDelete(goal.id)}>
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         );
       })}

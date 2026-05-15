@@ -143,12 +143,129 @@
 
 .receive-mode {
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px;
 }
 
-.receive-mode p {
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 24px;
+.receive-mode h3 {
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.receive-mode .muted {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.receive-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.receive-form input {
+  padding: 14px 16px;
+  background: rgba(22, 22, 22, 0.95);
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.receive-form input:focus {
+  border-color: rgba(84, 195, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(84, 195, 255, 0.1);
+}
+
+.receive-form input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.receive-qr-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.receive-qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.receive-qr-image {
+  border-radius: 16px;
+  box-shadow: 0 0 32px rgba(84, 195, 255, 0.2), 0 4px 16px rgba(0, 0, 0, 0.3);
+  background: #fff;
+  padding: 12px;
+  max-width: 300px;
+  width: 100%;
+}
+
+.receive-qr-address {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(22, 22, 22, 0.9);
+  border: 1px solid rgba(84, 195, 255, 0.15);
+  border-radius: 10px;
+  max-width: 100%;
+}
+
+.receive-qr-address code {
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  word-break: break-all;
+  flex: 1;
+}
+
+.copy-address-btn {
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #0f2760, #1e6be0);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.copy-address-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(30, 107, 224, 0.4);
+}
+
+.receive-qr-amount {
+  padding: 8px 16px;
+  background: rgba(0, 214, 125, 0.1);
+  border: 1px solid rgba(0, 214, 125, 0.3);
+  border-radius: 8px;
+  color: #00d67d;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.receive-qr-empty,
+.receive-qr-loading,
+.receive-qr-error {
+  padding: 40px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.receive-qr-loading {
+  color: rgba(84, 195, 255, 0.7);
+}
+
+.receive-qr-error {
+  color: #ff908b;
 }
 
 .receive-placeholder {

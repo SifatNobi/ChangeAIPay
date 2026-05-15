@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "../../api";
 import "../../components/SendStyles.css";
@@ -44,15 +44,16 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
   const [paymentContext, setPaymentContext] = useState(null);
   const [smartWarnings, setSmartWarnings] = useState([]);
   const scannerRef = useRef(null);
+  const statusRef = useRef(status);
+  statusRef.current = status;
   
-  // PHASE 11: Real-time confirmation polling
   const [txId, setTxId] = useState(null);
   const [confirmationTime, setConfirmationTime] = useState(0);
   const pollIntervalRef = useRef(null);
   const pollStartTimeRef = useRef(null);
   const pollAttemptsRef = useRef(0);
   const pollErrorCountRef = useRef(0);
-  const maxPollErrors = 5; // Max network errors before giving up
+  const maxPollErrors = 5;
 
   useEffect(() => {
     return () => {
@@ -123,15 +124,21 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
     setSmartWarnings(warnings);
   }, [form.amount, form.currency, form.merchant, form.recipient]);
 
-  async function pollTransactionStatus(id) {
+  const stopPolling = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    pollAttemptsRef.current = 0;
+    pollErrorCountRef.current = 0;
+  }, []);
+
+  const pollTransactionStatus = useCallback(async (id) => {
     const elapsed = Math.floor((Date.now() - pollStartTimeRef.current) / 1000);
     pollAttemptsRef.current += 1;
 
     if (elapsed > 120) {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
+      stopPolling();
       return;
     }
 
@@ -176,8 +183,8 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
         if (pollErrorCountRef.current >= maxPollErrors) {
           setStatus({
             type: "pending",
-            message: `ℹ️ Unable to reach confirmation server. Your payment may still be processing. Check again in a moment. (${elapsed}s)`,
-            txHash: status.txHash
+            message: `Unable to reach confirmation server. Your payment may still be processing. Check again in a moment. (${elapsed}s)`,
+            txHash: statusRef.current.txHash
           });
           stopPolling();
           return;
@@ -198,7 +205,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
       if (data.confirmed) {
         setStatus({
           type: "success",
-          message: `✨ Payment Confirmed (${elapsed}s)`,
+          message: `Payment Confirmed (${elapsed}s)`,
           txHash: data.tx_hash,
           confirmed: true
         });
@@ -209,7 +216,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
       if (data.status === "failed") {
         setStatus({
           type: "error",
-          message: `❌ ${data.message || "Payment failed"}`,
+          message: data.message || "Payment failed",
           txHash: null
         });
         stopPolling();
@@ -218,7 +225,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
 
       setStatus({
         type: "pending",
-        message: `⏳ Confirming on network (${elapsed}s)...`,
+        message: `Confirming on network (${elapsed}s)...`,
         txHash: data.tx_hash
       });
     } catch (err) {
@@ -227,8 +234,8 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
         if (pollErrorCountRef.current >= maxPollErrors) {
           setStatus({
             type: "pending",
-            message: `ℹ️ Network slow. Your payment is processing. Try refreshing in 30 seconds.`,
-            txHash: status.txHash
+            message: `Network slow. Your payment is processing. Try refreshing in 30 seconds.`,
+            txHash: statusRef.current.txHash
           });
           stopPolling();
         }
@@ -237,23 +244,14 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
         if (pollErrorCountRef.current >= maxPollErrors) {
           setStatus({
             type: "pending",
-            message: `⚠️ Network connection lost. Waiting for reconnection...`,
-            txHash: status.txHash
+            message: `Network connection lost. Waiting for reconnection...`,
+            txHash: statusRef.current.txHash
           });
           stopPolling();
         }
       }
     }
-  }
-
-  function stopPolling() {
-    if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-    pollAttemptsRef.current = 0;
-    pollErrorCountRef.current = 0;
-  }
+  }, [stopPolling]);
 
   useEffect(() => {
     if (!txId || status.type !== "pending") return;
@@ -264,14 +262,14 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
     pollTransactionStatus(txId);
     pollIntervalRef.current = setInterval(() => {
       pollTransactionStatus(txId);
-    }, 2000);
+    }, 3000);
 
     return () => {
       stopPolling();
     };
-  }, [txId, status.type]);
+  }, [txId, status.type, pollTransactionStatus, stopPolling]);
 
-  async function submit(e) {
+  const submit = useCallback(async (e) => {
     e.preventDefault();
     setLoading(true);
     setStatus({ type: "idle", message: "", txHash: null });
@@ -303,7 +301,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
 
         setStatus({
           type: "success",
-          message: "✨ Payment submitted successfully",
+          message: "Payment submitted successfully",
           txHash: result.tx_hash
         });
         setForm({ recipient: "", amount: "", currency: "XNO", merchant: "", destination: "", note: "", reference: "" });
@@ -315,7 +313,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
         if (txIdFromResponse) {
           setStatus({
             type: "pending",
-            message: "⏳ Confirming on network (0s)...",
+            message: "Confirming on network (0s)...",
             txHash: result.tx_hash
           });
         }
@@ -343,21 +341,25 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
     } finally {
       setLoading(false);
     }
-  }
+  }, [form, paymentContext, sendTransaction, onClearContext]);
 
   function normalizeScannedText(value) {
     const text = String(value || "").trim();
-    if (!text) return { recipient: "", amount: "" };
+    if (!text) return { recipient: "", amount: "", note: "", merchant: "" };
 
     let recipient = "";
     let amount = "";
+    let note = "";
+    let merchant = "";
 
     try {
       if (text.startsWith("nano:")) {
         const uri = new URL(text);
         recipient = uri.pathname.replace(/^\/+/, "");
         amount = uri.searchParams.get("amount") || "";
-        if (recipient) return { recipient, amount };
+        note = uri.searchParams.get("note") || uri.searchParams.get("message") || "";
+        merchant = uri.searchParams.get("merchant") || uri.searchParams.get("label") || "";
+        if (recipient) return { recipient, amount, note, merchant };
       }
     } catch {}
 
@@ -366,7 +368,9 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
       if (jsonPayload && typeof jsonPayload === "object") {
         recipient = jsonPayload.recipient || jsonPayload.address || jsonPayload.wallet || jsonPayload.destination || "";
         amount = jsonPayload.amount != null ? String(jsonPayload.amount) : "";
-        if (recipient) return { recipient, amount };
+        note = jsonPayload.note || jsonPayload.message || jsonPayload.description || "";
+        merchant = jsonPayload.merchant || jsonPayload.merchantName || jsonPayload.payee || jsonPayload.business || "";
+        if (recipient) return { recipient, amount, note, merchant };
       }
     } catch {}
 
@@ -376,14 +380,16 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
         const params = new URLSearchParams(query);
         recipient = params.get("address") || params.get("recipient") || params.get("wallet") || params.get("to") || base;
         amount = params.get("amount") || params.get("value") || "";
-        if (recipient) return { recipient, amount };
+        note = params.get("note") || params.get("message") || "";
+        merchant = params.get("merchant") || params.get("label") || "";
+        if (recipient) return { recipient, amount, note, merchant };
       }
     } catch {}
 
     const walletMatch = text.match(/(nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59})/i);
-    if (walletMatch) return { recipient: walletMatch[1], amount: "" };
+    if (walletMatch) return { recipient: walletMatch[1], amount: "", note: "", merchant: "" };
 
-    return { recipient: text, amount: "" };
+    return { recipient: text, amount: "", note: "", merchant: "" };
   }
 
   async function requestCameraAccess() {
@@ -391,14 +397,33 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
       throw new Error("Camera access is not supported by this browser.");
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: "environment",
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    });
     stream.getTracks().forEach((track) => {
       if (track.stop) track.stop();
     });
     return true;
   }
 
-  async function openScanner() {
+  const stopScanner = useCallback(async () => {
+    if (!scannerRef.current) return;
+    try {
+      await scannerRef.current.stop();
+      await scannerRef.current.clear();
+    } catch {
+      // ignore cleanup failures
+    }
+    scannerRef.current = null;
+    setScanActive(false);
+    setPermissionState("idle");
+  }, []);
+
+  const openScanner = useCallback(async () => {
     if (scanActive || scannerRef.current) return;
     setScanError("");
     setPermissionState("requesting");
@@ -406,29 +431,47 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
     try {
       await requestCameraAccess();
       setPermissionState("granted");
-      const { Html5Qrcode } = await import("html5-qrcode");
-      const html5QrCode = new Html5Qrcode("qr-scanner");
+
+      const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
+
+      const cameras = await Html5Qrcode.getCameras();
+      if (!cameras || cameras.length === 0) {
+        throw new Error("No camera devices found");
+      }
+
+      const rearCamera = cameras.find((c) => /back|rear|environment|camera\d/i.test(c.label)) || cameras[cameras.length - 1];
+
+      const html5QrCode = new Html5Qrcode("qr-scanner", { verbose: false });
       scannerRef.current = html5QrCode;
       setScanActive(true);
 
       await html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 260, height: 260 }, showTorchButton: true, rememberLastUsedCamera: true },
-        (decodedText) => {
-          const { recipient, amount } = normalizeScannedText(decodedText);
+        rearCamera.id,
+        {
+          fps: 10,
+          qrbox: { width: 260, height: 260 },
+          aspectRatio: 1.0,
+          showTorchButtonIfSupported: true,
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+        },
+        async (decodedText) => {
+          const { recipient, amount, note, merchant } = normalizeScannedText(decodedText);
           if (!recipient) {
             setScanError("Scanned QR is not a valid Nano address or payment payload.");
             return;
           }
 
-          setForm((state) => ({ ...state, recipient, amount: amount || state.amount }));
+          setForm((state) => ({
+            ...state,
+            recipient,
+            amount: amount || state.amount,
+            note: note || state.note,
+            merchant: merchant || state.merchant
+          }));
           setStatus({ type: "success", message: "QR scanned and payment details auto-filled.", txHash: null });
-          stopScanner();
+          await stopScanner();
         },
-        (error) => {
-          console.error("QR scanning error:", error);
-          setScanError("Error scanning QR code. Please try again.");
-        }
+        () => {}
       );
     } catch (err) {
       const reason = err?.name === "NotAllowedError" || err?.name === "SecurityError"
@@ -445,28 +488,15 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
         scannerRef.current = null;
       }
     }
-  }
+  }, [scanActive, stopScanner]);
 
-  async function stopScanner() {
-    if (!scannerRef.current) return;
-    try {
-      await scannerRef.current.stop();
-      await scannerRef.current.clear();
-    } catch {
-      // ignore cleanup failures
-    }
-    scannerRef.current = null;
-    setScanActive(false);
-    setPermissionState("idle");
-  }
-
-  const handleClearPaymentContext = () => {
+  const handleClearPaymentContext = useCallback(() => {
     setPaymentContext(null);
     clearSavedPaymentContext();
     onClearContext?.();
     setForm({ recipient: "", amount: "", currency: "XNO", merchant: "", destination: "", note: "", reference: "" });
     setStatus({ type: "idle", message: "", txHash: null });
-  };
+  }, [onClearContext]);
 
   return (
     <div className="stack-lg stitch-bg stitch-send-screen">
@@ -514,7 +544,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
 
         {smartWarnings.length > 0 && (
           <div className="status warning">
-            <strong>⚠️ Smart Review</strong>
+            <strong>Smart Review</strong>
             <p>{smartWarnings.join(" ")}</p>
           </div>
         )}
@@ -610,7 +640,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
                   <button type="button" className="ghost-button" onClick={openScanner}>
                     Try Camera Again
                   </button>
-                  <button type="button" className="primary-button" onClick={() => { setScanError(""); setScanActive(false); }}>
+                  <button type="button" className="primary-button" onClick={() => { setScanError(""); setScanActive(false); setPermissionState("idle"); }}>
                     Enter Address Manually
                   </button>
                 </div>
@@ -620,14 +650,14 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
 
           {status.type === "error" && (
             <div className="status error">
-              <strong>❌ Payment Failed</strong>
+              <strong>Payment Failed</strong>
               <p>{status.message}</p>
             </div>
           )}
 
           {status.type === "action_required" && (
             <div className="status action-required">
-              <strong>⚠️ Action Required</strong>
+              <strong>Action Required</strong>
               <p>{status.message}</p>
               <p className="muted">To continue, receive Nano to your wallet address first. This app does not sell Nano directly.</p>
             </div>
@@ -635,14 +665,14 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
 
           {status.type === "pending" && (
             <div className="status pending">
-              <strong>⏳ Processing Payment</strong>
+              <strong>Processing Payment</strong>
               <p>{status.message}</p>
             </div>
           )}
 
           {status.type === "success" && (
             <div className="status success">
-              <strong>✅ Payment Successful</strong>
+              <strong>Payment Successful</strong>
               <p>{status.message}</p>
               {status.txHash && (
                 <p className="tx-hash">
@@ -655,7 +685,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
             </div>
           )}
 
-          <div className="trust-note">Powered by Nano network • Instant settlement</div>
+          <div className="trust-note">Powered by Nano network - Instant settlement</div>
 
           <button className="primary-button" type="submit" disabled={loading}>
             {loading ? "Sending..." : "Send Payment"}
@@ -665,4 +695,3 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
     </div>
   );
 }
-

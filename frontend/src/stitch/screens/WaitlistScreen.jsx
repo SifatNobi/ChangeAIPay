@@ -7,16 +7,27 @@ export default function WaitlistScreen() {
   const [form, setForm] = useState({ email: "", phone: "" });
   const [status, setStatus] = useState({ loading: false, error: "", success: false });
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const email = form.email.trim();
+    const phone = form.phone.trim();
+
+    if (!email || !emailRegex.test(email)) {
+      setStatus({ loading: false, error: "Please enter a valid email address", success: false });
+      return;
+    }
+
     setStatus({ loading: true, error: "", success: false });
 
     try {
-      await joinWaitlist({ email: form.email, phone: form.phone });
+      await joinWaitlist({ email, phone });
       setStatus({ loading: false, error: "", success: true });
     } catch (err) {
       setStatus({ 

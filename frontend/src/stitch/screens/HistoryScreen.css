@@ -1,0 +1,148 @@
+.history-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.history-header {
+  padding: 20px 24px;
+}
+
+.history-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-state {
+  padding: 48px 24px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 16px;
+}
+
+.error-state {
+  padding: 32px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.error-state p {
+  margin: 0;
+  color: #ff908b;
+}
+
+.skeleton-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  overflow: hidden;
+}
+
+.skeleton-icon,
+.skeleton-status {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, rgba(84, 195, 255, 0.08) 25%, rgba(84, 195, 255, 0.15) 50%, rgba(84, 195, 255, 0.08) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(84, 195, 255, 0.08) 25%, rgba(84, 195, 255, 0.15) 50%, rgba(84, 195, 255, 0.08) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-line--wide {
+  width: 40%;
+}
+
+.skeleton-line--narrow {
+  width: 25%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.4s ease forwards;
+}
+
+.fade-in-up {
+  opacity: 0;
+  animation: fade-in-up 0.4s ease forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .history-screen {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .history-header h1 {
+    font-size: 20px;
+  }
+
+  .skeleton-item {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .skeleton-icon,
+  .skeleton-status {
+    width: 32px;
+    height: 32px;
+  }
+}

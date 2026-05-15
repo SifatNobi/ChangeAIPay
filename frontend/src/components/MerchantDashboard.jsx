@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { getToken } from "../api";
 import { getMerchantSubscription, getMerchantAnalytics, getCashFlowPrediction, getLifetimeValueData } from "../api";
 import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
 import { RealtimeChart, RealtimeFeed, StatCard, AIInsightCard } from "./RealtimeDashboard";
 import "./MerchantDashboard.css";
 
-export default function MerchantDashboard({ profile, token, loadHistory, onNavigate }) {
+const MerchantDashboard = React.memo(function MerchantDashboard({ profile, token, loadHistory, onNavigate }) {
   const [stats, setStats] = useState({
     revenue: "0",
     transactions: 0,
@@ -18,11 +18,7 @@ export default function MerchantDashboard({ profile, token, loadHistory, onNavig
   const [ltvData, setLtvData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [token]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       const authToken = token || getToken();
       if (!authToken) return;
@@ -61,16 +57,20 @@ export default function MerchantDashboard({ profile, token, loadHistory, onNavig
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const revenueData = cashflow.predictions.map((p, i) => ({
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
+  const revenueData = useMemo(() => cashflow.predictions.map((p, i) => ({
     value: p.projectedRevenue,
     label: `M${i + 1}`
-  }));
+  })), [cashflow.predictions]);
 
-  const customerFeed = [];
+  const customerFeed = useMemo(() => [], []);
 
-  const aiInsights = subscription?.features && stats.transactions > 0 ? [
+  const aiInsights = useMemo(() => subscription?.features && stats.transactions > 0 ? [
     subscription.features.aiRevenueBooster && {
       icon: "📈",
       title: "Revenue Opportunity",
@@ -86,15 +86,15 @@ export default function MerchantDashboard({ profile, token, loadHistory, onNavig
       title: "Pricing Insights",
       description: "Pricing suggestions will appear after analyzing transaction data."
     }
-  ].filter(Boolean) : [];
+  ].filter(Boolean) : [], [subscription?.features, stats.transactions]);
 
-  const alertItems = (analytics?.alerts || []).map(alert => ({
+  const alertItems = useMemo(() => (analytics?.alerts || []).map(alert => ({
     id: alert._id || Date.now(),
     title: alert.message || alert.type,
     subtitle: alert.severity,
     severity: alert.severity,
     time: new Date(alert.createdAt).toLocaleTimeString()
-  }));
+  })), [analytics?.alerts]);
 
   const hasData = stats.transactions > 0 || analytics?.transactionCount > 0;
   const hasSubscription = subscription?.tier;
@@ -283,4 +283,6 @@ export default function MerchantDashboard({ profile, token, loadHistory, onNavig
       </div>
     </div>
   );
-}
+});
+
+export default MerchantDashboard;

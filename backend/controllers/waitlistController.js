@@ -1,12 +1,14 @@
 import WaitlistEntry from "../models/WaitlistEntry.js";
 
 function normalizeEmail(email) {
-  return String(email || "").trim().toLowerCase();
+  if (!email) return "";
+  return String(email).trim().toLowerCase();
 }
 
 function normalizePhone(phone) {
   if (!phone) return null;
-  return String(phone).replace(/[^\d+]/g, "").trim();
+  const cleaned = String(phone).replace(/[^\d+\-() ]/g, "").trim();
+  return cleaned.length > 0 ? cleaned : null;
 }
 
 async function joinWaitlist(req, res) {
@@ -14,7 +16,9 @@ async function joinWaitlist(req, res) {
     const email = normalizeEmail(req.body?.email);
     const phone = normalizePhone(req.body?.phone);
     
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    
+    if (!email || !emailRegex.test(email)) {
       return res.status(400).json({ success: false, error: "Valid email required" });
     }
 

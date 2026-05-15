@@ -118,10 +118,10 @@ export async function sendTransaction(token, payload) {
   });
 }
 
-export async function joinWaitlist(email) {
+export async function joinWaitlist({ email, phone }) {
   return apiRequest("/waitlist", {
     method: "POST",
-    body: { email }
+    body: { email: String(email || "").trim(), phone: phone || "" }
   });
 }
 

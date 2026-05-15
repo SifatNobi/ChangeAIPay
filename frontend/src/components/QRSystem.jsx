@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import QRCode from "qrcode";
 import "./QRSystem.css";
 
 const NANO_ADDRESS_REGEX = /^nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$/i;
@@ -264,9 +265,101 @@ export function useQRScanner({ onScan, onError }) {
   };
 }
 
-export function QRPaymentScanner({ onPaymentReady, onCancel }) {
+export function QRReceiveQR({ walletAddress, amount, note }) {
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [generating, setGenerating] = useState(false);
+
+  useEffect(() => {
+    if (!walletAddress) {
+      setQrDataUrl("");
+      return;
+    }
+
+    setGenerating(true);
+
+    const params = [];
+    if (amount) {
+      params.push(`amount=${encodeURIComponent(String(amount).trim())}`);
+    }
+    if (note) {
+      params.push(`note=${encodeURIComponent(String(note).trim())}`);
+    }
+    params.push(`timestamp=${Date.now()}`);
+
+    const queryString = params.length > 0 ? `?${params.join("&")}` : "";
+    const nanoUri = `nano:${walletAddress.trim()}${queryString}`;
+
+    QRCode.toDataURL(nanoUri, {
+      margin: 1,
+      width: 300,
+      color: {
+        dark: "#000000",
+        light: "#ffffff"
+      }
+    })
+      .then((url) => {
+        setQrDataUrl(url);
+        setGenerating(false);
+      })
+      .catch(() => {
+        setQrDataUrl("");
+        setGenerating(false);
+      });
+  }, [walletAddress, amount, note]);
+
+  if (!walletAddress) {
+    return (
+      <div className="receive-qr-empty">
+        <p>Enter your Nano wallet address to generate a QR code</p>
+      </div>
+    );
+  }
+
+  if (generating) {
+    return (
+      <div className="receive-qr-loading">
+        <p>Generating QR code...</p>
+      </div>
+    );
+  }
+
+  if (!qrDataUrl) {
+    return (
+      <div className="receive-qr-error">
+        <p>Failed to generate QR code</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="receive-qr-container">
+      <img
+        src={qrDataUrl}
+        alt={`Payment QR for ${walletAddress.slice(0, 16)}...`}
+        className="receive-qr-image"
+      />
+      <div className="receive-qr-address">
+        <code>{walletAddress}</code>
+        <button
+          type="button"
+          className="copy-address-btn"
+          onClick={() => navigator.clipboard.writeText(walletAddress)}
+        >
+          Copy
+        </button>
+      </div>
+      {amount && (
+        <div className="receive-qr-amount">
+          Amount: {amount} XNO
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function QRPaymentScanner({ onPaymentReady, onCancel, walletAddress }) {
   const [mode, setMode] = useState("receive");
-  const [recipient, setRecipient] = useState("");
+  const [recipient, setRecipient] = useState(walletAddress || "");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("XNO");
   const [merchant, setMerchant] = useState("");
@@ -276,6 +369,12 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
   const [scannedData, setScannedData] = useState(null);
   const [error, setError] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
+
+  useEffect(() => {
+    if (walletAddress && mode === "receive") {
+      setRecipient(walletAddress);
+    }
+  }, [walletAddress, mode]);
 
   const { startScanning, stopScanning, validateNanoAddress, hasPermission } = useQRScanner({
     onScan: async (data) => {
@@ -360,11 +459,50 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
         </button>
       </div>
 
+      {mode === "receive" && (
+        <div className="receive-mode">
+          <h3>Receive Payment</h3>
+          <p className="muted">Set an amount and share your QR code</p>
+
+          <form className="receive-form">
+            <input
+              type="text"
+              placeholder="Your Nano Wallet Address"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              className="address-input"
+            />
+            <input
+              type="number"
+              placeholder="Amount (XNO) - optional"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              step="0.000001"
+              min="0"
+            />
+            <input
+              type="text"
+              placeholder="Note (optional)"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </form>
+
+          <div className="receive-qr-wrapper">
+            <QRReceiveQR
+              walletAddress={recipient}
+              amount={amount}
+              note={note}
+            />
+          </div>
+        </div>
+      )}
+
       {mode === "send" && (
         <>
           {!isScanning ? (
             <button className="primary-button scan-btn" onClick={handleStartScan}>
-              📷 Scan QR Code
+              Scan QR Code
             </button>
           ) : (
             <div className="scanner-view">
@@ -459,15 +597,6 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
             </button>
           </form>
         </>
-      )}
-
-      {mode === "receive" && (
-        <div className="receive-mode">
-          <p>Show this QR code to receive payments</p>
-          <div className="receive-placeholder">
-            Your wallet QR will appear here
-          </div>
-        </div>
       )}
 
       {mode === "send" && onCancel && (

@@ -34,6 +34,7 @@ const PricingScreen = React.lazy(() => import("./stitch/screens/PricingScreen"))
 const MerchantPricingScreen = React.lazy(() => import("./stitch/screens/MerchantPricingScreen"));
 const SendScreen = React.lazy(() => import("./stitch/screens/SendScreen"));
 const PricingCheckout = React.lazy(() => import("./components/PricingCheckout"));
+const HistoryScreen = React.lazy(() => import("./stitch/screens/HistoryScreen"));
 
 const LoadingFallback = React.memo(() => (
   <div className="loading-spinner" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
@@ -89,6 +90,9 @@ function App() {
     }
   });
 
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
+
   const cacheProfile = useCallback((data) => {
     setProfile(data || {});
     try {
@@ -114,11 +118,11 @@ function App() {
 
   const loadProfile = useCallback(async (forceRefresh = false) => {
     if (!token) return null;
-    if (!forceRefresh && profile) return profile;
+    if (!forceRefresh && profileRef.current) return profileRef.current;
     const data = await getUserProfile(token);
     cacheProfile(data);
     return data;
-  }, [token, profile, cacheProfile]);
+  }, [token, cacheProfile]);
 
   const loadHistory = useCallback(
     async ({ limit } = {}) => {
@@ -316,6 +320,7 @@ function App() {
                     currentPlan={profile?.subscription?.plan}
                     onSelectPlan={handleSelectPlan}
                     onNavigate={navigate}
+                    userRole={profile?.role}
                   />
                 </LazyWrapper>
               </AppLayout>
@@ -357,6 +362,7 @@ function App() {
                 <MemoizedQRPaymentScanner
                   onPaymentReady={handleQRPaymentReady}
                   onCancel={handleQRCancel}
+                  walletAddress={profile?.walletAddress || profile?.user?.walletAddress || profile?.balance?.walletAddress || ""}
                 />
               </AppLayout>
             </ProtectedRoute>
@@ -408,6 +414,19 @@ function App() {
               <AppLayout profile={profile} onLogout={logout}>
                 <LazyWrapper>
                   {memoizedSendTransaction}
+                </LazyWrapper>
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute bootStatus={bootStatus} token={token}>
+              <AppLayout profile={profile} onLogout={logout}>
+                <LazyWrapper>
+                  <HistoryScreen token={token} loadHistory={loadHistory} />
                 </LazyWrapper>
               </AppLayout>
             </ProtectedRoute>

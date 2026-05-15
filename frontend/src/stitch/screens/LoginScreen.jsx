@@ -58,6 +58,7 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
             Instant <span className="hero-highlight">Payments</span>
           </h1>
           <p>No fees. No delays. Just speed.</p>
+          <p className="animated-promo">Instant payments • Zero transaction fee for lifetime!</p>
           
           {/* Demo Video */}
           <div className="demo-video-container">

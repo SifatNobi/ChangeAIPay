@@ -14,8 +14,9 @@
 }
 
 .pricing-logo {
-  height: 48px;
+  height: clamp(36px, 8vw, 48px);
   margin-bottom: 20px;
+  max-width: 100%;
 }
 
 .pricing-header h1 {
@@ -40,6 +41,82 @@
   margin-bottom: 40px;
 }
 
+.pricing-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.pricing-tab {
+  padding: 10px 28px;
+  border-radius: 12px;
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  background: rgba(18, 18, 18, 0.6);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pricing-tab:hover {
+  border-color: rgba(84, 195, 255, 0.4);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.pricing-tab.active {
+  background: linear-gradient(135deg, #0f2760, #1e6be0);
+  border-color: #54c3ff;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(84, 195, 255, 0.2);
+}
+
+.revenue-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: rgba(84, 195, 255, 0.1);
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  color: #54c3ff;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.merchant-pricing-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.merchant-price-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(84, 195, 255, 0.05);
+  border: 1px solid rgba(84, 195, 255, 0.15);
+  min-width: 100px;
+}
+
+.merchant-price-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.merchant-price-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #54c3ff;
+}
+
 .pricing-fina .fina-avatar {
   width: 80px;
   height: 80px;
@@ -56,8 +133,8 @@
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: clamp(16px, 3vw, 24px);
   max-width: 1200px;
   margin: 0 auto;
   overflow: visible;
@@ -67,7 +144,7 @@
   background: rgba(18, 18, 18, 0.9);
   border: 1px solid rgba(84, 195, 255, 0.15);
   border-radius: 20px;
-  padding: 28px;
+  padding: clamp(20px, 4vw, 28px);
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
@@ -75,6 +152,7 @@
   overflow: visible;
   height: auto;
   min-height: 0;
+  min-width: 0;
 }
 
 .pricing-card:hover {
@@ -346,8 +424,9 @@
 
 .pricing-trust {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 32px;
+  gap: clamp(16px, 4vw, 32px);
 }
 
 .pricing-trust span {
@@ -403,27 +482,40 @@
   .pricing-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .pricing-header h1 {
+    font-size: clamp(28px, 5vw, 36px);
+  }
+}
+
+@media (max-width: 768px) {
+  .pricing-page {
+    padding: clamp(24px, 5vw, 40px) clamp(16px, 4vw, 24px) clamp(40px, 6vw, 60px);
+  }
+
+  .pricing-header {
+    margin-bottom: clamp(24px, 5vw, 40px);
+  }
+
+  .pricing-tabs {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pricing-tab {
+    flex: 1 1 auto;
+    text-align: center;
+    min-width: 120px;
+  }
 }
 
 @media (max-width: 640px) {
-  .pricing-page {
-    padding: 24px 16px 40px;
-  }
-
-  .pricing-header h1 {
-    font-size: 28px;
-  }
-
   .pricing-grid {
     grid-template-columns: 1fr;
+    max-width: 480px;
   }
 
   .plan-price .amount {
-    font-size: 40px;
-  }
-
-  .pricing-trust {
-    flex-wrap: wrap;
-    gap: 16px;
+    font-size: clamp(36px, 8vw, 40px);
   }
 }

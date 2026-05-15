@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { getToken } from "../api";
 import { sendAIChat, getAIHistory } from "../api";
 import { FINA_AI_IMAGE } from "../constants/branding";
@@ -6,7 +6,6 @@ import "./AIAssistant.css";
 
 const FINA_IMAGE = FINA_AI_IMAGE;
 
-// Feature access by plan
 const PLAN_FEATURES = {
   free_trial: {
     chat: true,
@@ -40,13 +39,132 @@ const QUICK_ACTIONS = [
   { label: "🆘 Help", action: "help me", icon: "help" }
 ];
 
-const INITIAL_MESSAGE = {
-  id: "welcome",
-  role: "assistant",
-  content: "👋 Hello! I'm Fina, your ChangeAIPay AI assistant!\n\nI can help you with:\n• 💸 Sending & receiving crypto\n• 💰 Checking your balance\n• 📊 Transaction insights\n• 💡 Financial recommendations\n\nWhat would you like to do today?",
-  timestamp: new Date().toISOString(),
-  intent: "greeting"
+const GREETINGS = {
+  morning: "Good morning! ☀️ Hope your day is off to a great start. How can I help you today?",
+  afternoon: "Hey there! 👋 Hope you're having a wonderful afternoon. What can I do for you?",
+  evening: "Good evening! 🌙 Hope you had a great day. How can I help you tonight?",
+  night: "Hey! 🌟 Working late? I'm here to help. What do you need?"
 };
+
+function getTimeGreeting() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return GREETINGS.morning;
+  if (hour >= 12 && hour < 17) return GREETINGS.afternoon;
+  if (hour >= 17 && hour < 22) return GREETINGS.evening;
+  return GREETINGS.night;
+}
+
+function getInitialMessage() {
+  return {
+    id: "welcome",
+    role: "assistant",
+    content: getTimeGreeting() + "\n\nI can help you with:\n• 💸 Sending & receiving crypto\n• 💰 Checking your balance\n• 📊 Transaction insights\n• 💡 Financial recommendations\n\nWhat would you like to do today?",
+    timestamp: new Date().toISOString(),
+    intent: "greeting"
+  };
+}
+
+const INITIAL_MESSAGE = getInitialMessage();
+
+function getLocalResponse(userInput) {
+  const input = userInput.toLowerCase().trim();
+
+  if (/^(hi|hello|hey|howdy|greetings|sup|what'?s up|yo|hola)/i.test(input)) {
+    const responses = [
+      "Hey 👋 Hope you're having a great day. How can I help you today?",
+      "Hello! 😊 So glad you're here. What can I help you with?",
+      "Hi there! 💫 I'm Fina, ready to help. What's on your mind?",
+      "Hey! Great to see you! How can I make your day easier?"
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  if (/^(how are you|how'?s it going|how do you feel|what'?s up with you)/i.test(input)) {
+    const responses = [
+      "I'm doing great, thanks for asking! 😊 I'm always happy when I get to help someone. What can I do for you?",
+      "I'm wonderful! Ready to help you with anything you need. What's on your mind?",
+      "Feeling fantastic and ready to assist! 💪 How can I help you today?"
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  if (/help|support|assist|what can you do|options|menu/i.test(input)) {
+    return "I'm here to help! I can assist with:\n• Sending & receiving crypto\n• Checking your balance\n• Transaction history\n• Budgeting & savings goals\n• Merchant support\n• Payment guidance\n\nWhat would you like to know?";
+  }
+
+  if (/balance|money|funds|wallet|how much/i.test(input)) {
+    return "You can check your balance on your dashboard. Would you like me to take you there? I can also help you understand your spending patterns if you'd like! 💰";
+  }
+
+  if (/send|pay|transfer|pay someone/i.test(input)) {
+    return "To send crypto, go to the Send page. You can scan a QR code or enter the address manually. Need help with anything else? 💸";
+  }
+
+  if (/receive|get|accept|someone send/i.test(input)) {
+    return "To receive crypto, go to the Receive page to get your wallet address or QR code. Share it with the sender and you'll receive the funds instantly! 📥";
+  }
+
+  if (/history|transactions|past|previous|activity/i.test(input)) {
+    return "Your transaction history shows all your past sends and receives. You can filter by date, type, or amount. Want me to help you find something specific? 📊";
+  }
+
+  if (/goal|save|savings|budget|plan/i.test(input)) {
+    return "Great idea! Setting savings goals is a smart move. You can create goals on the Goals page and track your progress. Want help setting one up? 🎯";
+  }
+
+  if (/merchant|business|store|sell|vendor/i.test(input)) {
+    return "For merchants, we offer powerful tools to accept crypto payments! You can:\n• Generate payment QR codes\n• Track sales and revenue\n• Manage multiple locations\n• Get detailed analytics\n\nAre you a merchant looking for support? 🏪";
+  }
+
+  if (/pricing|plan|upgrade|subscription|cost|price/i.test(input)) {
+    return "We have several plans to fit your needs:\n• Free Trial - Basic features to get started\n• Edge - More quick actions and tools\n• Prime - Advanced insights and analytics\n• Apex - Full autonomous features\n\nWant me to explain any plan in detail? 💎";
+  }
+
+  if (/thank|thanks|appreciate|grateful/i.test(input)) {
+    const responses = [
+      "You're so welcome! 😊 I'm always here if you need anything else.",
+      "Happy to help! Don't hesitate to reach out anytime. 💫",
+      "Anytime! That's what I'm here for. Have a wonderful day! 🌟"
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  if (/bye|goodbye|see you|later|gotta go/i.test(input)) {
+    const responses = [
+      "Goodbye! 👋 Take care and come back anytime you need help!",
+      "See you later! It was great chatting with you. Have an amazing day! 😊",
+      "Bye for now! Remember, I'm always here when you need me. 💫"
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  if (/insight|analytics|spending pattern|trend/i.test(input)) {
+    return "Spending insights help you understand where your money goes. You can view your spending by category, time period, and trends over time. This helps you make smarter financial decisions! 📈";
+  }
+
+  if (/qr|scan|code/i.test(input)) {
+    return "QR codes make payments super easy! You can scan a QR code to send payments or show yours to receive. Just use the camera icon on the Send or Receive page. 📷";
+  }
+
+  if (/error|problem|issue|not working|broken/i.test(input)) {
+    return "I'm sorry you're experiencing issues! Let me help troubleshoot. Can you tell me more about what's happening? I'll do my best to get this sorted out for you. 🔧";
+  }
+
+  if (/safe|security|secure|protect/i.test(input)) {
+    return "Security is super important! ChangeAIPay uses encryption and secure protocols to protect your funds. Always keep your credentials safe and never share your private keys. Want tips on staying secure? 🔒";
+  }
+
+  if (/fee|cost|charge/i.test(input)) {
+    return "Transaction fees on ChangeAIPay are minimal! We use the Nano network which has near-zero fees. You'll always see the fee before confirming any transaction. 💡";
+  }
+
+  const fallbacks = [
+    "That's an interesting question! Let me think about this... While I'm still learning, I'd recommend checking our help center or trying a more specific question. I'm here to help! 🤔",
+    "I appreciate you asking! I want to make sure I give you the best answer. Could you rephrase that or ask something more specific? I'm great with payments, balances, and account help! 💭",
+    "Hmm, I want to make sure I understand correctly. Could you tell me a bit more about what you're looking for? I'm really good at helping with crypto payments and account management! 😊"
+  ];
+  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+}
 
 function handleActionClick(action, onNavigate) {
   if (action.type === "navigate" && onNavigate) {
@@ -91,22 +209,22 @@ function buildPaymentContextMessage(context) {
 export default function AIAssistant({ userId, subscription, paymentContext, onNavigate }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState([getInitialMessage()]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
-  const token = getToken();
   const contextNotificationRef = useRef(null);
+  const chatInitialized = useRef(false);
+  const isLoadingRef = useRef(false);
+  const inputRef = useRef("");
 
-  // Get current plan features
   const currentPlan = subscription?.plan || "free_trial";
   const planFeatures = PLAN_FEATURES[currentPlan] || PLAN_FEATURES.free_trial;
 
-  // Filter quick actions based on subscription
-  const availableActions = QUICK_ACTIONS.filter(action => 
+  const availableActions = useMemo(() => QUICK_ACTIONS.filter(action =>
     planFeatures.quickActions.includes(action.icon)
-  );
+  ), [planFeatures.quickActions]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -114,11 +232,21 @@ export default function AIAssistant({ userId, subscription, paymentContext, onNa
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [messages.length, scrollToBottom]);
 
   useEffect(() => {
+    inputRef.current = input;
+  }, [input]);
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (chatInitialized.current) return;
+    chatInitialized.current = true;
     loadHistory();
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     if (!paymentContext?.rawValue) return;
@@ -139,33 +267,27 @@ export default function AIAssistant({ userId, subscription, paymentContext, onNa
     setMessages((prev) => [...prev, assistantMessage]);
   }, [paymentContext]);
 
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     const token = getToken();
     if (!token) return;
 
     try {
       const data = await getAIHistory(token);
       if (data?.history?.length > 0) {
-        setMessages([INITIAL_MESSAGE, ...data.history.slice(-10)]);
+        setMessages([getInitialMessage(), ...data.history.slice(-10)]);
       }
     } catch (err) {
       console.log("No chat history");
     }
-  };
+  }, []);
 
-  const handleSend = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
-
-    const token = getToken();
-    if (!token) {
-      setError("Please login to chat with Fina.");
-      return;
-    }
+  const sendMessage = useCallback(async (text) => {
+    if (!text.trim() || isLoadingRef.current) return;
 
     const userMessage = {
       id: `msg_${Date.now()}`,
       role: "user",
-      content: input.trim(),
+      content: text.trim(),
       timestamp: new Date().toISOString()
     };
 
@@ -174,8 +296,24 @@ export default function AIAssistant({ userId, subscription, paymentContext, onNa
     setIsLoading(true);
     setError(null);
 
+    const token = getToken();
+
+    if (!token) {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      const aiMessage = {
+        id: `msg_${Date.now()}`,
+        role: "assistant",
+        content: getLocalResponse(text),
+        timestamp: new Date().toISOString(),
+        intent: "local"
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await sendAIChat(token, input.trim(), {
+      const response = await sendAIChat(token, text.trim(), {
         page: "assistant",
         userId
       });
@@ -191,61 +329,27 @@ export default function AIAssistant({ userId, subscription, paymentContext, onNa
 
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
-      const errorMessage = {
+      await new Promise(resolve => setTimeout(resolve, 600));
+      const aiMessage = {
         id: `msg_${Date.now()}`,
         role: "assistant",
-        content: "I apologize, but I'm having trouble processing your request right now. Please try again.",
-        timestamp: new Date().toISOString()
+        content: getLocalResponse(text),
+        timestamp: new Date().toISOString(),
+        intent: "local"
       };
-      setMessages((prev) => [...prev, errorMessage]);
-      setError(err.message);
+      setMessages((prev) => [...prev, aiMessage]);
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, userId]);
+  }, [userId]);
+
+  const handleSend = useCallback(() => {
+    sendMessage(inputRef.current);
+  }, [sendMessage]);
 
   const handleQuickAction = useCallback((action) => {
-    setInput(action);
-    setTimeout(() => {
-      const token = getToken();
-      if (!token) {
-        setError("Please login to chat with Fina.");
-        return;
-      }
-      const userMessage = {
-        id: `msg_${Date.now()}`,
-        role: "user",
-        content: action,
-        timestamp: new Date().toISOString()
-      };
-      setMessages((prev) => [...prev, userMessage]);
-      setInput("");
-      setIsLoading(true);
-      setError(null);
-      sendAIChat(token, action, { page: "assistant", userId })
-        .then((response) => {
-          const aiMessage = {
-            id: `msg_${Date.now()}`,
-            role: "assistant",
-            content: response.message,
-            timestamp: new Date().toISOString(),
-            intent: response.intent,
-            actions: response.actions || []
-          };
-          setMessages((prev) => [...prev, aiMessage]);
-        })
-        .catch(() => {
-          const errorMessage = {
-            id: `msg_${Date.now()}`,
-            role: "assistant",
-            content: "I apologize, but I'm having trouble processing your request right now. Please try again.",
-            timestamp: new Date().toISOString()
-          };
-          setMessages((prev) => [...prev, errorMessage]);
-        })
-        .finally(() => setIsLoading(false));
-    }, 100);
-  }, [userId]);
+    sendMessage(action);
+  }, [sendMessage]);
 
   const handleKeyPress = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -325,11 +429,6 @@ export default function AIAssistant({ userId, subscription, paymentContext, onNa
                     <span></span>
                   </div>
                 </div>
-              </div>
-            )}
-            {error && (
-              <div className="ai-error">
-                <span>⚠️ Connection issue. Try again.</span>
               </div>
             )}
             <div ref={messagesEndRef} />

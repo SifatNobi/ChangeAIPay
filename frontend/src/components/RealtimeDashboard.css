@@ -270,7 +270,7 @@
   background: linear-gradient(135deg, rgba(15, 39, 96, 0.4), rgba(18, 18, 18, 0.8));
   border: 1px solid rgba(84, 195, 255, 0.2);
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .insight-header {
@@ -287,6 +287,17 @@
   height: 36px;
   border-radius: 50%;
   border: 2px solid rgba(84, 195, 255, 0.3);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.insight-fina-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(84, 195, 255, 0.3);
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .insight-label {
@@ -401,6 +412,46 @@
   text-align: right;
 }
 
+.goal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.goal-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.goal-action-btn {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-btn {
+  background: rgba(84, 195, 255, 0.1);
+  color: #54c3ff;
+}
+
+.edit-btn:hover {
+  background: rgba(84, 195, 255, 0.2);
+}
+
+.delete-btn {
+  background: rgba(255, 144, 139, 0.1);
+  color: #ff908b;
+}
+
+.delete-btn:hover {
+  background: rgba(255, 144, 139, 0.2);
+}
+
 .goal-empty {
   padding: 20px;
   text-align: center;
@@ -467,4 +518,41 @@
   background: linear-gradient(90deg, #54c3ff, #1e6be0);
   border-radius: 3px;
   transition: width 0.5s ease;
+}
+
+@media (max-width: 768px) {
+  .ai-insight-card {
+    overflow: visible !important;
+  }
+
+  .insight-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .insight-fina-avatar,
+  .insight-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .insights-list {
+    padding: 12px;
+  }
+
+  .insight-item {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .insight-fina-avatar,
+  .insight-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .insight-label {
+    font-size: 13px;
+  }
 }

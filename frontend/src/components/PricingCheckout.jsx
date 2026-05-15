@@ -181,7 +181,7 @@ export default function PricingCheckout({ selectedPlan, onComplete, onCancel }) 
         if (result?.success === true && result.session?.url) {
           window.location.href = result.session.url;
           return;
-        } else if (result?.success === true && result.requiresAction) {
+        } else if (result?.success === true) {
           setPaymentStatus("success");
           onComplete?.(result);
           return;
@@ -220,8 +220,11 @@ export default function PricingCheckout({ selectedPlan, onComplete, onCancel }) 
   const handleCancel = () => {
     setPaymentStatus("idle");
     setProcessing(false);
+    setLoading(true);
+    setPaymentMethod("fiat");
     setConversion(null);
     setRecommendation(null);
+    setUserBalance(0);
     setCardNumber("");
     setCardExpiry("");
     setCardCVC("");

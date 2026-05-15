@@ -21,7 +21,22 @@ export default function AppLayout({ profile, onLogout, children }) {
     };
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape" && mobileMenuOpen) {
+        closeMenu();
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [mobileMenuOpen]);
+
   const closeMenu = () => setMobileMenuOpen(false);
+
+  const handleAIInsights = () => {
+    closeMenu();
+    window.dispatchEvent(new CustomEvent("open-ai-assistant"));
+  };
 
   return (
     <div className="app-shell stitch-bg">
@@ -42,9 +57,9 @@ export default function AppLayout({ profile, onLogout, children }) {
           <a className="nav-link" href="#receive">
             Receive
           </a>
-          <a className="nav-link" href="#history">
+          <NavLink className="nav-link" to="/history">
             History
-          </a>
+          </NavLink>
         </nav>
 
         <button className="ghost-button" onClick={onLogout} type="button">
@@ -60,9 +75,11 @@ export default function AppLayout({ profile, onLogout, children }) {
           aria-expanded={mobileMenuOpen}
           aria-controls="mobile-nav"
         >
-          <span />
-          <span />
-          <span />
+          <span className="hamburger-inner">
+            <span />
+            <span />
+            <span />
+          </span>
         </button>
       </header>
 
@@ -92,9 +109,22 @@ export default function AppLayout({ profile, onLogout, children }) {
         <a className="nav-link" href="#receive" onClick={closeMenu}>
           Receive
         </a>
-        <a className="nav-link" href="#history" onClick={closeMenu}>
+        <NavLink className="nav-link" to="/history" onClick={closeMenu}>
           History
-        </a>
+        </NavLink>
+        <NavLink className="nav-link" to="/pricing" onClick={closeMenu}>
+          Pricing
+        </NavLink>
+        <NavLink className="nav-link" to="/goals" onClick={closeMenu}>
+          Goals
+        </NavLink>
+        <button
+          className="nav-link nav-link-action"
+          onClick={handleAIInsights}
+          type="button"
+        >
+          AI Insights
+        </button>
         <button
           className="nav-link logout-link"
           onClick={() => {
