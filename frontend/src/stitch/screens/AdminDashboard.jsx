@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FINA_AI_IMAGE, COMPANY_LOGO } from "../../constants/branding";
+import { COMPANY_LOGO } from "../../constants/branding";
 
 export default function AdminDashboard({ token }) {
   const [stats, setStats] = useState({
@@ -33,7 +33,7 @@ export default function AdminDashboard({ token }) {
     <div className="admin-dashboard stitch-bg">
       <header className="admin-header card glass-card">
         <div className="admin-brand">
-          <img src={FINA_AI_IMAGE} alt="Fina AI" className="admin-avatar" />
+          <img src={COMPANY_LOGO} alt="Admin" className="admin-avatar" />
           <div>
             <h1>Admin Dashboard</h1>
             <span className="admin-role">System Administrator</span>

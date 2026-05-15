@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { COMPANY_LOGO, COMPANY_NAME, FINA_AI_IMAGE } from "../../constants/branding";
+import { COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
 import { apiRequest } from "../../api";
 import "./MerchantPricingScreen.css";
 
@@ -110,7 +110,7 @@ const MERCHANT_PLANS = [
     id: "enterprise",
     name: "Enterprise",
     revenue: "$500K+/year",
-    price: "2.20% cap",
+    price: "2.20% enterprise cap",
     fx: "0.45%",
     description: "AI call handling, Custom workflows, API customization",
     features: [
@@ -131,6 +131,7 @@ const MERCHANT_PLANS = [
 export default function MerchantPricingScreen({ currentTier = "startup", onNavigate }) {
   const [loading, setLoading] = useState(false);
   const [subscription, setSubscription] = useState(null);
+  const [clickedPlan, setClickedPlan] = useState(null);
 
   useEffect(() => {
     loadSubscription();
@@ -151,6 +152,8 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
   };
 
   const handleContactSales = (planId) => {
+    setClickedPlan(planId);
+    setTimeout(() => setClickedPlan(null), 600);
     alert("Contact our sales team for Enterprise plans: sales@changeaipay.com");
   };
 
@@ -167,11 +170,6 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
         <p>Scale your business with AI-powered tools</p>
       </header>
 
-      <div className="merchant-pricing-fina">
-        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
-        <p>Fina AI helps merchants maximize revenue!</p>
-      </div>
-
       <div className="merchant-plans-grid">
         {MERCHANT_PLANS.map((plan) => {
           const state = getPlanState(plan.id);
@@ -179,32 +177,32 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
           return (
             <div 
               key={plan.id} 
-              className={`merchant-plan-card glass-card ${plan.popular ? "popular" : ""} ${state}`}
+              className={`merchant-plan-card glass-card ${plan.popular ? "popular" : ""} ${state} ${clickedPlan === plan.id ? "clicked" : ""}`}
             >
               {plan.popular && <div className="popular-badge">Most Popular</div>}
               
-              <div className="plan-header">
+              <div className="merchant-plan-header">
                 <h2>{plan.name}</h2>
-                <div className="revenue-badge">{plan.revenue}</div>
+                <div className="merchant-revenue-badge">{plan.revenue}</div>
               </div>
 
-              <div className="pricing-row">
-                <div className="price-box">
-                  <span className="price-label">Platform Fee</span>
-                  <span className="price-value">{plan.price}</span>
+              <div className="merchant-pricing-row">
+                <div className="merchant-price-box">
+                  <span className="merchant-price-label">Platform Fee</span>
+                  <span className="merchant-price-value">{plan.price}</span>
                 </div>
-                <div className="price-box">
-                  <span className="price-label">FX Spread</span>
-                  <span className="price-value">{plan.fx}</span>
+                <div className="merchant-price-box">
+                  <span className="merchant-price-label">FX Spread</span>
+                  <span className="merchant-price-value">{plan.fx}</span>
                 </div>
               </div>
 
               <p className="plan-desc">{plan.description}</p>
 
-              <ul className="plan-features">
+              <ul className="merchant-plan-features">
                 {plan.features.map((feature, idx) => (
                   <li key={idx} className={feature.included ? "included" : "not-included"}>
-                    <span className="feature-icon">
+                    <span className="merchant-feature-icon">
                       {feature.included ? "✓" : "×"}
                     </span>
                     {feature.text}
@@ -213,7 +211,7 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
               </ul>
 
               <button 
-                className={`plan-cta primary-button ${state}`}
+                className={`merchant-plan-cta primary-button ${state}`}
                 onClick={() => plan.id === "enterprise" || plan.id === "retention" 
                   ? handleContactSales(plan.id) 
                   : null}

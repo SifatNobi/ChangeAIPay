@@ -5,6 +5,7 @@
     radial-gradient(circle at 100% 0, rgba(84, 195, 255, 0.12), transparent 30%),
     radial-gradient(circle at 0 100%, rgba(33, 182, 248, 0.1), transparent 30%),
     #000;
+  overflow-x: hidden;
 }
 
 .merchant-pricing-header {
@@ -54,6 +55,7 @@
   gap: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  overflow: visible;
 }
 
 .merchant-plan-card {
@@ -65,6 +67,9 @@
   flex-direction: column;
   transition: all 0.3s ease;
   position: relative;
+  overflow: visible;
+  height: auto;
+  min-height: 0;
 }
 
 .merchant-plan-card:hover {
@@ -94,23 +99,24 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
+  z-index: 10;
 }
 
-.plan-header {
+.merchant-plan-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 16px;
 }
 
-.plan-header h2 {
+.merchant-plan-header h2 {
   font-size: 20px;
   font-weight: 700;
   color: #fff;
   margin: 0;
 }
 
-.revenue-badge {
+.merchant-revenue-badge {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.6);
   background: rgba(84, 195, 255, 0.1);
@@ -119,13 +125,13 @@
   white-space: nowrap;
 }
 
-.pricing-row {
+.merchant-pricing-row {
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
 }
 
-.price-box {
+.merchant-price-box {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -135,13 +141,13 @@
   border-radius: 10px;
 }
 
-.price-label {
+.merchant-price-label {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.5);
   margin-bottom: 4px;
 }
 
-.price-value {
+.merchant-price-value {
   font-size: 18px;
   font-weight: 700;
   color: #54c3ff;
@@ -155,14 +161,14 @@
   min-height: 34px;
 }
 
-.plan-features {
+.merchant-plan-features {
   list-style: none;
   padding: 0;
   margin: 0 0 20px;
   flex: 1;
 }
 
-.plan-features li {
+.merchant-plan-features li {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -171,15 +177,15 @@
   padding: 4px 0;
 }
 
-.plan-features li.included {
+.merchant-plan-features li.included {
   color: #fff;
 }
 
-.plan-features li.not-included {
+.merchant-plan-features li.not-included {
   color: rgba(255, 255, 255, 0.35);
 }
 
-.plan-features li .feature-icon {
+.merchant-plan-features li .merchant-feature-icon {
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -190,24 +196,24 @@
   flex-shrink: 0;
 }
 
-.plan-features li.included .feature-icon {
+.merchant-plan-features li.included .merchant-feature-icon {
   background: rgba(0, 214, 125, 0.2);
   color: #00d67d;
 }
 
-.plan-features li.not-included .feature-icon {
+.merchant-plan-features li.not-included .merchant-feature-icon {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.3);
 }
 
-.plan-cta {
+.merchant-plan-cta {
   width: 100%;
   padding: 12px;
   font-size: 14px;
   font-weight: 600;
 }
 
-.plan-cta.current {
+.merchant-plan-cta.current {
   background: rgba(0, 214, 125, 0.15);
   border: 1px solid rgba(0, 214, 125, 0.3);
   color: #00d67d;
@@ -260,6 +266,28 @@
   margin: 0;
 }
 
+.merchant-plan-card.clicked {
+  animation: merchantClickGlow 0.6s ease-out;
+}
+
+@keyframes merchantClickGlow {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(84, 195, 255, 0);
+  }
+  30% {
+    transform: scale(1.03);
+    box-shadow:
+      0 0 20px rgba(84, 195, 255, 0.4),
+      0 0 40px rgba(84, 195, 255, 0.2),
+      0 0 60px rgba(84, 195, 255, 0.1);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(84, 195, 255, 0);
+  }
+}
+
 @media (max-width: 1024px) {
   .merchant-plans-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -297,21 +325,11 @@
     font-size: 13px;
   }
 
-  .merchant-plans-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    max-width: 480px;
-  }
-
-  .merchant-plan-card {
-    padding: 20px;
-  }
-
-  .pricing-row {
+  .merchant-pricing-row {
     gap: 12px;
   }
 
-  .price-value {
+  .merchant-price-value {
     font-size: 16px;
   }
 
@@ -323,6 +341,16 @@
 }
 
 @media (max-width: 640px) {
+  .merchant-plans-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 480px;
+  }
+
+  .merchant-plan-card {
+    padding: 20px;
+  }
+
   .merchant-pricing-page {
     padding: 24px 16px 40px;
   }
@@ -340,29 +368,29 @@
     border-radius: 14px;
   }
 
-  .plan-header h2 {
+  .merchant-plan-header h2 {
     font-size: 18px;
   }
 
-  .revenue-badge {
+  .merchant-revenue-badge {
     font-size: 10px;
     padding: 3px 8px;
   }
 
-  .pricing-row {
+  .merchant-pricing-row {
     flex-direction: column;
     gap: 10px;
   }
 
-  .price-box {
+  .merchant-price-box {
     padding: 10px;
   }
 
-  .price-label {
+  .merchant-price-label {
     font-size: 10px;
   }
 
-  .price-value {
+  .merchant-price-value {
     font-size: 15px;
   }
 
@@ -372,18 +400,18 @@
     margin-bottom: 12px;
   }
 
-  .plan-features li {
+  .merchant-plan-features li {
     font-size: 11px;
     padding: 3px 0;
   }
 
-  .plan-features li .feature-icon {
+  .merchant-plan-features li .merchant-feature-icon {
     width: 14px;
     height: 14px;
     font-size: 9px;
   }
 
-  .plan-cta {
+  .merchant-plan-cta {
     padding: 11px;
     font-size: 13px;
   }
@@ -416,11 +444,11 @@
     padding: 16px;
   }
 
-  .plan-header h2 {
+  .merchant-plan-header h2 {
     font-size: 16px;
   }
 
-  .price-value {
+  .merchant-price-value {
     font-size: 14px;
   }
 }

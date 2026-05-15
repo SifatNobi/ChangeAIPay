@@ -8,6 +8,10 @@ export default function DashboardScreen({ profile, token, loadHistory }) {
   const [receiveAmount, setReceiveAmount] = useState("");
   const [qrDataUrl, setQrDataUrl] = useState("");
 
+  const sessionId = useMemo(() => {
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  }, []);
+
   useEffect(() => {
     if (!token) return;
     loadHistory({ limit: 5 })
@@ -23,8 +27,8 @@ export default function DashboardScreen({ profile, token, loadHistory }) {
     "";
 
   const receiveUri = useMemo(
-    () => buildNanoUri(walletAddress, receiveAmount),
-    [walletAddress, receiveAmount]
+    () => buildNanoUri(walletAddress, receiveAmount, sessionId),
+    [walletAddress, receiveAmount, sessionId]
   );
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { COMPANY_LOGO, COMPANY_NAME, FINA_AI_IMAGE } from "../constants/branding";
+import { COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
 import "./DemoVideoSection.css";
 
 const DEMO_VIDEO_URL = "https://photos.app.goo.gl/aSmonwPbsX8965pm7";
@@ -45,7 +45,7 @@ export default function DemoVideoSection({ onCtaClick }) {
   const features = [
     { icon: "⚡", title: "Instant Transfers", description: "Send crypto in milliseconds" },
     { icon: "💰", title: "Zero Fees", description: "No transaction costs ever" },
-    { icon: "🤖", title: "AI Assistant", description: "Fina helps you 24/7" },
+    { icon: "🤖", title: "AI Assistant", description: "Smart help available" },
     { icon: "🔒", title: "Secure", description: "Non-custodial & private" },
     { icon: "📱", title: "Mobile First", description: "Use anywhere, anytime" },
     { icon: "🌍", title: "Global", description: "Borderless payments" }
@@ -126,14 +126,6 @@ export default function DemoVideoSection({ onCtaClick }) {
         <button className="cta-secondary" onClick={() => onCtaClick?.("learn-more")}>
           Learn More
         </button>
-      </div>
-
-      <div className="fina-showcase">
-        <img src={FINA_AI_IMAGE} alt="Meet Fina" className="fina-avatar" />
-        <div className="fina-text">
-          <h4>Meet Fina, Your AI Assistant</h4>
-          <p>Smart, helpful, and always ready to assist</p>
-        </div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME, COMPANY_TAGLINE } from "../constants/branding";
+import { COMPANY_LOGO, COMPANY_NAME, COMPANY_TAGLINE } from "../constants/branding";
 import "./OnboardingFlow.css";
 
 export function UserOnboarding({ onComplete }) {
@@ -10,25 +10,25 @@ export function UserOnboarding({ onComplete }) {
       title: "Welcome to ChangeAIPay",
       description: "Your gateway to instant, fee-less cryptocurrency payments.",
       highlight: "Zero fees. Instant settlement.",
-      image: FINA_AI_IMAGE
+      image: COMPANY_LOGO
     },
     {
       title: "Send Anywhere",
       description: "Send Nano to anyone, anywhere in the world instantly.",
       highlight: "No banking delays. No borders.",
-      image: FINA_AI_IMAGE
+      image: COMPANY_LOGO
     },
     {
       title: "Receive with Ease",
       description: "Share your QR code or wallet address to receive payments.",
       highlight: "Instant notifications. Real-time updates.",
-      image: FINA_AI_IMAGE
+      image: COMPANY_LOGO
     },
     {
       title: "Your Wallet, Your Control",
       description: "Your keys, your crypto. Fully secure and under your control.",
       highlight: "Non-custodial. Private.",
-      image: FINA_AI_IMAGE
+      image: COMPANY_LOGO
     }
   ];
 
@@ -53,7 +53,7 @@ export function UserOnboarding({ onComplete }) {
 
       <div className="onboarding-card">
         <div className="onboarding-avatar">
-          <img src={FINA_AI_IMAGE} alt="Fina" />
+          <img src={COMPANY_LOGO} alt={COMPANY_NAME} />
         </div>
 
         <div className="onboarding-content">
@@ -92,31 +92,31 @@ export function MerchantOnboarding({ onComplete, businessInfo }) {
       title: "Welcome, Merchant!",
       description: "Start accepting instant, fee-less crypto payments today.",
       highlight: "2-5% savings per transaction.",
-      image: FINA_AI_IMAGE
+      image: COMPANY_LOGO
     },
     {
       title: "Accept Crypto Payments",
       description: "Share your payment QR code with customers. They scan, they pay, you receive instantly.",
       highlight: "No payment processing fees.",
-      image: FINA_AI_IMAGE
+      image: COMPANY_LOGO
     },
     {
       title: "Real-time Dashboard",
       description: "Track sales, revenue, and customer analytics in your merchant dashboard.",
       highlight: "Detailed analytics. Export reports.",
-      image: FINA_AI_IMAGE
+      image: COMPANY_LOGO
     },
     {
       title: "Instant Settlements",
       description: "Receive payments instantly. No waiting for bank processing.",
       highlight: "Settle immediately. Cash flow control.",
-      image: FINA_AI_IMAGE
+      image: COMPANY_LOGO
     },
     {
       title: "Ready to Launch",
       description: `Your business "${businessInfo?.name || 'Your Business'}" is set up!`,
       highlight: "Start accepting payments now.",
-      image: FINA_AI_IMAGE
+      image: COMPANY_LOGO
     }
   ];
 
@@ -141,7 +141,7 @@ export function MerchantOnboarding({ onComplete, businessInfo }) {
 
       <div className="onboarding-card">
         <div className="onboarding-avatar">
-          <img src={FINA_AI_IMAGE} alt="Fina" />
+          <img src={COMPANY_LOGO} alt={COMPANY_NAME} />
         </div>
 
         <div className="onboarding-content">

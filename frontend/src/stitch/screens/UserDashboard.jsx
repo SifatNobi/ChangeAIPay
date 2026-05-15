@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { FINA_AI_IMAGE } from "../../constants/branding";
 
 export default function UserDashboard({ profile, token, loadHistory }) {
   const [transactions, setTransactions] = useState([]);
@@ -33,7 +32,6 @@ export default function UserDashboard({ profile, token, loadHistory }) {
           <span className="eyebrow">Welcome back</span>
           <h1>{profile?.user?.name || "User"}</h1>
         </div>
-        <img src={FINA_AI_IMAGE} alt="Fina AI" className="user-ai-assistant" />
       </header>
 
       <section className="user-balance card glass-card neon-sheen">

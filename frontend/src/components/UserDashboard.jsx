@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getToken } from "../api";
 import { getPaymentHistory, getCurrentSubscription, getSubscriptionUsage } from "../api";
-import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
+import { COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
 import { RealtimeChart, RealtimeFeed, StatCard, AIInsightCard, GoalProgress, SubscriptionStatus } from "./RealtimeDashboard";
 import "./UserDashboard.css";
 
@@ -109,9 +109,6 @@ export default function UserDashboard({ profile, token, onNavigate }) {
             <p>Here's your financial overview</p>
           </div>
         </div>
-        <div className="header-fina">
-          <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
-        </div>
       </div>
 
       <div className="stats-grid">
@@ -167,7 +164,6 @@ export default function UserDashboard({ profile, token, onNavigate }) {
         <div className="dashboard-sidebar">
           <AIInsightCard 
             insights={aiInsights}
-            finaImage={FINA_AI_IMAGE}
           />
 
           <div className="sidebar-section subscription-section">

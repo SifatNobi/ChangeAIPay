@@ -65,6 +65,18 @@
   margin: 12px 0;
 }
 
+.manual-fallback-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.manual-fallback-actions button {
+  flex: 1;
+  min-width: 120px;
+}
+
 .qr-permission-error {
   padding: 20px;
   text-align: center;

@@ -1,7 +1,5 @@
 export const COMPANY_LOGO = "/assets/icon.png";
 
-export const FINA_AI_IMAGE = "/assets/fina.jpeg";
-
 export const DEMO_VIDEO_URL = "https://photos.app.goo.gl/WA1RyMw8GJb17Fo28";
 
 export const COMPANY_NAME = "ChangeAIPay";
@@ -25,7 +23,6 @@ export const SOCIAL_LINKS = {
 
 export default {
   COMPANY_LOGO,
-  FINA_AI_IMAGE,
   DEMO_VIDEO_URL,
   COMPANY_NAME,
   COMPANY_TAGLINE,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getToken } from "../api";
 import { getMerchantSubscription, getMerchantAnalytics, getCashFlowPrediction, getLifetimeValueData } from "../api";
-import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
+import { COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
 import { RealtimeChart, RealtimeFeed, StatCard, AIInsightCard } from "./RealtimeDashboard";
 import "./MerchantDashboard.css";
 
@@ -230,7 +230,6 @@ export default function MerchantDashboard({ profile, token, loadHistory, onNavig
         <div className="dashboard-sidebar">
           <AIInsightCard
             insights={aiInsights}
-            finaImage={FINA_AI_IMAGE}
           />
 
           {subscription?.features?.strongerCashFlowPredictor && (

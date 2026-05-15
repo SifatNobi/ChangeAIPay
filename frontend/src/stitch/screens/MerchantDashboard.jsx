@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { FINA_AI_IMAGE } from "../../constants/branding";
 
 export default function MerchantDashboard({ profile, token, loadHistory }) {
   const [transactions, setTransactions] = useState([]);
@@ -89,7 +88,6 @@ export default function MerchantDashboard({ profile, token, loadHistory }) {
         </div>
         <div className="merchant-chart">
           <div className="chart-placeholder">
-            <img src={FINA_AI_IMAGE} alt="Fina AI Analytics" className="chart-ai-assistant" />
             <p>AI-powered analytics coming soon</p>
           </div>
         </div>

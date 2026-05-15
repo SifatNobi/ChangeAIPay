@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { COMPANY_LOGO, COMPANY_NAME, FINA_AI_IMAGE } from "../../constants/branding";
+import { COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
 import { apiRequest } from "../../api";
 import "./PricingScreen.css";
 
@@ -96,6 +96,7 @@ const PLANS = [
 export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan, onNavigate }) {
   const [loading, setLoading] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState(null);
+  const [clickedPlan, setClickedPlan] = useState(null);
 
   useEffect(() => {
     loadCurrentSubscription();
@@ -117,6 +118,9 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
 
   const handleSelectPlan = async (planId) => {
     if (planId === currentPlan || planId === "free_trial") return;
+    
+    setClickedPlan(planId);
+    setTimeout(() => setClickedPlan(null), 600);
     
     setLoading(true);
     try {
@@ -152,11 +156,6 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
         <p>Unlock premium AI features and supercharge your payments</p>
       </header>
 
-      <div className="pricing-fina">
-        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
-        <p>Upgrade your experience with Fina AI!</p>
-      </div>
-
       <div className="pricing-grid">
         {PLANS.map((plan) => {
           const state = getPlanState(plan.id);
@@ -164,7 +163,7 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
           return (
             <div 
               key={plan.id} 
-              className={`pricing-card glass-card ${plan.popular ? "popular" : ""} ${plan.legendary ? "legendary" : ""} ${state}`}
+              className={`pricing-card glass-card ${plan.popular ? "popular" : ""} ${plan.legendary ? "legendary" : ""} ${state} ${clickedPlan === plan.id ? "clicked" : ""}`}
             >
               {plan.popular && <div className="popular-badge">Most Popular</div>}
               {plan.legendary && <div className="legendary-badge">{plan.legendaryTitle || "Legendary Choice"}</div>}

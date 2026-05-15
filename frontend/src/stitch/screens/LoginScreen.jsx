@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { COMPANY_LOGO, COMPANY_NAME, DEMO_VIDEO_URL } from "../../constants/branding";
+import { COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
 
 export default function LoginScreen({ mode = "login", loading = false, error = "", onSubmit }) {
   const navigate = useNavigate();
@@ -12,6 +12,8 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
     role: "user"
   });
   const isLogin = !isSignup;
+  const videoRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(true);
 
   const handleChange = (e) => {
     setForm({
@@ -36,6 +38,13 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
     await onSubmit(payload);
   };
 
+  const toggleMuted = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
   return (
     <div className="auth-shell">
       <div className="auth-panel">
@@ -52,12 +61,25 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
           
           {/* Demo Video */}
           <div className="demo-video-container">
-            <a href={DEMO_VIDEO_URL} target="_blank" rel="noopener noreferrer" className="demo-video-link">
-              <div className="demo-video-placeholder">
-                <span className="play-icon">▶</span>
-                <span className="demo-label">Watch ChangeAIPay Demo</span>
-              </div>
-            </a>
+            <div className="demo-video-wrapper">
+              <video
+                ref={videoRef}
+                src="/assets/demo.mp4"
+                autoPlay
+                muted={isMuted}
+                loop
+                playsInline
+                className="demo-video"
+              />
+              <button
+                type="button"
+                className="sound-toggle"
+                onClick={toggleMuted}
+                aria-label={isMuted ? "Unmute video" : "Mute video"}
+              >
+                {isMuted ? "🔇" : "🔊"}
+              </button>
+            </div>
             <p className="video-caption">See ChangeAIPay in action</p>
           </div>
         </div>

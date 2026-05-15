@@ -168,6 +168,46 @@
   color: #ff908b;
 }
 
+.nano-insufficient {
+  border-color: rgba(255, 144, 139, 0.3);
+  opacity: 0.85;
+}
+
+.nano-insufficient:hover {
+  border-color: rgba(255, 144, 139, 0.5);
+  opacity: 1;
+}
+
+.nano-insufficient-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 144, 139, 0.08);
+  border: 1px solid rgba(255, 144, 139, 0.2);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.banner-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.banner-text strong {
+  display: block;
+  color: #ff908b;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.banner-text p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.4;
+}
+
 .method-savings {
   font-size: 13px;
   font-weight: 600;
@@ -216,6 +256,127 @@
 
 .checkout-actions button {
   flex: 1;
+}
+
+.card-input-section {
+  margin-bottom: 24px;
+}
+
+.card-input-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.card-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.input-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.input-group input {
+  padding: 12px 14px;
+  background: rgba(22, 22, 22, 0.8);
+  border: 1px solid rgba(84, 195, 255, 0.15);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  font-family: monospace;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-group input:focus {
+  border-color: #54c3ff;
+}
+
+.input-group input.input-error {
+  border-color: #ff908b;
+}
+
+.input-group input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper input {
+  padding-right: 50px;
+}
+
+.card-type-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 20px;
+  border-radius: 4px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  pointer-events: none;
+}
+
+.card-type-icon::after {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+}
+
+.card-visa::after {
+  content: "VISA";
+  color: #1a1f71;
+}
+
+.card-mastercard::after {
+  content: "MC";
+  color: #eb001b;
+}
+
+.card-amex::after {
+  content: "AMEX";
+  color: #006fcf;
+}
+
+.card-discover::after {
+  content: "DISC";
+  color: #ff6000;
+}
+
+.field-error {
+  font-size: 11px;
+  color: #ff908b;
+  margin-top: 2px;
+}
+
+.secure-notice {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 12px;
+  text-align: center;
 }
 
 .checkout-fina {
@@ -276,5 +437,12 @@
   .payment-option {
     padding: 12px;
     gap: 12px;
+  }
+  .card-input-grid {
+    grid-template-columns: 1fr;
+  }
+  .nano-insufficient-banner {
+    flex-direction: column;
+    gap: 8px;
   }
 }

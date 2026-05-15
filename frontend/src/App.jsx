@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Navigate,
   Route,
   Routes,
   useLocation,
-  useNavigate
+  useNavigate,
+  useParams
 } from "react-router-dom";
 
 import {
@@ -21,23 +22,59 @@ import {
 import AppLayout from "./stitch/components/AppLayout";
 import ProtectedRoute from "./stitch/components/ProtectedRoute";
 import LoginScreen from "./stitch/screens/LoginScreen";
-import SendScreen from "./stitch/screens/SendScreen";
-import PricingScreen from "./stitch/screens/PricingScreen";
-import MerchantPricingScreen from "./stitch/screens/MerchantPricingScreen";
 import WaitlistScreen from "./stitch/screens/WaitlistScreen";
-import PricingCheckout from "./components/PricingCheckout";
-import UserDashboard from "./components/UserDashboard";
-import MerchantDashboard from "./components/MerchantDashboard";
-import AdminDashboard from "./components/AdminDashboard";
 import { QRPaymentScanner } from "./components/QRSystem";
-import AIAssistant from "./components/AIAssistant";
 import { UserOnboarding, MerchantOnboarding } from "./components/OnboardingFlow";
+
+const UserDashboard = React.lazy(() => import("./components/UserDashboard"));
+const MerchantDashboard = React.lazy(() => import("./components/MerchantDashboard"));
+const AdminDashboard = React.lazy(() => import("./components/AdminDashboard"));
+const PricingScreen = React.lazy(() => import("./stitch/screens/PricingScreen"));
+const MerchantPricingScreen = React.lazy(() => import("./stitch/screens/MerchantPricingScreen"));
+const SendScreen = React.lazy(() => import("./stitch/screens/SendScreen"));
+const PricingCheckout = React.lazy(() => import("./components/PricingCheckout"));
+
+const LoadingFallback = React.memo(() => (
+  <div className="loading-spinner" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+    <div className="spinner" />
+  </div>
+));
+
+const LazyWrapper = React.memo(({ children }) => (
+  <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+));
+
+const MemoizedLoginGate = React.memo(LoginGate);
+const MemoizedWaitlistScreen = React.memo(WaitlistScreen);
+const MemoizedQRPaymentScanner = React.memo(QRPaymentScanner);
 
 function App() {
   const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
 
-  const [token, setTokenState] = useState(getToken());
-  const [profile, setProfile] = useState(null);
+  const stableNavigate = useCallback((...args) => navigateRef.current(...args), []);
+
+  const [token, setTokenState] = useState(() => {
+    const cached = sessionStorage.getItem("changeaipay_session");
+    if (cached) {
+      try {
+        const { token: t, expires } = JSON.parse(cached);
+        if (expires && Date.now() < expires) return t;
+        sessionStorage.removeItem("changeaipay_session");
+      } catch {}
+    }
+    return getToken();
+  });
+  const [profile, setProfile] = useState(() => {
+    const cached = sessionStorage.getItem("changeaipay_profile");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
   const [bootStatus, setBootStatus] = useState("idle");
   const [authStatus, setAuthStatus] = useState({ loading: false, error: "" });
   const [onboardingComplete, setOnboardingComplete] = useState(
@@ -51,19 +88,36 @@ function App() {
     }
   });
 
+  const cacheProfile = useCallback((data) => {
+    setProfile(data || {});
+    try {
+      sessionStorage.setItem("changeaipay_profile", JSON.stringify(data || {}));
+    } catch {}
+  }, []);
+
+  const cacheSession = useCallback((t) => {
+    try {
+      const session = { token: t, expires: Date.now() + 24 * 60 * 60 * 1000 };
+      sessionStorage.setItem("changeaipay_session", JSON.stringify(session));
+    } catch {}
+  }, []);
+
   const logout = useCallback(() => {
     clearToken();
     setTokenState("");
     setProfile(null);
+    sessionStorage.removeItem("changeaipay_session");
+    sessionStorage.removeItem("changeaipay_profile");
     navigate("/login");
   }, [navigate]);
 
-  const loadProfile = useCallback(async () => {
+  const loadProfile = useCallback(async (forceRefresh = false) => {
     if (!token) return null;
+    if (!forceRefresh && profile) return profile;
     const data = await getUserProfile(token);
-    setProfile(data || {});
+    cacheProfile(data);
     return data;
-  }, [token]);
+  }, [token, profile, cacheProfile]);
 
   const loadHistory = useCallback(
     async ({ limit } = {}) => {
@@ -85,6 +139,8 @@ function App() {
         setBootStatus("idle");
         clearToken();
         setTokenState("");
+        sessionStorage.removeItem("changeaipay_session");
+        sessionStorage.removeItem("changeaipay_profile");
       });
   }, [token, loadProfile]);
 
@@ -112,6 +168,7 @@ function App() {
         if (!nextToken) throw new Error("Missing token from server");
         setToken(nextToken);
         setTokenState(nextToken);
+        cacheSession(nextToken);
         await loadProfile().catch(() => null);
         navigate(redirectTo || "/dashboard", { replace: true });
       } catch (err) {
@@ -121,7 +178,7 @@ function App() {
         setAuthStatus((s) => ({ ...s, loading: false }));
       }
     },
-    [loadProfile, navigate]
+    [loadProfile, navigate, cacheSession]
   );
 
   const handleOnboardingComplete = useCallback(() => {
@@ -130,9 +187,85 @@ function App() {
     navigate("/dashboard", { replace: true });
   }, [navigate]);
 
+  const handleSelectPlan = useCallback((planId) => navigate(`/checkout/${planId}`), [navigate]);
+  const handleCheckoutCancel = useCallback(() => navigate("/pricing"), [navigate]);
+  const handleQRPaymentReady = useCallback((payment) => {
+    storePaymentContext(payment);
+    navigate("/send", { state: payment });
+  }, [navigate, storePaymentContext]);
+  const handleQRCancel = useCallback(() => navigate("/dashboard"), [navigate]);
+  const handleSendTransaction = useCallback((payload) => {
+    if (!token) throw new Error("Missing token");
+    return sendTransaction(token, payload);
+  }, [token]);
+  const handleCheckoutComplete = useCallback((result) => {
+    loadProfile(true);
+    navigate("/dashboard");
+  }, [loadProfile, navigate]);
+
+  const memoizedCheckoutWrapper = useMemo(() => (
+    <MemoizedCheckoutRouteWrapper
+      profile={profile}
+      loadProfile={() => loadProfile(true)}
+      onNavigate={navigate}
+    />
+  ), [profile, loadProfile, navigate]);
+
+  const memoizedSendTransaction = useMemo(() => (
+    <SendScreen
+      paymentContext={paymentContext}
+      onClearContext={clearPaymentContext}
+      sendTransaction={handleSendTransaction}
+    />
+  ), [paymentContext, clearPaymentContext, handleSendTransaction]);
+
+  const handleLoginSubmit = useCallback((payload, redirectTo) =>
+    handleAuthSubmit("login", payload, redirectTo), [handleAuthSubmit]);
+  const handleRegisterSubmit = useCallback((payload, redirectTo) =>
+    handleAuthSubmit("register", payload, redirectTo), [handleAuthSubmit]);
+
+  const memoizedLoginRoute = useMemo(() => (
+    <MemoizedLoginGate
+      mode="login"
+      authStatus={authStatus}
+      onSubmit={handleLoginSubmit}
+    />
+  ), [authStatus, handleLoginSubmit]);
+
+  const memoizedRegisterRoute = useMemo(() => (
+    <MemoizedLoginGate
+      mode="register"
+      authStatus={authStatus}
+      onSubmit={handleRegisterSubmit}
+    />
+  ), [authStatus, handleRegisterSubmit]);
+
+  const dashboardContent = useMemo(() => {
+    if (profile?.role === "admin") {
+      return <AdminDashboard token={token} onNavigate={stableNavigate} />;
+    }
+    if (profile?.role === "merchant") {
+      return (
+        <MerchantDashboard
+          profile={profile}
+          token={token}
+          loadHistory={loadHistory}
+          onNavigate={stableNavigate}
+        />
+      );
+    }
+    return (
+      <UserDashboard
+        profile={profile}
+        token={token}
+        loadHistory={loadHistory}
+        onNavigate={stableNavigate}
+      />
+    );
+  }, [profile, token, loadHistory, stableNavigate]);
+
   return (
     <>
-      <AIAssistant userId={profile?.id} subscription={profile?.subscription} paymentContext={paymentContext} onNavigate={navigate} />
       <Routes>
         <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
 
@@ -142,13 +275,7 @@ function App() {
             token ? (
               <Navigate to="/dashboard" />
             ) : (
-              <LoginGate
-                mode="login"
-                authStatus={authStatus}
-                onSubmit={(payload, redirectTo) =>
-                  handleAuthSubmit("login", payload, redirectTo)
-                }
-              />
+              memoizedLoginRoute
             )
           }
         />
@@ -159,41 +286,19 @@ function App() {
             token ? (
               <Navigate to="/dashboard" />
             ) : (
-              <LoginGate
-                mode="register"
-                authStatus={authStatus}
-                onSubmit={(payload, redirectTo) =>
-                  handleAuthSubmit("register", payload, redirectTo)
-                }
-              />
+              memoizedRegisterRoute
             )
           }
         />
 
-        <Route path="/waitlist" element={<WaitlistScreen />} />
+        <Route path="/waitlist" element={<MemoizedWaitlistScreen />} />
 
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute bootStatus={bootStatus} token={token}>
               <AppLayout profile={profile} onLogout={logout}>
-                {profile?.role === "admin" ? (
-                  <AdminDashboard token={token} onNavigate={navigate} />
-                ) : profile?.role === "merchant" ? (
-                  <MerchantDashboard
-                    profile={profile}
-                    token={token}
-                    loadHistory={loadHistory}
-                    onNavigate={navigate}
-                  />
-                ) : (
-                  <UserDashboard
-                    profile={profile}
-                    token={token}
-                    loadHistory={loadHistory}
-                    onNavigate={navigate}
-                  />
-                )}
+                <LazyWrapper>{dashboardContent}</LazyWrapper>
               </AppLayout>
             </ProtectedRoute>
           }
@@ -204,11 +309,13 @@ function App() {
           element={
             <ProtectedRoute bootStatus={bootStatus} token={token}>
               <AppLayout profile={profile} onLogout={logout}>
-                <PricingScreen
-                  currentPlan={profile?.subscription?.plan}
-                  onSelectPlan={(planId) => navigate(`/checkout/${planId}`)}
-                  onNavigate={navigate}
-                />
+                <LazyWrapper>
+                  <PricingScreen
+                    currentPlan={profile?.subscription?.plan}
+                    onSelectPlan={handleSelectPlan}
+                    onNavigate={navigate}
+                  />
+                </LazyWrapper>
               </AppLayout>
             </ProtectedRoute>
           }
@@ -219,15 +326,9 @@ function App() {
           element={
             <ProtectedRoute bootStatus={bootStatus} token={token}>
               <AppLayout profile={profile} onLogout={logout}>
-                <PricingCheckout
-                  selectedPlan={window.location.pathname.split('/').pop()}
-                  onComplete={(result) => {
-                    // Refresh profile to get updated subscription
-                    loadProfile();
-                    navigate("/dashboard");
-                  }}
-                  onCancel={() => navigate("/pricing")}
-                />
+                <LazyWrapper>
+                  {memoizedCheckoutWrapper}
+                </LazyWrapper>
               </AppLayout>
             </ProtectedRoute>
           }
@@ -238,7 +339,9 @@ function App() {
           element={
             <ProtectedRoute bootStatus={bootStatus} token={token}>
               <AppLayout profile={profile} onLogout={logout}>
-                <MerchantPricingScreen onNavigate={navigate} />
+                <LazyWrapper>
+                  <MerchantPricingScreen onNavigate={navigate} />
+                </LazyWrapper>
               </AppLayout>
             </ProtectedRoute>
           }
@@ -249,12 +352,9 @@ function App() {
           element={
             <ProtectedRoute bootStatus={bootStatus} token={token}>
               <AppLayout profile={profile} onLogout={logout}>
-                <QRPaymentScanner
-                  onPaymentReady={(payment) => {
-                    storePaymentContext(payment);
-                    navigate("/send", { state: payment });
-                  }}
-                  onCancel={() => navigate("/dashboard")}
+                <MemoizedQRPaymentScanner
+                  onPaymentReady={handleQRPaymentReady}
+                  onCancel={handleQRCancel}
                 />
               </AppLayout>
             </ProtectedRoute>
@@ -267,7 +367,9 @@ function App() {
             <ProtectedRoute bootStatus={bootStatus} token={token}>
               <AppLayout profile={profile} onLogout={logout}>
                 {profile?.role === "admin" ? (
-                  <AdminDashboard token={token} onNavigate={navigate} />
+                  <LazyWrapper>
+                    <AdminDashboard token={token} onNavigate={stableNavigate} />
+                  </LazyWrapper>
                 ) : (
                   <div className="access-denied card glass-card">
                     <h1>Access Denied</h1>
@@ -302,14 +404,9 @@ function App() {
           element={
             <ProtectedRoute bootStatus={bootStatus} token={token}>
               <AppLayout profile={profile} onLogout={logout}>
-                <SendScreen
-                  paymentContext={paymentContext}
-                  onClearContext={clearPaymentContext}
-                  sendTransaction={(payload) => {
-                    if (!token) throw new Error("Missing token");
-                    return sendTransaction(token, payload);
-                  }}
-                />
+                <LazyWrapper>
+                  {memoizedSendTransaction}
+                </LazyWrapper>
               </AppLayout>
             </ProtectedRoute>
           }
@@ -337,3 +434,23 @@ function LoginGate({ mode, authStatus, onSubmit }) {
     />
   );
 }
+
+function CheckoutRouteWrapper({ profile, loadProfile, onNavigate }) {
+  const { plan } = useParams();
+  const handleComplete = useCallback((result) => {
+    loadProfile();
+    onNavigate("/dashboard");
+  }, [loadProfile, onNavigate]);
+
+  const handleCancel = useCallback(() => onNavigate("/pricing"), [onNavigate]);
+
+  return (
+    <PricingCheckout
+      selectedPlan={plan}
+      onComplete={handleComplete}
+      onCancel={handleCancel}
+    />
+  );
+}
+
+const MemoizedCheckoutRouteWrapper = React.memo(CheckoutRouteWrapper);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { COMPANY_LOGO, COMPANY_NAME, COMPANY_TAGLINE, FINA_AI_IMAGE } from "../../constants/branding";
+import { COMPANY_LOGO, COMPANY_NAME, COMPANY_TAGLINE } from "../../constants/branding";
 import { joinWaitlist } from "../../api";
 import "./WaitlistScreen.css";
 
@@ -30,7 +30,6 @@ export default function WaitlistScreen() {
   if (status.success) {
     return (
       <div className="waitlist-success">
-        <img src={FINA_AI_IMAGE} alt="Fina" className="success-avatar" />
         <h2>You're on the list!</h2>
         <p>We'll notify you when ChangeAIPay is ready.</p>
         <div className="success-badge">

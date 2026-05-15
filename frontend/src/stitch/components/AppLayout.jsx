@@ -1,9 +1,27 @@
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import BrandMark from "./BrandMark";
 
 export default function AppLayout({ profile, onLogout, children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  const closeMenu = () => setMobileMenuOpen(false);
 
   return (
     <div className="app-shell stitch-bg">
@@ -14,7 +32,7 @@ export default function AppLayout({ profile, onLogout, children }) {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="topnav topnav-desktop">
+        <nav className="topnav topnav-desktop" aria-label="Main navigation">
           <NavLink className="nav-link" to="/dashboard">
             Home
           </NavLink>
@@ -39,6 +57,8 @@ export default function AppLayout({ profile, onLogout, children }) {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           type="button"
           aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-nav"
         >
           <span />
           <span />
@@ -46,49 +66,46 @@ export default function AppLayout({ profile, onLogout, children }) {
         </button>
       </header>
 
-      {/* Mobile Navigation Menu */}
+      {/* Dark Overlay */}
       {mobileMenuOpen && (
-        <nav className="topnav topnav-mobile">
-          <NavLink
-            className="nav-link"
-            to="/dashboard"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Home
-          </NavLink>
-          <NavLink
-            className="nav-link"
-            to="/send"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Send
-          </NavLink>
-          <a
-            className="nav-link"
-            href="#receive"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Receive
-          </a>
-          <a
-            className="nav-link"
-            href="#history"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            History
-          </a>
-          <button
-            className="nav-link logout-link"
-            onClick={() => {
-              setMobileMenuOpen(false);
-              onLogout();
-            }}
-            type="button"
-          >
-            Logout
-          </button>
-        </nav>
+        <div
+          className="mobile-overlay"
+          onClick={closeMenu}
+          aria-hidden="true"
+        />
       )}
+
+      {/* Mobile Navigation Menu */}
+      <nav
+        id="mobile-nav"
+        className={`topnav topnav-mobile ${mobileMenuOpen ? "open" : ""}`}
+        role="navigation"
+        aria-label="Mobile navigation"
+        aria-hidden={!mobileMenuOpen}
+      >
+        <NavLink className="nav-link" to="/dashboard" onClick={closeMenu}>
+          Home
+        </NavLink>
+        <NavLink className="nav-link" to="/send" onClick={closeMenu}>
+          Send
+        </NavLink>
+        <a className="nav-link" href="#receive" onClick={closeMenu}>
+          Receive
+        </a>
+        <a className="nav-link" href="#history" onClick={closeMenu}>
+          History
+        </a>
+        <button
+          className="nav-link logout-link"
+          onClick={() => {
+            closeMenu();
+            onLogout();
+          }}
+          type="button"
+        >
+          Logout
+        </button>
+      </nav>
 
       <main className="page-shell">{children}</main>
     </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getToken } from "../api";
 import { apiRequest } from "../api";
-import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
+import { COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
 import { RealtimeChart, RealtimeFeed, StatCard, AIInsightCard } from "./RealtimeDashboard";
 import "./AdminDashboard.css";
 
@@ -183,7 +183,6 @@ export default function AdminDashboard({ onNavigate }) {
         <div className="dashboard-sidebar">
           <AIInsightCard
             insights={aiInsights}
-            finaImage={FINA_AI_IMAGE}
           />
 
           <div className="sidebar-section users-list-section">

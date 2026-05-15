@@ -347,16 +347,43 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
 
   function normalizeScannedText(value) {
     const text = String(value || "").trim();
-    if (!text) return "";
+    if (!text) return { recipient: "", amount: "" };
 
-    const nativeUri = text.replace(/^nano:/i, "").split("?")[0].trim();
-    const walletMatch = nativeUri.match(/nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}/i);
-    if (walletMatch) return walletMatch[0];
+    let recipient = "";
+    let amount = "";
 
-    const fallbackMatch = text.match(/nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}/i);
-    if (fallbackMatch) return fallbackMatch[0];
+    try {
+      if (text.startsWith("nano:")) {
+        const uri = new URL(text);
+        recipient = uri.pathname.replace(/^\/+/, "");
+        amount = uri.searchParams.get("amount") || "";
+        if (recipient) return { recipient, amount };
+      }
+    } catch {}
 
-    return text;
+    try {
+      const jsonPayload = JSON.parse(text);
+      if (jsonPayload && typeof jsonPayload === "object") {
+        recipient = jsonPayload.recipient || jsonPayload.address || jsonPayload.wallet || jsonPayload.destination || "";
+        amount = jsonPayload.amount != null ? String(jsonPayload.amount) : "";
+        if (recipient) return { recipient, amount };
+      }
+    } catch {}
+
+    try {
+      if (text.includes("?")) {
+        const [base, query] = text.split("?");
+        const params = new URLSearchParams(query);
+        recipient = params.get("address") || params.get("recipient") || params.get("wallet") || params.get("to") || base;
+        amount = params.get("amount") || params.get("value") || "";
+        if (recipient) return { recipient, amount };
+      }
+    } catch {}
+
+    const walletMatch = text.match(/(nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59})/i);
+    if (walletMatch) return { recipient: walletMatch[1], amount: "" };
+
+    return { recipient: text, amount: "" };
   }
 
   async function requestCameraAccess() {
@@ -388,14 +415,14 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 260, height: 260 }, showTorchButton: true, rememberLastUsedCamera: true },
         (decodedText) => {
-          const recipient = normalizeScannedText(decodedText);
+          const { recipient, amount } = normalizeScannedText(decodedText);
           if (!recipient) {
             setScanError("Scanned QR is not a valid Nano address or payment payload.");
             return;
           }
 
-          setForm((state) => ({ ...state, recipient }));
-          setStatus({ type: "success", message: "QR scanned and recipient auto-filled.", txHash: null });
+          setForm((state) => ({ ...state, recipient, amount: amount || state.amount }));
+          setStatus({ type: "success", message: "QR scanned and payment details auto-filled.", txHash: null });
           stopScanner();
         },
         (error) => {
@@ -446,7 +473,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
       <section className="card form-card glass-card send-surface stitch-send-card">
         <span className="eyebrow">Quick Transfer</span>
         <h1>Send Payment</h1>
-        <p className="muted">Smart payment flow with QR-backed autofill, secure routing, and Fina assistant guidance.</p>
+        <p className="muted">Smart payment flow with QR-backed autofill, secure routing, and assistant guidance.</p>
 
         {paymentContext && (
           <div className="payment-preview glass-card">
@@ -575,7 +602,21 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
             </div>
           )}
 
-          {scanError && <div className="status error"><p>{scanError}</p></div>}
+          {scanError && (
+            <div className="status error">
+              <p>{scanError}</p>
+              {permissionState === "denied" && (
+                <div className="manual-fallback-actions">
+                  <button type="button" className="ghost-button" onClick={openScanner}>
+                    Try Camera Again
+                  </button>
+                  <button type="button" className="primary-button" onClick={() => { setScanError(""); setScanActive(false); }}>
+                    Enter Address Manually
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {status.type === "error" && (
             <div className="status error">

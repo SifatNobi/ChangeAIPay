@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import "./QRSystem.css";
 
 const NANO_ADDRESS_REGEX = /^nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$/i;
@@ -12,6 +12,7 @@ export function useQRScanner({ onScan, onError }) {
   const [lastScanned, setLastScanned] = useState(null);
   const scannerRef = useRef(null);
   const lastScanTimeRef = useRef(0);
+  const lastScanTextRef = useRef(null);
 
   const validateNanoAddress = useCallback((text) => {
     const cleaned = String(text || "").trim().replace(/^nano:/i, "").split("?")[0];
@@ -176,26 +177,28 @@ export function useQRScanner({ onScan, onError }) {
     if (scannerRef.current) return;
 
     try {
-      const html5QrCode = new Html5Qrcode(elementId);
+      const html5QrCode = new Html5Qrcode(elementId, { verbose: false });
       scannerRef.current = html5QrCode;
 
+      const cameras = await Html5Qrcode.getCameras();
+      if (!cameras || cameras.length === 0) {
+        throw new Error("No cameras found");
+      }
+
+      const rearCamera = cameras.find((c) => /back|rear|environment|camera\d/i.test(c.label)) || cameras[cameras.length - 1];
+
       await html5QrCode.start(
-        { 
-          facingMode: "environment",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          torch: false
-        },
+        rearCamera.id,
         {
           fps: 10,
           qrbox: { width: 280, height: 280 },
           aspectRatio: 1.0,
           showTorchButtonIfSupported: true,
-          rememberLastUsedCamera: true
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
         },
         handleScanSuccess,
-        (error) => {
-          console.log("QR scan frame:", error);
+        (errorMessage) => {
+          console.debug("QR scan frame:", errorMessage);
         }
       );
 
@@ -205,10 +208,12 @@ export function useQRScanner({ onScan, onError }) {
       if (err.name === "NotAllowedError" || err.name === "SecurityError") {
         setHasPermission(false);
         onError?.({ message: "Camera permission denied", error: err });
-      } else if (err.name === "NotFoundError") {
+      } else if (err.name === "NotFoundError" || err.message === "No cameras found") {
+        setHasPermission(false);
         onError?.({ message: "No camera found", error: err });
       } else {
-        onError?.({ message: err.message, error: err });
+        setHasPermission(false);
+        onError?.({ message: err.message || "Failed to start camera", error: err });
       }
     }
   }, [handleScanSuccess, onError]);
@@ -370,20 +375,25 @@ export function QRPaymentScanner({ onPaymentReady, onCancel }) {
             </div>
           )}
 
-          {error && <div className="qr-error">{error}</div>}
-
-          {hasPermission === false && (
-            <div className="qr-permission-error">
-              <p>Camera access denied</p>
-              <button className="ghost-button" onClick={handleStartScan}>
-                Try Again
-              </button>
-              <button
-                className="ghost-button"
-                onClick={() => setMode("manual")}
-              >
-                Enter Manually
-              </button>
+          {error && (
+            <div className="qr-error">
+              {error}
+              {hasPermission === false && (
+                <div className="manual-fallback-actions">
+                  <button className="ghost-button" onClick={handleStartScan}>
+                    Try Camera Again
+                  </button>
+                  <button
+                    className="primary-button"
+                    onClick={() => {
+                      setError(null);
+                      setIsScanning(false);
+                    }}
+                  >
+                    Enter Manually
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
