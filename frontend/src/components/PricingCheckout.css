@@ -1,0 +1,280 @@
+.pricing-checkout {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.checkout-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.checkout-logo {
+  height: 48px;
+  margin-bottom: 16px;
+}
+
+.checkout-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+}
+
+.checkout-header p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.plan-summary {
+  text-align: center;
+  padding: 24px;
+  background: rgba(18, 18, 18, 0.8);
+  border: 1px solid rgba(84, 195, 255, 0.15);
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.plan-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, #0f2760, #1e6be0);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #54c3ff;
+  margin-bottom: 12px;
+}
+
+.plan-price {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.fiat-price {
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.nano-price {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.billing-period {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.nano-recommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(84, 195, 255, 0.08);
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.recommendation-icon {
+  font-size: 24px;
+}
+
+.recommendation-text strong {
+  display: block;
+  color: #54c3ff;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.recommendation-text p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  margin: 0;
+}
+
+.payment-methods {
+  margin-bottom: 24px;
+}
+
+.payment-methods h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(22, 22, 22, 0.8);
+  border: 2px solid rgba(84, 195, 255, 0.15);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.payment-option:hover {
+  border-color: rgba(84, 195, 255, 0.3);
+}
+
+.payment-option.selected {
+  border-color: #54c3ff;
+  background: rgba(84, 195, 255, 0.08);
+}
+
+.payment-option input {
+  display: none;
+}
+
+.method-icon {
+  font-size: 24px;
+}
+
+.method-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.method-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.method-fees {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.nano-balance {
+  font-size: 11px;
+  color: #00d67d;
+}
+
+.nano-warning {
+  font-size: 11px;
+  color: #ff908b;
+}
+
+.method-savings {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00d67d;
+}
+
+.xno-summary,
+.fiat-summary {
+  padding: 16px;
+  background: rgba(18, 18, 18, 0.8);
+  border: 1px solid rgba(84, 195, 255, 0.1);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.summary-row.total {
+  border-top: 1px solid rgba(84, 195, 255, 0.1);
+  padding-top: 12px;
+  margin-top: 4px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.fee-saved {
+  color: #00d67d;
+}
+
+.nano-amount {
+  color: #54c3ff;
+  font-weight: 600;
+}
+
+.checkout-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.checkout-actions button {
+  flex: 1;
+}
+
+.checkout-fina {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(84, 195, 255, 0.05);
+  border-radius: 12px;
+}
+
+.fina-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(84, 195, 255, 0.3);
+}
+
+.checkout-fina p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.checkout-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 60px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(84, 195, 255, 0.2);
+  border-top-color: #54c3ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .pricing-checkout {
+    padding: 16px;
+  }
+  .checkout-actions {
+    flex-direction: column;
+  }
+  .plan-price {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .payment-option {
+    padding: 12px;
+    gap: 12px;
+  }
+}

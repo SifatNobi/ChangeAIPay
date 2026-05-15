@@ -1,6 +1,6 @@
-export const COMPANY_LOGO = "https://photos.app.goo.gl/PheMX8gaJoGtmphM9";
+export const COMPANY_LOGO = "/assets/icon.png";
 
-export const FINA_AI_IMAGE = "https://photos.app.goo.gl/SBXRSQfXhvWNyDs8A";
+export const FINA_AI_IMAGE = "/assets/fina.jpeg";
 
 export const DEMO_VIDEO_URL = "https://photos.app.goo.gl/WA1RyMw8GJb17Fo28";
 
