@@ -59,7 +59,7 @@ const PLANS_CONFIG = {
       goalBasedAI: false
     },
     limits: {
-      fxFreeAmount: 1000,
+      fxFreeAmount: 800,
       fxFeeAfterLimit: 0.95,
       monthlyCap: null,
       aiChatLimit: 500
@@ -81,7 +81,7 @@ const PLANS_CONFIG = {
       advancedFraudDetection: true,
       dynamicBudgetOptimization: true,
       aiNegotiator: false,
-      lifeEventMode: false,
+      lifeEventMode: true,
       prioritySmartRouting: false,
       bookingPayWorkflows: false,
       smartTranscripts: true,
@@ -90,7 +90,7 @@ const PLANS_CONFIG = {
       goalBasedAI: true
     },
     limits: {
-      fxFreeAmount: 3000,
+      fxFreeAmount: 2400,
       fxFeeAfterLimit: 0.72,
       monthlyCap: null,
       aiChatLimit: 2000
@@ -121,7 +121,7 @@ const PLANS_CONFIG = {
       goalBasedAI: true
     },
     limits: {
-      fxFreeAmount: 6000,
+      fxFreeAmount: 4800,
       fxFeeAfterLimit: 0.58,
       monthlyCap: null,
       aiChatLimit: -1

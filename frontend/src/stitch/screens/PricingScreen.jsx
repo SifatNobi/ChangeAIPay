@@ -42,7 +42,7 @@ const PLANS = [
       { text: "Smart Social Payments Brain", included: false },
       { text: "AI Negotiator", included: false }
     ],
-    limits: { fxFee: "0.95%", monthlyCap: "Unlimited", fxFree: "$1,000/mo" },
+    limits: { fxFee: "0.95%", monthlyCap: "Unlimited", fxFree: "£800/mo" },
     cta: "Upgrade to Edge",
     popular: false
   },
@@ -63,7 +63,7 @@ const PLANS = [
       { text: "Goal-based AI system", included: true },
       { text: "AI Negotiator", included: false }
     ],
-    limits: { fxFee: "0.72%", monthlyCap: "Unlimited", fxFree: "$3,000/mo" },
+    limits: { fxFee: "0.72%", monthlyCap: "Unlimited", fxFree: "£2,400/mo" },
     cta: "Upgrade to Prime",
     popular: true
   },
@@ -85,7 +85,7 @@ const PLANS = [
       { text: "Smart Social Payments Brain", included: true },
       { text: "Unlimited AI chats", included: true }
     ],
-    limits: { fxFee: "0.58%", monthlyCap: "Unlimited", fxFree: "$6,000/mo" },
+    limits: { fxFee: "0.58%", monthlyCap: "Unlimited", fxFree: "£4,800/mo" },
     cta: "Upgrade to Apex",
     popular: false,
     legendary: true,

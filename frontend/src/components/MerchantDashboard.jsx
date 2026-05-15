@@ -68,27 +68,23 @@ export default function MerchantDashboard({ profile, token, loadHistory, onNavig
     label: `M${i + 1}`
   }));
 
-  const customerFeed = [
-    { id: 1, title: "New customer: john@example.com", subtitle: "Lifetime value: $250", time: "2m ago", isNew: true },
-    { id: 2, title: "Repeat purchase: sarah@example.com", subtitle: "Order #1243 - $45", time: "15m ago" },
-    { id: 3, title: "Customer升级: Basic to Premium", subtitle: "$120 annual value", time: "1h ago" }
-  ];
+  const customerFeed = [];
 
-  const aiInsights = subscription?.features ? [
+  const aiInsights = subscription?.features && stats.transactions > 0 ? [
     subscription.features.aiRevenueBooster && {
       icon: "📈",
       title: "Revenue Opportunity",
-      description: "Based on recent trends, you could increase revenue by 12% this month."
+      description: "Based on recent trends, analyze your revenue patterns."
     },
     subscription.features.customerLifetimeValue && {
       icon: "👥",
-      title: "At-Risk Customers",
-      description: "3 customers haven't made a purchase in 30+ days. Consider re-engagement."
+      title: "Customer Insights",
+      description: "Customer lifetime value data will appear after more activity."
     },
     subscription.features.smartPricingEngine && {
       icon: "💡",
-      title: "Pricing Optimization",
-      description: "Your competitors are charging 5% more. Consider adjusting prices."
+      title: "Pricing Insights",
+      description: "Pricing suggestions will appear after analyzing transaction data."
     }
   ].filter(Boolean) : [];
 

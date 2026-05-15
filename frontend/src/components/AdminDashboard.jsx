@@ -69,33 +69,19 @@ export default function AdminDashboard({ onNavigate }) {
     }
   };
 
-  const userGrowthData = [
-    { value: 45, label: "Mon" },
-    { value: 52, label: "Tue" },
-    { value: 48, label: "Wed" },
-    { value: 65, label: "Thu" },
-    { value: 72, label: "Fri" },
-    { value: 58, label: "Sat" },
-    { value: 80, label: "Sun" }
-  ];
+  const userGrowthData = recentUsers.length > 0
+    ? recentUsers.slice(0, 7).map((u, i) => ({ value: 1, label: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i] || `Day ${i + 1}` }))
+    : [];
 
-  const aiInsights = [
-    {
-      icon: "📈",
-      title: "User Growth",
-      description: "User signups increased 23% this week. Consider increasing server capacity."
-    },
-    {
-      icon: "⚠️",
-      title: "Fraud Detection",
-      description: "2 suspicious transactions flagged today. Review recommended."
-    },
-    {
-      icon: "💰",
-      title: "Revenue Alert",
-      description: "Platform revenue up 15% this month. On track for quarterly targets."
-    }
-  ];
+  const aiInsights = recentUsers.length > 5 || recentTransactions.length > 10
+    ? [
+        {
+          icon: "📈",
+          title: "Activity Summary",
+          description: `${recentUsers.length} users and ${recentTransactions.length} transactions recorded.`
+        }
+      ]
+    : [];
 
   const userFeed = recentUsers.map(u => ({
     ...u,

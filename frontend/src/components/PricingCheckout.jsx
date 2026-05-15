@@ -4,9 +4,9 @@ import { apiRequest, getToken } from "../api";
 import "./PricingCheckout.css";
 
 const PLAN_PRICING = {
-  edge: { name: "Edge", price: 19.99, fxFee: "0.95%", fxFree: "€1,000" },
-  prime: { name: "Prime", price: 29.99, fxFee: "0.72%", fxFree: "€3,000" },
-  apex: { name: "Apex", price: 49.99, fxFee: "0.58%", fxFree: "€6,000" }
+  edge: { name: "Edge", price: 19.99, fxFee: "0.95%", fxFree: "£800" },
+  prime: { name: "Prime", price: 29.99, fxFee: "0.72%", fxFree: "£2,400" },
+  apex: { name: "Apex", price: 49.99, fxFee: "0.58%", fxFree: "£4,800" }
 };
 
 export default function PricingCheckout({ selectedPlan, onComplete, onCancel }) {

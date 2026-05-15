@@ -45,10 +45,10 @@ export async function getPricingPlans(req, res) {
         name: "Edge",
         description: "Full AI assistant with fraud protection",
         fiatPrice: 19.99,
-        nanoPrice: Math.round((24.99 / nanoPrice) * 1e6) / 1e6,
+        nanoPrice: Math.round((19.99 / nanoPrice) * 1e6) / 1e6,
         currency,
         fxFee: "0.95%",
-        fxFreeLimit: 1000,
+        fxFreeLimit: 800,
         features: ["Full AI Assistant", "Fraud Protection", "Smart Routing", "Predictive Reminders", "Spending Alerts"]
       },
       {
@@ -56,10 +56,10 @@ export async function getPricingPlans(req, res) {
         name: "Prime",
         description: "AI Financial Autopilot",
         fiatPrice: 29.99,
-        nanoPrice: Math.round((39.99 / nanoPrice) * 1e6) / 1e6,
+        nanoPrice: Math.round((29.99 / nanoPrice) * 1e6) / 1e6,
         currency,
         fxFee: "0.72%",
-        fxFreeLimit: 3000,
+        fxFreeLimit: 2400,
         features: ["AI Financial Autopilot", "Smart Undo Payments", "Social Payments Brain", "Advanced Fraud Detection", "Dynamic Budget"]
       },
       {
@@ -67,10 +67,10 @@ export async function getPricingPlans(req, res) {
         name: "Apex",
         description: "Autonomous AI Payments",
         fiatPrice: 49.99,
-        nanoPrice: Math.round((64.99 / nanoPrice) * 1e6) / 1e6,
+        nanoPrice: Math.round((49.99 / nanoPrice) * 1e6) / 1e6,
         currency,
         fxFee: "0.58%",
-        fxFreeLimit: 6000,
+        fxFreeLimit: 4800,
         features: ["Autonomous AI Payments", "AI Negotiator", "Life Event Mode", "Priority Routing", "Booking Workflows"]
       }
     ];
@@ -125,7 +125,7 @@ export async function createCheckoutSession(req, res) {
                 name: `${plan.name} Subscription`,
                 description: `Monthly subscription to ${plan.name} plan`,
               },
-              unit_amount: Math.round(plan.fiatPrice * 100), // Stripe expects cents
+              unit_amount: Math.round(plan.fiatPrice * 100),
             },
             quantity: 1,
           },
@@ -377,10 +377,17 @@ export async function getPaymentAnalytics(req, res) {
     
     const subscriptions = await UserSubscription.find({ userId }).lean();
     
+    const totalSpent = subscriptions.reduce((sum, sub) => {
+      const planPrices = { edge: 19.99, prime: 29.99, apex: 49.99 };
+      return sum + (planPrices[sub.plan] || 0);
+    }, 0);
+    
+    const nanoPayments = subscriptions.filter(sub => sub.metadata?.paymentMethod === "nano").length;
+    
     const stats = {
-      totalSpent: subscriptions.length * 24.99,
-      paymentsWithNano: subscriptions.length,
-      savingsFromNano: subscriptions.length * (24.99 * 0.029),
+      totalSpent,
+      paymentsWithNano: nanoPayments,
+      savingsFromNano: nanoPayments * 0.72,
       lastPayment: subscriptions[0]?.createdAt,
       nextPayment: subscriptions[0]?.currentPeriodEnd
     };

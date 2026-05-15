@@ -53,9 +53,10 @@ export default function UserDashboard({ profile, token, onNavigate }) {
         setUsage(usageData.usage);
       }
 
-      const newNotifications = [
-        { id: 1, type: "info", title: "Welcome to ChangeAIPay!", message: "Start sending and receiving crypto instantly." }
-      ];
+      const newNotifications = [];
+      if (transactions.length === 0) {
+        newNotifications.push({ id: 1, type: "info", title: "Welcome to ChangeAIPay!", message: "Start sending and receiving crypto instantly." });
+      }
       setNotifications(newNotifications);
 
     } catch (err) {
@@ -79,28 +80,15 @@ export default function UserDashboard({ profile, token, onNavigate }) {
     isNew: false
   }));
 
-  const aiInsights = [
+  const aiInsights = transactions.length > 5 ? [
     {
-      icon: "💰",
-      title: "Spending Alert",
-      description: "You've sent 15% more this month than last month. Consider setting a budget."
-    },
-    {
-      icon: "🎯",
-      title: "Goal Progress",
-      description: "You're 65% towards your savings goal. Keep it up!"
-    },
-    {
-      icon: "🔔",
-      title: "Payment Reminder",
-      description: "You have 3 pending payment requests waiting."
+      icon: "📊",
+      title: "Activity Summary",
+      description: `You've made ${transactions.length} transactions recently.`
     }
-  ];
+  ] : [];
 
-  const goals = [
-    { name: "Savings Goal", current: 650, target: 1000 },
-    { name: "Monthly Spending", current: 380, target: 500 }
-  ];
+  const goals = [];
 
   if (loading) {
     return (
@@ -131,25 +119,16 @@ export default function UserDashboard({ profile, token, onNavigate }) {
           title="Balance"
           value={`${parseFloat(stats.balance || 0).toFixed(4)} XNO`}
           icon="💰"
-          change={5.2}
-          changeLabel="this week"
-          trend="up"
         />
         <StatCard
           title="Received"
           value={`${parseFloat(stats.totalReceived || 0).toFixed(4)} XNO`}
           icon="↓"
-          change={12.5}
-          changeLabel="vs last month"
-          trend="up"
         />
         <StatCard
           title="Sent"
           value={`${parseFloat(stats.totalSent || 0).toFixed(4)} XNO`}
           icon="↑"
-          change={-3.2}
-          changeLabel="vs last month"
-          trend="down"
         />
         <StatCard
           title="Transactions"
