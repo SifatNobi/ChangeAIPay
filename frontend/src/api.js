@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://changeaipay.onrender.com/api";
+  import.meta.env.VITE_API_BASE_URL || "https://changeaipay.onrender.com";
 
 const TOKEN_KEY = "changeaipay_token";
 

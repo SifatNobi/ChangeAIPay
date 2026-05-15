@@ -19,7 +19,7 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ error: "Invalid token" });
     }
     
-    const userId = decoded.sub || decoded.userId;
+    const userId = decoded.sub || decoded.userId || decoded.id;
     
     if (!userId) {
       return res.status(401).json({ error: "Invalid token payload" });
@@ -70,7 +70,8 @@ export const optionalAuthMiddleware = async (req, res, next) => {
     
     try {
       const decoded = jwt.verify(token, config.jwt.secret);
-      const user = await User.findById(decoded.userId);
+      const userId = decoded.sub || decoded.userId || decoded.id;
+      const user = await User.findById(userId);
       
       if (user && user.status === "active") {
         req.user = user;

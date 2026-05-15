@@ -37,7 +37,7 @@ const PLANS_CONFIG = {
   edge: {
     name: "Edge",
     description: "Full AI assistant, fraud protection, smart routing",
-    price: 24.99,
+    price: 19.99,
     features: {
       aiAssistant: true,
       fraudProtection: true,
@@ -68,7 +68,7 @@ const PLANS_CONFIG = {
   prime: {
     name: "Prime",
     description: "AI Financial Autopilot, smart undo, social payments",
-    price: 39.99,
+    price: 29.99,
     features: {
       aiAssistant: true,
       fraudProtection: true,
@@ -99,7 +99,7 @@ const PLANS_CONFIG = {
   apex: {
     name: "Apex",
     description: "Autonomous AI payments, AI negotiator, life events",
-    price: 64.99,
+    price: 49.99,
     features: {
       aiAssistant: true,
       fraudProtection: true,

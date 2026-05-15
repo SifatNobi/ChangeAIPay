@@ -21,6 +21,7 @@
     "node-fetch": "^3.3.2",
     "nodemailer": "^8.0.7",
     "qrcode": "^1.5.3",
+    "stripe": "^14.0.0",
     "ws": "^8.16.0"
   },
   "devDependencies": {

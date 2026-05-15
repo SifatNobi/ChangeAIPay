@@ -54,11 +54,13 @@ export default function AdminDashboard({ onNavigate }) {
         })));
       }
 
-      setFraudAlerts([
-        { id: 1, title: "High velocity transaction", subtitle: "User: john@example.com", severity: "high", time: "2m ago" },
-        { id: 2, title: "New account large transfer", subtitle: "Amount: 500 XNO", severity: "medium", time: "15m ago" },
-        { id: 3, title: "Suspicious recipient", subtitle: "Address flagged", severity: "medium", time: "1h ago" }
-      ]);
+      // TODO: Implement real fraud alerts API
+      // setFraudAlerts([
+      //   { id: 1, title: "High velocity transaction", subtitle: "User: john@example.com", severity: "high", time: "2m ago" },
+      //   { id: 2, title: "New account large transfer", subtitle: "Amount: 500 XNO", severity: "medium", time: "15m ago" },
+      //   { id: 3, title: "Suspicious recipient", subtitle: "Address flagged", severity: "medium", time: "1h ago" }
+      // ]);
+      setFraudAlerts([]);
 
     } catch (err) {
       console.error("Admin dashboard error:", err);

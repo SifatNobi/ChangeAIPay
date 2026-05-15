@@ -6,9 +6,9 @@ import logger from "./logger.js";
 import emailService from "./emailService.js";
 
 const PLANS_CONFIG = {
-  edge: { fiatPrice: 24.99, name: "Edge", periodDays: 30 },
-  prime: { fiatPrice: 39.99, name: "Prime", periodDays: 30 },
-  apex: { fiatPrice: 64.99, name: "Apex", periodDays: 30 }
+  edge: { fiatPrice: 19.99, name: "Edge", periodDays: 30 },
+  prime: { fiatPrice: 29.99, name: "Prime", periodDays: 30 },
+  apex: { fiatPrice: 49.99, name: "Apex", periodDays: 30 }
 };
 
 const GRACE_PERIOD_DAYS = 5;

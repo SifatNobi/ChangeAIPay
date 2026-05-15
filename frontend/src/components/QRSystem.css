@@ -152,3 +152,97 @@
   color: rgba(255, 255, 255, 0.4);
   font-size: 14px;
 }
+
+/* Premium QR Display */
+.qr-display-premium {
+  position: relative;
+  padding: 32px;
+  text-align: center;
+}
+
+.qr-glow-ring {
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(84, 195, 255, 0.2), transparent 70%);
+  animation: qrGlowPulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes qrGlowPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.qr-code-container {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  padding: 20px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 0 40px rgba(84, 195, 255, 0.25), 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.qr-code-container canvas,
+.qr-code-container img {
+  display: block;
+  border-radius: 8px;
+}
+
+.qr-address-display {
+  margin-top: 20px;
+  padding: 12px 16px;
+  background: rgba(22, 22, 22, 0.9);
+  border: 1px solid rgba(84, 195, 255, 0.15);
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  word-break: break-all;
+  user-select: all;
+}
+
+.qr-copy-btn {
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #0f2760, #1e6be0);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.qr-copy-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(30, 107, 224, 0.4);
+}
+
+.qr-amount-input {
+  margin-top: 16px;
+  width: 100%;
+  max-width: 200px;
+  padding: 12px;
+  background: rgba(22, 22, 22, 0.9);
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+}
+
+/* Mobile QR fixes */
+@media (max-width: 480px) {
+  .qr-display-premium {
+    padding: 24px 16px;
+  }
+  .qr-code-container {
+    padding: 16px;
+  }
+  .qr-glow-ring {
+    inset: -20px;
+  }
+}

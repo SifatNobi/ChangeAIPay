@@ -2,6 +2,8 @@ export const COMPANY_LOGO = "https://photos.app.goo.gl/PheMX8gaJoGtmphM9";
 
 export const FINA_AI_IMAGE = "https://photos.app.goo.gl/SBXRSQfXhvWNyDs8A";
 
+export const DEMO_VIDEO_URL = "https://photos.app.goo.gl/WA1RyMw8GJb17Fo28";
+
 export const COMPANY_NAME = "ChangeAIPay";
 
 export const COMPANY_TAGLINE = "Instant Payments. Zero Fees.";
@@ -24,6 +26,7 @@ export const SOCIAL_LINKS = {
 export default {
   COMPANY_LOGO,
   FINA_AI_IMAGE,
+  DEMO_VIDEO_URL,
   COMPANY_NAME,
   COMPANY_TAGLINE,
   COMPANY_COLORS,

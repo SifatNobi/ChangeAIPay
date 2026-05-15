@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
+import { COMPANY_LOGO, COMPANY_NAME, DEMO_VIDEO_URL } from "../../constants/branding";
 
 export default function LoginScreen({ mode = "login", loading = false, error = "", onSubmit }) {
   const navigate = useNavigate();
@@ -49,6 +49,17 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
             Instant <span className="hero-highlight">Payments</span>
           </h1>
           <p>No fees. No delays. Just speed.</p>
+          
+          {/* Demo Video */}
+          <div className="demo-video-container">
+            <a href={DEMO_VIDEO_URL} target="_blank" rel="noopener noreferrer" className="demo-video-link">
+              <div className="demo-video-placeholder">
+                <span className="play-icon">▶</span>
+                <span className="demo-label">Watch ChangeAIPay Demo</span>
+              </div>
+            </a>
+            <p className="video-caption">See ChangeAIPay in action</p>
+          </div>
         </div>
 
         {/* RIGHT SIDE FORM */}

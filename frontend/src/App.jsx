@@ -25,11 +25,12 @@ import SendScreen from "./stitch/screens/SendScreen";
 import PricingScreen from "./stitch/screens/PricingScreen";
 import MerchantPricingScreen from "./stitch/screens/MerchantPricingScreen";
 import WaitlistScreen from "./stitch/screens/WaitlistScreen";
-import AIAssistant from "./components/AIAssistant";
+import PricingCheckout from "./components/PricingCheckout";
 import UserDashboard from "./components/UserDashboard";
 import MerchantDashboard from "./components/MerchantDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import { QRPaymentScanner } from "./components/QRSystem";
+import AIAssistant from "./components/AIAssistant";
 import { UserOnboarding, MerchantOnboarding } from "./components/OnboardingFlow";
 
 function App() {
@@ -131,7 +132,7 @@ function App() {
 
   return (
     <>
-      <AIAssistant userId={profile?.id} paymentContext={paymentContext} onNavigate={navigate} />
+      <AIAssistant userId={profile?.id} subscription={profile?.subscription} paymentContext={paymentContext} onNavigate={navigate} />
       <Routes>
         <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
 
@@ -205,8 +206,27 @@ function App() {
               <AppLayout profile={profile} onLogout={logout}>
                 <PricingScreen
                   currentPlan={profile?.subscription?.plan}
-                  onSelectPlan={() => {}}
+                  onSelectPlan={(planId) => navigate(`/checkout/${planId}`)}
                   onNavigate={navigate}
+                />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/checkout/:plan"
+          element={
+            <ProtectedRoute bootStatus={bootStatus} token={token}>
+              <AppLayout profile={profile} onLogout={logout}>
+                <PricingCheckout
+                  selectedPlan={window.location.pathname.split('/').pop()}
+                  onComplete={(result) => {
+                    // Refresh profile to get updated subscription
+                    loadProfile();
+                    navigate("/dashboard");
+                  }}
+                  onCancel={() => navigate("/pricing")}
                 />
               </AppLayout>
             </ProtectedRoute>

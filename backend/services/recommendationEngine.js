@@ -14,7 +14,7 @@ const PLANS_CONFIG = {
   },
   edge: {
     name: "Edge",
-    price: 24.99,
+    price: 19.99,
     fxFee: 0.95,
     fxFreeAmount: 1000,
     features: ["Fraud Protection", "Smart Routing", "Predictive Reminders", "Spending Alerts"],
@@ -22,7 +22,7 @@ const PLANS_CONFIG = {
   },
   prime: {
     name: "Prime",
-    price: 39.99,
+    price: 29.99,
     fxFee: 0.72,
     fxFreeAmount: 3000,
     features: ["AI Financial Autopilot", "Smart Undo Payments", "Social Payments Brain", "Advanced Fraud Detection", "Dynamic Budget"],
@@ -31,7 +31,7 @@ const PLANS_CONFIG = {
   },
   apex: {
     name: "Apex",
-    price: 64.99,
+    price: 49.99,
     fxFee: 0.58,
     fxFreeAmount: 6000,
     features: ["Autonomous AI Payments", "AI Negotiator", "Life Event Mode", "Priority Routing", "Booking Workflows"],

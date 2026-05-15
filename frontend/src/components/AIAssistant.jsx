@@ -6,6 +6,31 @@ import "./AIAssistant.css";
 
 const FINA_IMAGE = FINA_AI_IMAGE;
 
+// Feature access by plan
+const PLAN_FEATURES = {
+  free_trial: {
+    chat: true,
+    quickActions: ["balance", "receive", "help"],
+    advanced: false
+  },
+  edge: {
+    chat: true,
+    quickActions: ["balance", "send", "receive", "history", "help"],
+    advanced: false
+  },
+  prime: {
+    chat: true,
+    quickActions: ["balance", "send", "receive", "history", "insight", "help"],
+    advanced: true
+  },
+  apex: {
+    chat: true,
+    quickActions: ["balance", "send", "receive", "history", "insight", "help"],
+    advanced: true,
+    autonomous: true
+  }
+};
+
 const QUICK_ACTIONS = [
   { label: "💰 Check Balance", action: "check my balance", icon: "balance" },
   { label: "💸 Send Crypto", action: "send crypto", icon: "send" },
@@ -63,7 +88,7 @@ function buildPaymentContextMessage(context) {
   return lines.join("\n");
 }
 
-export default function AIAssistant({ userId, paymentContext, onNavigate }) {
+export default function AIAssistant({ userId, subscription, paymentContext, onNavigate }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
@@ -73,6 +98,15 @@ export default function AIAssistant({ userId, paymentContext, onNavigate }) {
   const messagesEndRef = useRef(null);
   const token = getToken();
   const contextNotificationRef = useRef(null);
+
+  // Get current plan features
+  const currentPlan = subscription?.plan || "free_trial";
+  const planFeatures = PLAN_FEATURES[currentPlan] || PLAN_FEATURES.free_trial;
+
+  // Filter quick actions based on subscription
+  const availableActions = QUICK_ACTIONS.filter(action => 
+    planFeatures.quickActions.includes(action.icon)
+  );
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -263,7 +297,7 @@ export default function AIAssistant({ userId, paymentContext, onNavigate }) {
           </div>
 
           <div className="ai-quick-actions">
-            {QUICK_ACTIONS.map((action, index) => (
+            {availableActions.map((action, index) => (
               <button
                 key={index}
                 className="ai-quick-btn"
@@ -302,4 +336,4 @@ function getActionLabel(action) {
   return action.type || "Action";
 }
 
-export { FINA_IMAGE, QUICK_ACTIONS };
+export { FINA_IMAGE, QUICK_ACTIONS, PLAN_FEATURES };

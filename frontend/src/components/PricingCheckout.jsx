@@ -4,9 +4,9 @@ import { apiRequest, getToken } from "../api";
 import "./PricingCheckout.css";
 
 const PLAN_PRICING = {
-  edge: { name: "Edge", price: 24.99, fxFee: "0.95%", fxFree: "€1,000" },
-  prime: { name: "Prime", price: 39.99, fxFee: "0.72%", fxFree: "€3,000" },
-  apex: { name: "Apex", price: 64.99, fxFee: "0.58%", fxFree: "€6,000" }
+  edge: { name: "Edge", price: 19.99, fxFee: "0.95%", fxFree: "€1,000" },
+  prime: { name: "Prime", price: 29.99, fxFee: "0.72%", fxFree: "€3,000" },
+  apex: { name: "Apex", price: 49.99, fxFee: "0.58%", fxFree: "€6,000" }
 };
 
 export default function PricingCheckout({ selectedPlan, onComplete, onCancel }) {
@@ -70,20 +70,42 @@ export default function PricingCheckout({ selectedPlan, onComplete, onCancel }) 
     try {
       const token = getToken();
       
-      const result = await apiRequest("/billing/process", {
-        method: "POST",
-        token,
-        body: { 
-          sessionId: `checkout_${selectedPlan}`, 
-          paymentMethod,
-          paymentData: {}
-        }
-      });
+      if (paymentMethod === "fiat") {
+        // For Stripe payments, create checkout session and redirect
+        const result = await apiRequest("/billing/checkout", {
+          method: "POST",
+          token,
+          body: { 
+            planId: selectedPlan,
+            currency,
+            paymentMethod: "fiat"
+          }
+        });
 
-      if (result?.success) {
-        onComplete?.(result);
+        if (result?.success && result.session?.url) {
+          // Redirect to Stripe checkout
+          window.location.href = result.session.url;
+          return;
+        } else {
+          alert(result?.error || "Failed to create checkout session");
+        }
       } else {
-        alert(result?.error || "Payment failed");
+        // For Nano payments, process directly
+        const result = await apiRequest("/billing/process", {
+          method: "POST",
+          token,
+          body: { 
+            sessionId: `checkout_${selectedPlan}`, 
+            paymentMethod,
+            paymentData: {}
+          }
+        });
+
+        if (result?.success) {
+          onComplete?.(result);
+        } else {
+          alert(result?.error || "Payment failed");
+        }
       }
     } catch (err) {
       alert("Payment failed. Please try again.");

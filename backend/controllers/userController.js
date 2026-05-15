@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import UserSubscription from "../models/UserSubscription.js";
 import authController from "../controllers/authController.js";
 import { getAccountBalance } from "../services/nano.js";
 
@@ -48,7 +49,8 @@ async function profile(req, res) {
 
     const data = {
       user: authController.serializeUser(user),
-      balance
+      balance,
+      subscription: await UserSubscription.findOne({ userId: req.user.id }).lean()
     };
     setCache(cacheKey, data);
     return res.json(data);

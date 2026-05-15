@@ -4,6 +4,41 @@
   margin: 0 auto;
 }
 
+@media (max-width: 1024px) {
+  .merchant-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .merchant-dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .merchant-dashboard {
+    padding: 16px;
+  }
+  .merchant-dashboard .dashboard-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .merchant-dashboard .header-greeting h1 {
+    font-size: 22px;
+  }
+  .header-actions {
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .merchant-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 .merchant-dashboard-loading {
   min-height: 400px;
   display: flex;

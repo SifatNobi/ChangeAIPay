@@ -34,6 +34,12 @@ export const config = {
     anonKey: process.env.SUPABASE_ANON_KEY,
     serviceKey: process.env.SUPABASE_SERVICE_KEY
   },
+
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
+  },
   
   rpc: {
     nodes: (process.env.RPC_NODES || "https://rpc.nano.node,https://nano.mynano.ninja")

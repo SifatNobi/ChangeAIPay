@@ -28,7 +28,7 @@ const PLANS = [
   {
     id: "edge",
     name: "Edge",
-    price: 24.99,
+    price: 19.99,
     period: "month",
     description: "Full AI assistant, fraud protection, smart routing",
     features: [
@@ -49,7 +49,7 @@ const PLANS = [
   {
     id: "prime",
     name: "Prime",
-    price: 39.99,
+    price: 29.99,
     period: "month",
     description: "AI Financial Autopilot, smart undo, social payments",
     features: [
@@ -70,7 +70,7 @@ const PLANS = [
   {
     id: "apex",
     name: "Apex",
-    price: 64.99,
+    price: 49.99,
     period: "month",
     description: "Autonomous AI payments, AI negotiator, life events",
     tagline: "Ultimate AI Automation",

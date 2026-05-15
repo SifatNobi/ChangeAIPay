@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "../../api";
+import "../../components/SendStyles.css";
 
 const PAYMENT_STORAGE_KEY = "changeaipay_payment_context";
 
