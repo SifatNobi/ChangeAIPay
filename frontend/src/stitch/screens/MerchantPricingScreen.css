@@ -263,6 +263,62 @@
 @media (max-width: 1024px) {
   .merchant-plans-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .merchant-pricing-header h1 {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .merchant-pricing-page {
+    padding: 32px 20px 48px;
+  }
+
+  .merchant-pricing-header {
+    margin-bottom: 28px;
+  }
+
+  .merchant-pricing-header h1 {
+    font-size: 28px;
+  }
+
+  .merchant-pricing-header p {
+    font-size: 14px;
+  }
+
+  .merchant-pricing-fina .fina-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .merchant-pricing-fina p {
+    font-size: 13px;
+  }
+
+  .merchant-plans-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 480px;
+  }
+
+  .merchant-plan-card {
+    padding: 20px;
+  }
+
+  .pricing-row {
+    gap: 12px;
+  }
+
+  .price-value {
+    font-size: 16px;
+  }
+
+  .feature-legend {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
   }
 }
 
@@ -272,14 +328,99 @@
   }
 
   .merchant-pricing-header h1 {
-    font-size: 28px;
+    font-size: 24px;
   }
 
-  .merchant-plans-grid {
-    grid-template-columns: 1fr;
+  .merchant-pricing-header p {
+    font-size: 13px;
+  }
+
+  .merchant-plan-card {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .plan-header h2 {
+    font-size: 18px;
+  }
+
+  .revenue-badge {
+    font-size: 10px;
+    padding: 3px 8px;
   }
 
   .pricing-row {
     flex-direction: column;
+    gap: 10px;
+  }
+
+  .price-box {
+    padding: 10px;
+  }
+
+  .price-label {
+    font-size: 10px;
+  }
+
+  .price-value {
+    font-size: 15px;
+  }
+
+  .plan-desc {
+    font-size: 11px;
+    min-height: auto;
+    margin-bottom: 12px;
+  }
+
+  .plan-features li {
+    font-size: 11px;
+    padding: 3px 0;
+  }
+
+  .plan-features li .feature-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+  }
+
+  .plan-cta {
+    padding: 11px;
+    font-size: 13px;
+  }
+
+  .merchant-pricing-footer {
+    margin-top: 36px;
+  }
+
+  .legend-item {
+    font-size: 12px;
+  }
+
+  .legend-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+  }
+
+  .merchant-pricing-footer p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .merchant-pricing-header h1 {
+    font-size: 22px;
+  }
+
+  .merchant-plan-card {
+    padding: 16px;
+  }
+
+  .plan-header h2 {
+    font-size: 16px;
+  }
+
+  .price-value {
+    font-size: 14px;
   }
 }

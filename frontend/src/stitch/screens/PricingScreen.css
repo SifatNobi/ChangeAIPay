@@ -91,6 +91,21 @@
     0 0 60px rgba(255, 215, 0, 0.15),
     0 0 100px rgba(255, 215, 0, 0.05),
     inset 0 0 30px rgba(255, 215, 0, 0.03);
+  animation: apexGlow 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-card.legendary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ffd700, transparent);
+  animation: shimmer 3s linear infinite;
+  background-size: 200% 100%;
 }
 
 .pricing-card.legendary:hover {
@@ -143,6 +158,26 @@
   50% {
     box-shadow: 0 4px 30px rgba(255, 215, 0, 0.6);
   }
+}
+
+@keyframes apexGlow {
+  0%, 100% {
+    box-shadow: 
+      0 0 30px rgba(255, 215, 0, 0.2),
+      0 0 60px rgba(255, 215, 0, 0.1),
+      inset 0 0 20px rgba(255, 215, 0, 0.05);
+  }
+  50% {
+    box-shadow: 
+      0 0 40px rgba(255, 215, 0, 0.3),
+      0 0 80px rgba(255, 215, 0, 0.15),
+      inset 0 0 30px rgba(255, 215, 0, 0.08);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
 }
 
 .legendary-tagline {

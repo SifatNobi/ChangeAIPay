@@ -96,11 +96,52 @@ export default function MerchantDashboard({ profile, token, loadHistory, onNavig
     time: new Date(alert.createdAt).toLocaleTimeString()
   }));
 
+  const hasData = stats.transactions > 0 || analytics?.transactionCount > 0;
+  const hasSubscription = subscription?.tier;
+
   if (loading) {
     return (
       <div className="merchant-dashboard-loading">
         <div className="loading-spinner"></div>
         <span>Loading merchant dashboard...</span>
+      </div>
+    );
+  }
+
+  if (!hasSubscription) {
+    return (
+      <div className="merchant-dashboard-empty">
+        <div className="empty-state">
+          <div className="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+          </div>
+          <h2>Get Started with Merchant Services</h2>
+          <p>Choose a merchant plan to start accepting payments and unlock business analytics.</p>
+          <button className="empty-state-btn" onClick={() => onNavigate?.("/merchant-pricing")}>
+            View Merchant Plans
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <div className="merchant-dashboard-empty">
+        <div className="empty-state">
+          <div className="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75a.75.75 0 01-1.5 0v-.75a.75.75 0 011.5 0zm0 0v.75M3.75 4.5a.75.75 0 011.5 0v-.75a.75.75 0 01-1.5 0zm0 13.5v.75a.75.75 0 01-1.5 0v-.75a.75.75 0 011.5 0zm13.5-13.5v.75a.75.75 0 01-1.5 0v-.75a.75.75 0 011.5 0zm0 13.5v.75a.75.75 0 01-1.5 0v-.75a.75.75 0 011.5 0z" />
+            </svg>
+          </div>
+          <h2>No Transactions Yet</h2>
+          <p>Your merchant dashboard will display real analytics once you start processing payments.</p>
+          <button className="empty-state-btn" onClick={() => onNavigate?.("/qr")}>
+            Create Payment QR
+          </button>
+        </div>
       </div>
     );
   }

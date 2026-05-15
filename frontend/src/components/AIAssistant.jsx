@@ -206,7 +206,46 @@ export default function AIAssistant({ userId, subscription, paymentContext, onNa
 
   const handleQuickAction = useCallback((action) => {
     setInput(action);
-  }, []);
+    setTimeout(() => {
+      const token = getToken();
+      if (!token) {
+        setError("Please login to chat with Fina.");
+        return;
+      }
+      const userMessage = {
+        id: `msg_${Date.now()}`,
+        role: "user",
+        content: action,
+        timestamp: new Date().toISOString()
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      setInput("");
+      setIsLoading(true);
+      setError(null);
+      sendAIChat(token, action, { page: "assistant", userId })
+        .then((response) => {
+          const aiMessage = {
+            id: `msg_${Date.now()}`,
+            role: "assistant",
+            content: response.message,
+            timestamp: new Date().toISOString(),
+            intent: response.intent,
+            actions: response.actions || []
+          };
+          setMessages((prev) => [...prev, aiMessage]);
+        })
+        .catch(() => {
+          const errorMessage = {
+            id: `msg_${Date.now()}`,
+            role: "assistant",
+            content: "I apologize, but I'm having trouble processing your request right now. Please try again.",
+            timestamp: new Date().toISOString()
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        })
+        .finally(() => setIsLoading(false));
+    }, 100);
+  }, [userId]);
 
   const handleKeyPress = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {

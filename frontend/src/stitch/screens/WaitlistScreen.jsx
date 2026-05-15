@@ -48,8 +48,8 @@ export default function WaitlistScreen() {
       </div>
 
       <div className="waitlist-card">
-        <div className="waitlist-avatar">
-          <img src={FINA_AI_IMAGE} alt="Fina" />
+        <div className="waitlist-logo-wrapper">
+          <img src={COMPANY_LOGO} alt={COMPANY_NAME} className="waitlist-brand-logo" />
         </div>
 
         <h1>Join the Future of Payments</h1>
