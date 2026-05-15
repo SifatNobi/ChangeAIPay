@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { COMPANY_LOGO, COMPANY_NAME, COMPANY_TAGLINE } from "../constants/branding";
+import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME, COMPANY_TAGLINE } from "../constants/branding";
 import "./OnboardingFlow.css";
 
 export function UserOnboarding({ onComplete }) {
@@ -53,7 +53,7 @@ export function UserOnboarding({ onComplete }) {
 
       <div className="onboarding-card">
         <div className="onboarding-avatar">
-          <img src={COMPANY_LOGO} alt={COMPANY_NAME} />
+          <img src={FINA_AI_IMAGE} alt="Fina" />
         </div>
 
         <div className="onboarding-content">
@@ -141,7 +141,7 @@ export function MerchantOnboarding({ onComplete, businessInfo }) {
 
       <div className="onboarding-card">
         <div className="onboarding-avatar">
-          <img src={COMPANY_LOGO} alt={COMPANY_NAME} />
+          <img src={FINA_AI_IMAGE} alt="Fina" />
         </div>
 
         <div className="onboarding-content">

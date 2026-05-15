@@ -24,6 +24,7 @@ import ProtectedRoute from "./stitch/components/ProtectedRoute";
 import LoginScreen from "./stitch/screens/LoginScreen";
 import WaitlistScreen from "./stitch/screens/WaitlistScreen";
 import { QRPaymentScanner } from "./components/QRSystem";
+import AIAssistant from "./components/AIAssistant";
 import { UserOnboarding, MerchantOnboarding } from "./components/OnboardingFlow";
 
 const UserDashboard = React.lazy(() => import("./components/UserDashboard"));
@@ -266,6 +267,7 @@ function App() {
 
   return (
     <>
+      <AIAssistant userId={profile?.id} subscription={profile?.subscription} paymentContext={paymentContext} onNavigate={navigate} />
       <Routes>
         <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
 

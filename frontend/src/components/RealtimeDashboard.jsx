@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
+import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
 import "./RealtimeDashboard.css";
 
 export function RealtimeChart({ 
@@ -283,11 +283,12 @@ export function StatCard({
   );
 }
 
-export function AIInsightCard({ insights = [] }) {
+export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE }) {
   return (
     <div className="ai-insight-card">
       <div className="insight-header">
         <span className="insight-label">AI Insight</span>
+        <img src={finaImage} alt="Fina" className="insight-fina-avatar" />
       </div>
       <div className="insights-list">
         {insights.map((insight, index) => (

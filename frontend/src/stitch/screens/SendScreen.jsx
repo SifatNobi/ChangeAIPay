@@ -473,7 +473,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
       <section className="card form-card glass-card send-surface stitch-send-card">
         <span className="eyebrow">Quick Transfer</span>
         <h1>Send Payment</h1>
-        <p className="muted">Smart payment flow with QR-backed autofill, secure routing, and assistant guidance.</p>
+        <p className="muted">Smart payment flow with QR-backed autofill, secure routing, and Fina assistant guidance.</p>
 
         {paymentContext && (
           <div className="payment-preview glass-card">

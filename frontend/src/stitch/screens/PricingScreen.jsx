@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
+import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
 import { apiRequest } from "../../api";
 import "./PricingScreen.css";
 
@@ -155,6 +155,11 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
         <h1>Choose Your Plan</h1>
         <p>Unlock premium AI features and supercharge your payments</p>
       </header>
+
+      <div className="pricing-fina">
+        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
+        <p>Upgrade your experience with Fina AI!</p>
+      </div>
 
       <div className="pricing-grid">
         {PLANS.map((plan) => {

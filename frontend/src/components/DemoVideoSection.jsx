@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
+import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
 import "./DemoVideoSection.css";
 
 const DEMO_VIDEO_URL = "https://photos.app.goo.gl/aSmonwPbsX8965pm7";
@@ -117,6 +117,11 @@ export default function DemoVideoSection({ onCtaClick }) {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="fina-showcase">
+        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
+        <p>Fina helps you 24/7</p>
       </div>
 
       <div className="demo-cta">

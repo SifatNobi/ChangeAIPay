@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
+import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
 import { apiRequest } from "../../api";
 import "./MerchantPricingScreen.css";
 
@@ -169,6 +169,11 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
         <h1>Merchant Plans</h1>
         <p>Scale your business with AI-powered tools</p>
       </header>
+
+      <div className="merchant-pricing-fina">
+        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
+        <p>Fina AI helps merchants maximize revenue!</p>
+      </div>
 
       <div className="merchant-plans-grid">
         {MERCHANT_PLANS.map((plan) => {

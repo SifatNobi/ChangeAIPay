@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
+import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";
 import { apiRequest, getToken } from "../api";
 import "./PricingCheckout.css";
 
@@ -467,6 +467,11 @@ export default function PricingCheckout({ selectedPlan, onComplete, onCancel }) 
         >
           {processing ? "Processing..." : paymentMethod === "xno" ? "Pay with Nano" : "Pay with Card"}
         </button>
+      </div>
+
+      <div className="checkout-fina">
+        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
+        <p>Need help? Ask Fina for payment assistance.</p>
       </div>
     </div>
   );
