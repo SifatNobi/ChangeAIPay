@@ -12,10 +12,17 @@ import {
   downgradePlan as downgradePlanService,
   getSubscriptionAnalytics as getSubscriptionAnalyticsService 
 } from "../services/subscriptionAutomation.js";
-import { config } from "../config/index.js";
-import Stripe from "stripe";
+import { 
+  getRecommendations, 
+  getPlanComparison as getPlanComparisonFromAI, 
+  getRenewalReminder as getRenewalReminderService, 
+  generateFinaMessage,
+  PLANS_CONFIG 
+} from "../services/recommendationEngine.js";
 
-const stripe = new Stripe(config.stripe.secretKey || "sk_test_...");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder", {
+  apiVersion: "2025-04-30.basil"
+});
 
 export async function getPricingPlans(req, res) {
   try {

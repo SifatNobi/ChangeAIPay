@@ -2,15 +2,16 @@ import express from "express";
 import { verifyWebhookSignature, handleWebhookEvent } from "../services/webhookService.js";
 import logger from "../services/logger.js";
 import Stripe from "stripe";
-import { config } from "../config/index.js";
 
 const router = express.Router();
-const stripe = new Stripe(config.stripe.secretKey || "sk_test_...");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder", {
+  apiVersion: "2025-04-30.basil"
+});
 
 // Stripe webhook endpoint
 router.post("/stripe", express.raw({ type: "application/json" }), async (req, res) => {
   const sig = req.headers["stripe-signature"];
-  const endpointSecret = config.stripe.webhookSecret || "whsec_test_...";
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || "whsec_test_placeholder";
 
   let event;
 
