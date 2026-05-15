@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import TransactionItem from "../components/TransactionItem";
 import { buildNanoUri, formatAmount } from "../utils/format";

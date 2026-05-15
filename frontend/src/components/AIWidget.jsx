@@ -1,3 +1,4 @@
+import React from "react";
 import { FINA_IMAGE } from "./AIAssistant";
 
 export function AINotification({ notification, onDismiss }) {

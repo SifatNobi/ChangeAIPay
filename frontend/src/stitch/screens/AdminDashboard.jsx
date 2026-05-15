@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { COMPANY_LOGO } from "../../constants/branding";
 
 export default function AdminDashboard({ token }) {

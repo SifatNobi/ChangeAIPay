@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { getToken } from "../api";
 import { sendAIChat, getAIHistory } from "../api";
 import { FINA_AI_IMAGE } from "../constants/branding";

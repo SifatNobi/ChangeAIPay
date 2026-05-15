@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME, COMPANY_TAGLINE } from "../constants/branding";
 import "./OnboardingFlow.css";
 

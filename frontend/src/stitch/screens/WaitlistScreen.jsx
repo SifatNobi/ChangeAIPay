@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME, COMPANY_TAGLINE } from "../../constants/branding";
 import { joinWaitlist } from "../../api";
 import "./WaitlistScreen.css";

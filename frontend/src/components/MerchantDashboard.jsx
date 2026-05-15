@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getToken } from "../api";
 import { getMerchantSubscription, getMerchantAnalytics, getCashFlowPrediction, getLifetimeValueData } from "../api";
 import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../constants/branding";

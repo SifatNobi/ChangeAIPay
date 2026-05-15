@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { COMPANY_LOGO } from "../../constants/branding";
 
 export default function BrandMark({ size = 52, src = COMPANY_LOGO }) {
