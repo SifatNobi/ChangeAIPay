@@ -186,8 +186,8 @@ export default function PricingCheckout({ selectedPlan, onComplete, onCancel }) 
           window.location.href = result.session.url;
           return;
         } else if (result?.success === true) {
-          setPaymentStatus("success");
-          onComplete?.(result);
+          setPaymentStatus("pending");
+          alert("Payment session created. You will be redirected to complete payment.");
           return;
         } else {
           setPaymentStatus("failed");

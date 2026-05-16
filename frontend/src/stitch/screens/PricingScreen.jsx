@@ -137,7 +137,7 @@ const MERCHANT_PLANS = [
       { text: "AI Customer Recovery", included: false },
       { text: "Enterprise features", included: false }
     ],
-    cta: "Upgrade to Growth",
+    cta: "Unlock by reaching transaction threshold",
     popular: false
   },
   {
@@ -157,7 +157,7 @@ const MERCHANT_PLANS = [
       { text: "Dynamic demand pricing", included: false },
       { text: "Enterprise features", included: false }
     ],
-    cta: "Upgrade to Scale",
+    cta: "Unlock by reaching merchant volume threshold",
     popular: true
   },
   {
@@ -176,7 +176,7 @@ const MERCHANT_PLANS = [
       { text: "Premium analytics", included: true },
       { text: "Enterprise features", included: false }
     ],
-    cta: "Upgrade to Premium",
+    cta: "Unlock by reaching processing threshold",
     popular: false
   },
   {
@@ -193,7 +193,7 @@ const MERCHANT_PLANS = [
       { text: "Lower FX pricing", included: true },
       { text: "Enterprise features", included: false }
     ],
-    cta: "Contact Sales",
+    cta: "Unlock by reaching retention threshold",
     popular: false
   },
   {
@@ -213,8 +213,11 @@ const MERCHANT_PLANS = [
       { text: "Private routing logic", included: true },
       { text: "Strategic account management", included: true }
     ],
-    cta: "Contact Sales",
-    popular: false
+    cta: "Unlock by reaching enterprise threshold",
+    popular: false,
+    legendary: true,
+    legendaryTitle: "Legendary Choice",
+    tagline: "Gold + Blue Lightning Premium Tier"
   }
 ];
 
@@ -275,16 +278,6 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
   };
 
   const displayPlans = activeTab === "consumers" ? CONSUMER_PLANS : MERCHANT_PLANS;
-
-  const handleMerchantPlanAction = (planId) => {
-    if (planId === "enterprise" || planId === "retention") {
-      setClickedPlan(planId);
-      setTimeout(() => setClickedPlan(null), 600);
-      alert("Contact our sales team for this plan: sales@changeaipay.com");
-      return;
-    }
-    handleSelectPlan(planId);
-  };
 
   return (
     <div className="pricing-page stitch-bg">
@@ -385,8 +378,8 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
 
               <button 
                 className={`plan-cta primary-button ${state}`}
-                onClick={() => activeTab === "merchants" ? handleMerchantPlanAction(plan.id) : handleSelectPlan(plan.id)}
-                disabled={state === "current" || loading}
+                onClick={() => activeTab === "consumers" ? handleSelectPlan(plan.id) : null}
+                disabled={activeTab === "merchants" || state === "current" || loading}
               >
                 {state === "current" 
                   ? "Current Plan" 

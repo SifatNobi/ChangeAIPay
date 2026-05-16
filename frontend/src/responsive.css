@@ -7,26 +7,29 @@
 .onboarding-logo {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+  image-rendering: pixelated;
   object-fit: contain;
   filter: none !important;
-  transform: translateZ(0);
+  transform: translateZ(0) scale(1);
   backface-visibility: hidden;
   width: auto;
   height: auto;
   max-width: 100%;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ===== GLOWING BRAND TEXT ===== */
 .brand-title {
-  color: #8eefff;
+  color: #54c3ff;
   text-shadow:
-    0 0 8px rgba(142, 239, 255, 0.95),
-    0 0 18px rgba(142, 239, 255, 0.8),
-    0 0 32px rgba(255, 255, 255, 0.45);
-  animation: cyanGlow 2.4s infinite ease-in-out;
+    0 0 8px rgba(84, 195, 255, 0.95),
+    0 0 18px rgba(84, 195, 255, 0.8),
+    0 0 32px rgba(255, 255, 255, 0.55),
+    0 0 48px rgba(84, 195, 255, 0.4);
+  animation: cyanPulse 2.2s infinite ease-in-out;
 }
 
-@keyframes cyanGlow {
+@keyframes cyanPulse {
   0% { opacity: 0.82; }
   50% { opacity: 1; }
   100% { opacity: 0.82; }
