@@ -3,15 +3,15 @@ import { NavLink, useLocation } from "react-router-dom";
 import BrandMark from "./BrandMark";
 
 export default function AppLayout({ profile, onLogout, children }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    setMobileMenuOpen(false);
+    setMenuOpen(false);
   }, [location]);
 
   useEffect(() => {
-    if (mobileMenuOpen) {
+    if (menuOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -19,19 +19,20 @@ export default function AppLayout({ profile, onLogout, children }) {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mobileMenuOpen]);
+  }, [menuOpen]);
 
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === "Escape" && mobileMenuOpen) {
-        closeMenu();
+      if (e.key === "Escape" && menuOpen) {
+        setMenuOpen(false);
       }
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [mobileMenuOpen]);
+  }, [menuOpen]);
 
-  const closeMenu = () => setMobileMenuOpen(false);
+  const openMenu = () => setMenuOpen(true);
+  const closeMenu = () => setMenuOpen(false);
 
   const handleGoals = () => {
     closeMenu();
@@ -51,13 +52,12 @@ export default function AppLayout({ profile, onLogout, children }) {
           <strong className="brand-title">ChangeAIPay</strong>
         </div>
 
-        {/* Hamburger Button - Right Side */}
         <button
-          className={`hamburger-button ${mobileMenuOpen ? "active" : ""}`}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className={`hamburger-button ${menuOpen ? "active" : ""}`}
+          onClick={openMenu}
           type="button"
           aria-label="Toggle menu"
-          aria-expanded={mobileMenuOpen}
+          aria-expanded={menuOpen}
           aria-controls="mobile-nav"
         >
           <span className="hamburger-inner">
@@ -68,8 +68,7 @@ export default function AppLayout({ profile, onLogout, children }) {
         </button>
       </header>
 
-      {/* Dark Overlay */}
-      {mobileMenuOpen && (
+      {menuOpen && (
         <div
           className="mobile-overlay"
           onClick={closeMenu}
@@ -77,73 +76,82 @@ export default function AppLayout({ profile, onLogout, children }) {
         />
       )}
 
-      {/* Right-Side Navigation Drawer */}
-      <nav
-        id="mobile-nav"
-        className={`topnav topnav-mobile ${mobileMenuOpen ? "open" : ""}`}
-        role="navigation"
-        aria-label="Mobile navigation"
-        aria-hidden={!mobileMenuOpen}
-      >
-        <div className="drawer-header">
-          <span className="drawer-title">Menu</span>
-          <button className="drawer-close" onClick={(e) => { e.stopPropagation(); closeMenu(); }} aria-label="Close menu">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+      {menuOpen && (
+        <nav
+          id="mobile-nav"
+          className="topnav topnav-mobile open"
+          role="navigation"
+          aria-label="Mobile navigation"
+          aria-hidden="false"
+        >
+          <div className="drawer-header">
+            <span className="drawer-title">Menu</span>
+            <button
+              type="button"
+              className="drawer-close"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMenu();
+              }}
+              aria-label="Close menu"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+          <NavLink className="nav-link" to="/dashboard" onClick={closeMenu}>
+            <span className="nav-icon">🏠</span> Home
+          </NavLink>
+          <NavLink className="nav-link" to="/send" onClick={closeMenu}>
+            <span className="nav-icon">📤</span> Send
+          </NavLink>
+          <NavLink className="nav-link" to="/receive" onClick={closeMenu}>
+            <span className="nav-icon">📥</span> Receive
+          </NavLink>
+          <NavLink className="nav-link" to="/history" onClick={closeMenu}>
+            <span className="nav-icon">📋</span> History
+          </NavLink>
+          <NavLink className="nav-link" to="/pricing" onClick={closeMenu}>
+            <span className="nav-icon">💎</span> Pricing
+          </NavLink>
+          <button
+            className="nav-link nav-link-action"
+            onClick={(e) => {
+              e.preventDefault();
+              handleAIInsights();
+            }}
+            type="button"
+          >
+            <span className="nav-icon">🤖</span> AI Insights
           </button>
-        </div>
-        <NavLink className="nav-link" to="/dashboard" onClick={closeMenu}>
-          <span className="nav-icon">🏠</span> Home
-        </NavLink>
-        <NavLink className="nav-link" to="/send" onClick={closeMenu}>
-          <span className="nav-icon">📤</span> Send
-        </NavLink>
-        <NavLink className="nav-link" to="/receive" onClick={closeMenu}>
-          <span className="nav-icon">📥</span> Receive
-        </NavLink>
-        <NavLink className="nav-link" to="/history" onClick={closeMenu}>
-          <span className="nav-icon">📋</span> History
-        </NavLink>
-        <NavLink className="nav-link" to="/pricing" onClick={closeMenu}>
-          <span className="nav-icon">💎</span> Pricing
-        </NavLink>
-        <button
-          className="nav-link nav-link-action"
-          onClick={(e) => {
-            e.preventDefault();
-            handleAIInsights();
-          }}
-          type="button"
-        >
-          <span className="nav-icon">🤖</span> AI Insights
-        </button>
-        <button
-          className="nav-link nav-link-action"
-          onClick={(e) => {
-            e.preventDefault();
-            handleGoals();
-          }}
-          type="button"
-        >
-          <span className="nav-icon">🎯</span> Goals
-        </button>
-        <div className="drawer-divider" />
-        <button
-          className="nav-link logout-link"
-          onClick={() => {
-            closeMenu();
-            onLogout();
-          }}
-          type="button"
-        >
-          <span className="nav-icon">🚪</span> Logout
-        </button>
-      </nav>
+          <button
+            className="nav-link nav-link-action"
+            onClick={(e) => {
+              e.preventDefault();
+              handleGoals();
+            }}
+            type="button"
+          >
+            <span className="nav-icon">🎯</span> Goals
+          </button>
+          <div className="drawer-divider" />
+          <button
+            className="nav-link logout-link"
+            onClick={() => {
+              closeMenu();
+              onLogout();
+            }}
+            type="button"
+          >
+            <span className="nav-icon">🚪</span> Logout
+          </button>
+        </nav>
+      )}
 
       <main className="page-shell">{children}</main>
     </div>
   );
 }
-

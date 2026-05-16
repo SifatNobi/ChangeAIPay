@@ -96,15 +96,26 @@
 }
 
 .merchant-plan-card.enterprise {
-  border-color: rgba(255, 215, 0, 0.8);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(0, 170, 255, 0.12) 50%, rgba(18, 18, 18, 0.95) 100%);
+  position: relative;
+  border-color: rgba(255, 215, 0, 0.85);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(0, 180, 255, 0.12) 50%, rgba(18, 18, 18, 0.95) 100%);
   box-shadow:
-    0 0 20px rgba(255, 215, 0, 0.45),
-    0 0 45px rgba(0, 170, 255, 0.25);
-  animation: enterprisePulse 3s infinite ease-in-out;
+    0 0 25px rgba(255, 215, 0, 0.45),
+    0 0 50px rgba(0, 170, 255, 0.35);
+  animation: enterpriseLegendary 3s infinite ease-in-out;
+  overflow: hidden;
 }
 
 .merchant-plan-card.enterprise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(0, 200, 255, 0.15), transparent);
+  animation: lightningSweep 2.5s linear infinite;
+  pointer-events: none;
+}
+
+.merchant-plan-card.enterprise::after {
   background: linear-gradient(90deg, transparent, #ffd700, #00bfff, transparent);
   opacity: 1;
   animation: shimmer 3s linear infinite;
@@ -119,10 +130,15 @@
     0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-@keyframes enterprisePulse {
-  0% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 215, 0, 0.45), 0 0 45px rgba(0, 170, 255, 0.25); }
-  50% { transform: scale(1.01); box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(0, 170, 255, 0.35); }
-  100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 215, 0, 0.45), 0 0 45px rgba(0, 170, 255, 0.25); }
+@keyframes enterpriseLegendary {
+  0% { transform: scale(1); box-shadow: 0 0 25px rgba(255, 215, 0, 0.45), 0 0 50px rgba(0, 170, 255, 0.35); }
+  50% { transform: scale(1.01); box-shadow: 0 0 35px rgba(255, 215, 0, 0.65), 0 0 70px rgba(0, 170, 255, 0.45); }
+  100% { transform: scale(1); box-shadow: 0 0 25px rgba(255, 215, 0, 0.45), 0 0 50px rgba(0, 170, 255, 0.35); }
+}
+
+@keyframes lightningSweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 @keyframes shimmer {
