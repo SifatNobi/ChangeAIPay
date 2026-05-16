@@ -96,18 +96,11 @@
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 1024px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .dashboard-grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -125,9 +118,6 @@
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-  }
-  .dashboard-grid {
-    grid-template-columns: 1fr;
   }
   .dashboard-notifications {
     right: 16px;
@@ -183,20 +173,29 @@
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 24px;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+  }
 }
 
 .dashboard-main {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-width: 0;
 }
 
 .dashboard-sidebar {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
 }
 
 .dashboard-section {
@@ -204,6 +203,7 @@
   border: 1px solid rgba(84, 195, 255, 0.15);
   border-radius: 20px;
   padding: 24px;
+  overflow: visible;
 }
 
 .balance-section {
@@ -245,6 +245,7 @@
   border: 1px solid rgba(84, 195, 255, 0.15);
   border-radius: 16px;
   padding: 20px;
+  overflow: visible;
 }
 
 .sidebar-section h4 {

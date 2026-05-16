@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import BrandMark from "./BrandMark";
+import { FINA_AI_IMAGE } from "../../constants/branding";
 
 export default function AppLayout({ profile, onLogout, children }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -125,7 +126,7 @@ export default function AppLayout({ profile, onLogout, children }) {
             }}
             type="button"
           >
-            <span className="nav-icon">🤖</span> AI Insights
+            <img src={FINA_AI_IMAGE} alt="Fina AI" className="nav-icon-fina" /> AI Insights
           </button>
           <button
             className="nav-link nav-link-action"

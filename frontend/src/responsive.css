@@ -268,7 +268,7 @@ img, video {
 /* ===== TOPBAR RESPONSIVE ===== */
 .topbar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -276,18 +276,24 @@ img, video {
   position: sticky;
   top: 0;
   z-index: 50;
+  overflow: visible;
 }
 
 .brand-lockup {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .brand-title {
   font-size: 16px;
   font-weight: 700;
   color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topnav-desktop {
@@ -337,16 +343,20 @@ img, video {
   right: 0;
   width: 280px;
   max-width: 85vw;
+  height: 100dvh;
   height: 100vh;
+  min-height: 100%;
   z-index: 95;
   transform: translateX(0);
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow:
     -8px 0 32px rgba(0, 0, 0, 0.5),
     0 0 15px rgba(0, 180, 255, 0.5),
     0 0 30px rgba(0, 153, 255, 0.3),
     inset 0 0 60px rgba(0, 153, 255, 0.05);
   animation: cyberGlow 4s ease-in-out infinite alternate;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes cyberGlow {
@@ -421,6 +431,19 @@ img, video {
 .nav-icon {
   margin-right: 8px;
   font-size: 16px;
+}
+
+.nav-icon-fina {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+  flex-shrink: 0;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: high-quality;
+  -ms-interpolation-mode: bicubic;
 }
 
 .topnav-mobile .nav-link {
@@ -803,8 +826,9 @@ html {
   contain: layout style;
 }
 
+/* REMOVED contain: layout from dashboard-grid - caused sections to disappear on mobile */
 .dashboard-grid {
-  contain: layout;
+  contain: none;
 }
 
 /* ===== PERFORMANCE: OPTIMIZE REPAINTS ===== */

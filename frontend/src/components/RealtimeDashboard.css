@@ -21,10 +21,13 @@
 .chart-container {
   width: 100%;
   min-height: 200px;
+  overflow: visible;
 }
 
 .chart-container canvas {
   display: block;
+  width: 100% !important;
+  height: auto !important;
 }
 
 .realtime-feed {
@@ -554,5 +557,25 @@
 
   .insight-label {
     font-size: 13px;
+  }
+
+  .chart-container {
+    min-height: 160px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .dashboard-section {
+    padding: 16px;
+  }
+
+  .sidebar-section {
+    padding: 14px;
   }
 }
