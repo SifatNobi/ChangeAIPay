@@ -221,7 +221,7 @@ const UserDashboard = React.memo(function UserDashboard({ profile, token, onNavi
             <p>Here's your financial overview</p>
           </div>
         </div>
-        <div className="header-fina">
+        <div className="header-fina" onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))} style={{ cursor: "pointer" }}>
           <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
         </div>
       </div>

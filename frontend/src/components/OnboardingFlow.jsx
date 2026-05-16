@@ -53,7 +53,7 @@ export function UserOnboarding({ onComplete }) {
 
       <div className="onboarding-card">
         <div className="onboarding-avatar">
-          <img src={FINA_AI_IMAGE} alt="Fina" />
+          <img src={FINA_AI_IMAGE} alt="Fina" onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))} style={{ cursor: "pointer" }} />
         </div>
 
         <div className="onboarding-content">
@@ -141,7 +141,7 @@ export function MerchantOnboarding({ onComplete, businessInfo }) {
 
       <div className="onboarding-card">
         <div className="onboarding-avatar">
-          <img src={FINA_AI_IMAGE} alt="Fina" />
+          <img src={FINA_AI_IMAGE} alt="Fina" onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))} style={{ cursor: "pointer" }} />
         </div>
 
         <div className="onboarding-content">

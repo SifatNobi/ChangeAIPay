@@ -120,7 +120,7 @@ export default function DemoVideoSection({ onCtaClick }) {
       </div>
 
       <div className="fina-showcase">
-        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
+        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))} style={{ cursor: "pointer" }} />
         <p>Fina helps you 24/7</p>
       </div>
 

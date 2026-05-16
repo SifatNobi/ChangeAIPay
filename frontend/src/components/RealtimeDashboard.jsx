@@ -344,7 +344,7 @@ export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE, transa
     <div className="ai-insight-card">
       <div className="insight-header">
         <span className="insight-label">AI Insight</span>
-        <img src={finaImage} alt="Fina" className="insight-fina-avatar" />
+        <img src={finaImage} alt="Fina" className="insight-fina-avatar" onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))} style={{ cursor: "pointer" }} />
       </div>
       <div className="insights-list">
         {displayInsights.map((insight, index) => (

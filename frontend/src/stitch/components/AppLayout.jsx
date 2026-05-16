@@ -51,26 +51,6 @@ export default function AppLayout({ profile, onLogout, children }) {
           <strong className="brand-title">ChangeAIPay</strong>
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="topnav topnav-desktop" aria-label="Main navigation">
-          <NavLink className="nav-link" to="/dashboard">
-            Home
-          </NavLink>
-          <NavLink className="nav-link" to="/send">
-            Send
-          </NavLink>
-          <NavLink className="nav-link" to="/receive">
-            Receive
-          </NavLink>
-          <NavLink className="nav-link" to="/history">
-            History
-          </NavLink>
-        </nav>
-
-        <button className="ghost-button" onClick={onLogout} type="button">
-          Logout
-        </button>
-
         {/* Hamburger Button - Right Side */}
         <button
           className={`hamburger-button ${mobileMenuOpen ? "active" : ""}`}

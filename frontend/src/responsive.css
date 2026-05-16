@@ -288,7 +288,26 @@ img, video {
   transform: translateX(100%);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    -4px 0 24px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(0, 153, 255, 0.4),
+    0 0 20px rgba(0, 153, 255, 0.2);
+  animation: drawerGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes drawerGlow {
+  from {
+    box-shadow:
+      -4px 0 24px rgba(0, 0, 0, 0.3),
+      0 0 10px rgba(0, 153, 255, 0.4),
+      0 0 20px rgba(0, 153, 255, 0.2);
+  }
+  to {
+    box-shadow:
+      -4px 0 24px rgba(0, 0, 0, 0.3),
+      0 0 15px rgba(0, 153, 255, 0.6),
+      0 0 30px rgba(0, 153, 255, 0.3);
+  }
 }
 
 .topnav-mobile.open {

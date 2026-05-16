@@ -473,7 +473,7 @@ export default function PricingCheckout({ selectedPlan, onComplete, onCancel }) 
       </div>
 
       <div className="checkout-fina">
-        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
+        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))} style={{ cursor: "pointer" }} />
         <p>Need help? Ask Fina for payment assistance.</p>
       </div>
     </div>

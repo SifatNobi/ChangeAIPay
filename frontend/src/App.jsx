@@ -71,16 +71,16 @@ function WelcomeMessage({ profile }) {
       setMessage(`Welcome to ChangeAIPay, ${profile.user.name.split(" ")[0]}!`);
       setVisible(true);
 
-      const fadeTimer = setTimeout(() => {
+      const welcomeTimer = setTimeout(() => {
         setMessage("Thanks for using ChangeAIPay!");
-      }, 8000);
+      }, 2000);
 
       const closeTimer = setTimeout(() => {
         setVisible(false);
-      }, 13000);
+      }, 4000);
 
       return () => {
-        clearTimeout(fadeTimer);
+        clearTimeout(welcomeTimer);
         clearTimeout(closeTimer);
       };
     }
