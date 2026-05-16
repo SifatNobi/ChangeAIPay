@@ -216,8 +216,7 @@ const MERCHANT_PLANS = [
     cta: "Unlock by reaching enterprise threshold",
     popular: false,
     legendary: true,
-    legendaryTitle: "Legendary Choice",
-    tagline: "Gold + Blue Lightning Premium Tier"
+    legendaryTitle: "Legendary Choice"
   }
 ];
 

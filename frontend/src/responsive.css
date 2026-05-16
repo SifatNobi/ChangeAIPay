@@ -1,21 +1,39 @@
 /* ChangeAIPay - Responsive & Premium Polish */
 
-/* ===== HERO LOGO BLUR FIX ===== */
+/* ===== HERO LOGO HIGH-QUALITY FIX ===== */
 .header-logo,
 .checkout-logo,
 .pricing-logo,
 .onboarding-logo {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
-  image-rendering: pixelated;
   object-fit: contain;
   filter: none !important;
-  transform: translateZ(0) scale(1);
+  transform: translateZ(0);
   backface-visibility: hidden;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  -webkit-font-smoothing: antialiased;
+  -webkit-backface-visibility: hidden;
+  will-change: auto;
+  shape-rendering: geometricPrecision;
+}
+
+.header-logo {
+  height: clamp(36px, 6vw, 48px) !important;
+  width: auto !important;
+}
+
+.pricing-logo {
+  height: clamp(40px, 8vw, 56px) !important;
+  width: auto !important;
+}
+
+.checkout-logo {
+  height: clamp(40px, 8vw, 56px) !important;
+  width: auto !important;
+}
+
+.onboarding-logo {
+  height: clamp(40px, 8vw, 56px) !important;
+  width: auto !important;
 }
 
 /* ===== GLOWING BRAND TEXT ===== */
