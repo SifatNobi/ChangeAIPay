@@ -183,7 +183,7 @@ img, video {
 
 /* ===== HAMBURGER MENU STYLES ===== */
 .hamburger-button {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
@@ -308,9 +308,9 @@ img, video {
   flex-direction: column;
   gap: 4px;
   padding: 0;
-  background: rgba(18, 18, 18, 0.95);
-  backdrop-filter: blur(24px);
-  border-left: 1px solid rgba(84, 195, 255, 0.12);
+  background: rgba(10, 14, 28, 0.97);
+  backdrop-filter: blur(30px);
+  border-left: 1px solid rgba(84, 195, 255, 0.2);
   position: fixed;
   top: 0;
   right: 0;
@@ -321,24 +321,29 @@ img, video {
   transform: translateX(0);
   overflow-y: auto;
   box-shadow:
-    -4px 0 24px rgba(0, 0, 0, 0.3),
-    0 0 10px rgba(0, 153, 255, 0.4),
-    0 0 20px rgba(0, 153, 255, 0.2);
-  animation: drawerGlow 3s ease-in-out infinite alternate;
+    -8px 0 32px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(0, 180, 255, 0.5),
+    0 0 30px rgba(0, 153, 255, 0.3),
+    inset 0 0 60px rgba(0, 153, 255, 0.05);
+  animation: cyberGlow 4s ease-in-out infinite alternate;
 }
 
-@keyframes drawerGlow {
+@keyframes cyberGlow {
   from {
     box-shadow:
-      -4px 0 24px rgba(0, 0, 0, 0.3),
-      0 0 10px rgba(0, 153, 255, 0.4),
-      0 0 20px rgba(0, 153, 255, 0.2);
+      -8px 0 32px rgba(0, 0, 0, 0.5),
+      0 0 15px rgba(0, 180, 255, 0.5),
+      0 0 30px rgba(0, 153, 255, 0.3),
+      inset 0 0 60px rgba(0, 153, 255, 0.05);
+    border-left-color: rgba(84, 195, 255, 0.2);
   }
   to {
     box-shadow:
-      -4px 0 24px rgba(0, 0, 0, 0.3),
-      0 0 15px rgba(0, 153, 255, 0.6),
-      0 0 30px rgba(0, 153, 255, 0.3);
+      -8px 0 32px rgba(0, 0, 0, 0.5),
+      0 0 25px rgba(0, 200, 255, 0.7),
+      0 0 50px rgba(0, 153, 255, 0.4),
+      inset 0 0 80px rgba(0, 180, 255, 0.08);
+    border-left-color: rgba(0, 200, 255, 0.4);
   }
 }
 
