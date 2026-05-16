@@ -4,9 +4,12 @@
 .header-logo,
 .checkout-logo,
 .pricing-logo,
-.onboarding-logo {
+.onboarding-logo,
+.receive-logo {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+  image-rendering: high-quality;
+  -ms-interpolation-mode: bicubic;
   object-fit: contain;
   filter: none !important;
   transform: translateZ(0);
@@ -14,6 +17,8 @@
   -webkit-backface-visibility: hidden;
   will-change: auto;
   shape-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .header-logo {
@@ -38,13 +43,18 @@
 
 /* ===== GLOWING BRAND TEXT ===== */
 .brand-title {
-  color: #54c3ff;
+  color: #54c3ff !important;
   text-shadow:
     0 0 8px rgba(84, 195, 255, 0.95),
     0 0 18px rgba(84, 195, 255, 0.8),
     0 0 32px rgba(84, 195, 255, 0.55),
-    0 0 48px rgba(84, 195, 255, 0.4);
+    0 0 48px rgba(84, 195, 255, 0.4) !important;
   animation: cyanPulse 2.2s infinite ease-in-out;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-text-stroke: 0 !important;
+  text-stroke: 0 !important;
 }
 
 @keyframes cyanPulse {
@@ -290,10 +300,13 @@ img, video {
 .brand-title {
   font-size: 16px;
   font-weight: 700;
-  color: #fff;
+  color: #54c3ff !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .topnav-desktop {

@@ -465,6 +465,18 @@
   cursor: default;
 }
 
+.plan-cta.downgrade-locked {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+}
+
+.pricing-card.downgrade-locked {
+  opacity: 0.6;
+  filter: grayscale(0.3);
+}
+
 .plan-cta:disabled {
   opacity: 0.5;
   cursor: not-allowed;

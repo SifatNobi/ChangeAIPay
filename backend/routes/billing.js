@@ -58,4 +58,20 @@ router.get("/renewal-reminder", authMiddleware, async (req, res) => {
   await billingController.getRenewalReminder(req, res);
 });
 
+router.post("/verify-payment", authMiddleware, async (req, res) => {
+  await billingController.verifyPaymentAndActivate(req, res);
+});
+
+router.post("/cancel-payment", authMiddleware, async (req, res) => {
+  await billingController.cancelPaymentSession(req, res);
+});
+
+router.post("/activate-free-trial", authMiddleware, async (req, res) => {
+  await billingController.activateFreeTrial(req, res);
+});
+
+router.post("/complete-first-transaction", authMiddleware, async (req, res) => {
+  await billingController.completeFirstTransaction(req, res);
+});
+
 export default router;

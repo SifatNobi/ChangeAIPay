@@ -249,6 +249,10 @@ export async function processPayment(req, res) {
     };
     const plan = planConfig[planId];
 
+    if (!plan) {
+      return res.status(400).json({ success: false, error: "Invalid plan" });
+    }
+
     if (paymentMethod === "xno") {
       const conversion = await convertFiatToNano(plan.fiatPrice, "EUR");
 
@@ -261,42 +265,49 @@ export async function processPayment(req, res) {
         });
       }
 
-      logger.info("Processing Nano payment", { userId, amount: conversion.nanoAmount });
+      const paymentSessionId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       let subscription = await UserSubscription.findOne({ userId });
 
-      if (subscription) {
-        subscription.plan = planId;
-        subscription.status = "active";
-        subscription.currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-        await subscription.save();
-      } else {
-        await UserSubscription.create({
+      if (!subscription) {
+        subscription = await UserSubscription.create({
           userId,
-          plan: planId,
+          plan: "free_trial",
           status: "active",
-          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          paymentSession: {
+            sessionId: paymentSessionId,
+            status: "pending",
+            planId,
+            createdAt: new Date()
+          }
         });
+      } else {
+        subscription.paymentSession = {
+          sessionId: paymentSessionId,
+          status: "pending",
+          planId,
+          createdAt: new Date()
+        };
+        await subscription.save();
       }
 
-      await User.findByIdAndUpdate(userId, { 
-        subscriptionPlan: planId,
-        "balance.balanceNano": Math.max(0, nanoBalance - conversion.nanoAmount)
-      });
+      logger.info("Nano payment session created - awaiting verification", { userId, planId, paymentSessionId });
 
       res.json({
         success: true,
-        payment: {
+        paymentSession: {
+          id: paymentSessionId,
+          status: "pending",
           method: "nano",
           amount: conversion.nanoAmount,
           currency: "XNO",
-          convertedFrom: conversion.fiatAmount,
-          savings: calculateSavings(plan.fiatPrice).savings
+          message: "Payment session created. Subscription will activate upon blockchain confirmation."
         },
         subscription: {
-          plan: planId,
-          status: "active",
-          nextBilling: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          plan: subscription.plan,
+          status: subscription.status,
+          note: "Premium features unlock only after payment verification"
         }
       });
     } else {
@@ -581,6 +592,214 @@ export async function getRenewalReminder(req, res) {
   }
 }
 
+export async function verifyPaymentAndActivate(req, res) {
+  try {
+    const userId = req.user._id;
+    const { paymentSessionId, transactionHash } = req.body;
+
+    if (!paymentSessionId) {
+      return res.status(400).json({ success: false, error: "Missing payment session ID" });
+    }
+
+    const subscription = await UserSubscription.findOne({ userId });
+    if (!subscription) {
+      return res.status(404).json({ success: false, error: "No subscription found" });
+    }
+
+    if (subscription.paymentSession.sessionId !== paymentSessionId) {
+      return res.status(400).json({ success: false, error: "Payment session mismatch" });
+    }
+
+    if (subscription.paymentSession.status === "verified") {
+      return res.status(400).json({ success: false, error: "Payment already verified" });
+    }
+
+    if (subscription.paymentSession.status === "cancelled") {
+      return res.status(400).json({ success: false, error: "Payment was cancelled" });
+    }
+
+    const planId = subscription.paymentSession.planId;
+    const planConfig = {
+      edge: { fiatPrice: 19.99, name: "Edge" },
+      prime: { fiatPrice: 29.99, name: "Prime" },
+      apex: { fiatPrice: 49.99, name: "Apex" }
+    };
+    const plan = planConfig[planId];
+
+    if (!plan) {
+      return res.status(400).json({ success: false, error: "Invalid plan in payment session" });
+    }
+
+    const user = await User.findById(userId).lean();
+    const nanoBalance = parseFloat(user?.balance?.balanceNano || "0");
+    const conversion = await convertFiatToNano(plan.fiatPrice, "EUR");
+
+    if (nanoBalance < conversion.nanoAmount) {
+      subscription.paymentSession.status = "failed";
+      await subscription.save();
+      return res.status(400).json({
+        success: false,
+        error: "Insufficient balance at verification time",
+        required: conversion.nanoAmount,
+        available: nanoBalance
+      });
+    }
+
+    subscription.plan = planId;
+    subscription.status = "active";
+    subscription.currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    subscription.paymentSession.status = "verified";
+    subscription.paymentSession.verifiedAt = new Date();
+    await subscription.save();
+
+    await User.findByIdAndUpdate(userId, {
+      subscriptionPlan: planId,
+      "balance.balanceNano": Math.max(0, nanoBalance - conversion.nanoAmount)
+    });
+
+    logger.info("Payment verified and subscription activated", { userId, planId, paymentSessionId, transactionHash });
+
+    res.json({
+      success: true,
+      subscription: {
+        plan: planId,
+        status: "active",
+        nextBilling: subscription.currentPeriodEnd.toISOString()
+      }
+    });
+  } catch (err) {
+    logger.error("Payment verification error", { error: err.message });
+    res.status(500).json({ success: false, error: "Payment verification failed" });
+  }
+}
+
+export async function cancelPaymentSession(req, res) {
+  try {
+    const userId = req.user._id;
+
+    const subscription = await UserSubscription.findOne({ userId });
+    if (!subscription) {
+      return res.status(404).json({ success: false, error: "No subscription found" });
+    }
+
+    if (subscription.paymentSession.status === "verified") {
+      return res.status(400).json({ success: false, error: "Cannot cancel verified payment" });
+    }
+
+    subscription.paymentSession.status = "cancelled";
+    await subscription.save();
+
+    logger.info("Payment session cancelled", { userId, sessionId: subscription.paymentSession.sessionId });
+
+    res.json({ success: true, message: "Payment session cancelled" });
+  } catch (err) {
+    logger.error("Cancel payment session error", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to cancel payment session" });
+  }
+}
+
+export async function activateFreeTrial(req, res) {
+  try {
+    const userId = req.user._id;
+
+    let subscription = await UserSubscription.findOne({ userId });
+
+    if (!subscription) {
+      subscription = await UserSubscription.create({
+        userId,
+        plan: "free_trial",
+        status: "active",
+        currentPeriodEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        freeTrial: {
+          activated: true,
+          activatedAt: new Date(),
+          clickedActivation: true,
+          firstTransactionCompleted: false,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        }
+      });
+    } else {
+      if (subscription.freeTrial.activated) {
+        return res.status(400).json({ success: false, error: "Free trial already activated" });
+      }
+
+      if (subscription.plan !== "free_trial" && subscription.status === "active") {
+        return res.status(400).json({ success: false, error: "Already on a paid plan" });
+      }
+
+      subscription.freeTrial.clickedActivation = true;
+      subscription.freeTrial.activated = true;
+      subscription.freeTrial.activatedAt = new Date();
+      subscription.freeTrial.firstTransactionCompleted = false;
+      subscription.freeTrial.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      subscription.plan = "free_trial";
+      subscription.status = "active";
+      subscription.currentPeriodEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      await subscription.save();
+    }
+
+    logger.info("Free trial activation clicked", { userId });
+
+    res.json({
+      success: true,
+      message: "Free trial activated. Complete your first transaction within 24 hours to keep benefits.",
+      trial: {
+        activated: true,
+        expiresAt: subscription.freeTrial.expiresAt,
+        requiresTransaction: true
+      }
+    });
+  } catch (err) {
+    logger.error("Free trial activation error", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to activate free trial" });
+  }
+}
+
+export async function completeFirstTransaction(req, res) {
+  try {
+    const userId = req.user._id;
+
+    const subscription = await UserSubscription.findOne({ userId });
+    if (!subscription) {
+      return res.status(404).json({ success: false, error: "No subscription found" });
+    }
+
+    if (!subscription.freeTrial.activated) {
+      return res.status(400).json({ success: false, error: "Free trial not activated" });
+    }
+
+    if (subscription.freeTrial.firstTransactionCompleted) {
+      return res.status(400).json({ success: false, error: "First transaction already completed" });
+    }
+
+    if (subscription.freeTrial.expiresAt && new Date() > subscription.freeTrial.expiresAt) {
+      subscription.freeTrial.activated = false;
+      subscription.plan = "free_trial";
+      subscription.status = "expired";
+      await subscription.save();
+      return res.status(400).json({ success: false, error: "Free trial window expired (24h)" });
+    }
+
+    subscription.freeTrial.firstTransactionCompleted = true;
+    await subscription.save();
+
+    logger.info("First transaction completed for free trial", { userId });
+
+    res.json({
+      success: true,
+      message: "Free trial benefits confirmed. Valid for 7 days.",
+      trial: {
+        activated: true,
+        firstTransactionCompleted: true,
+        expiresAt: subscription.currentPeriodEnd
+      }
+    });
+  } catch (err) {
+    logger.error("First transaction completion error", { error: err.message });
+    res.status(500).json({ success: false, error: "Failed to record transaction" });
+  }
+}
+
 export default {
   getPricingPlans,
   createCheckoutSession,
@@ -595,5 +814,9 @@ export default {
   getSubscriptionAnalytics,
   getAIRecommendations,
   getPlanComparison,
-  getRenewalReminder
+  getRenewalReminder,
+  verifyPaymentAndActivate,
+  cancelPaymentSession,
+  activateFreeTrial,
+  completeFirstTransaction
 };

@@ -193,13 +193,18 @@ class WebhookService {
   }
 
   async handleSubscriptionCreated(payload) {
-    const { userId, plan, subscriptionId, status } = payload;
+    const { userId, plan, subscriptionId, status, paymentVerified } = payload;
     
     const planConfig = {
       edge: { fiatPrice: 24.99, name: "Edge" },
       prime: { fiatPrice: 39.99, name: "Prime" },
       apex: { fiatPrice: 64.99, name: "Apex" }
     };
+
+    if (!paymentVerified) {
+      logger.warn("Subscription creation attempted without payment verification", { userId, plan });
+      return { success: false, reason: "payment_not_verified" };
+    }
 
     let subscription = await UserSubscription.findOne({ userId });
     
@@ -209,7 +214,9 @@ class WebhookService {
       subscription.metadata = {
         ...subscription.metadata,
         stripeSubscriptionId: subscriptionId,
-        paymentMethod: payload.paymentMethod || "card"
+        paymentMethod: payload.paymentMethod || "card",
+        paymentVerified: true,
+        verifiedAt: new Date()
       };
       subscription.currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       await subscription.save();
@@ -221,7 +228,9 @@ class WebhookService {
         currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         metadata: {
           stripeSubscriptionId: subscriptionId,
-          paymentMethod: payload.paymentMethod || "card"
+          paymentMethod: payload.paymentMethod || "card",
+          paymentVerified: true,
+          verifiedAt: new Date()
         }
       });
     }

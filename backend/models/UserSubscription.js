@@ -60,6 +60,20 @@ const userSubscriptionSchema = new mongoose.Schema({
     stripeCustomerId: String,
     stripeSubscriptionId: String,
     paymentMethod: String
+  },
+  freeTrial: {
+    activated: { type: Boolean, default: false },
+    activatedAt: Date,
+    clickedActivation: { type: Boolean, default: false },
+    firstTransactionCompleted: { type: Boolean, default: false },
+    expiresAt: Date
+  },
+  paymentSession: {
+    sessionId: String,
+    status: { type: String, enum: ["none", "pending", "verified", "failed", "cancelled"], default: "none" },
+    planId: String,
+    createdAt: Date,
+    verifiedAt: Date
   }
 }, {
   timestamps: true

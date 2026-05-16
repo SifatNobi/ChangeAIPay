@@ -204,7 +204,11 @@ export default function PricingCheckout({ selectedPlan, onComplete, onCancel }) 
           }
         });
 
-        if (result?.success === true) {
+        if (result?.success === true && result.paymentSession?.status === "pending") {
+          setPaymentStatus("pending");
+          alert("Payment session created. Premium features will activate once your Nano payment is confirmed on the blockchain. This may take a few moments.");
+          return;
+        } else if (result?.success === true) {
           setPaymentStatus("success");
           onComplete?.(result);
         } else {

@@ -130,3 +130,32 @@ export async function getTransactionHistory(token, { limit = 50 } = {}) {
   if (limit) qs.set("limit", String(limit));
   return apiRequest(`/transaction/history?${qs.toString()}`, { token });
 }
+
+export async function verifyPayment(token, { paymentSessionId, transactionHash }) {
+  return apiRequest("/billing/verify-payment", {
+    method: "POST",
+    token,
+    body: { paymentSessionId, transactionHash }
+  });
+}
+
+export async function cancelPaymentSession(token) {
+  return apiRequest("/billing/cancel-payment", {
+    method: "POST",
+    token
+  });
+}
+
+export async function activateFreeTrial(token) {
+  return apiRequest("/billing/activate-free-trial", {
+    method: "POST",
+    token
+  });
+}
+
+export async function completeFirstTransaction(token) {
+  return apiRequest("/billing/complete-first-transaction", {
+    method: "POST",
+    token
+  });
+}

@@ -327,17 +327,22 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
     }
   };
 
-  const getPlanState = (planId) => {
-    if (planId === currentSubscription?.plan) return "current";
-    if (activeTab === "consumers" && planId === "free_trial") return "active";
-    return "upgrade";
-  };
-
   const CONSUMER_PLAN_ORDER = ["free_trial", "edge", "prime", "apex"];
   const effectivePlan = currentSubscription?.plan || currentPlan || "free_trial";
   const currentPlanIndex = CONSUMER_PLAN_ORDER.indexOf(effectivePlan);
 
   const displayPlans = activeTab === "consumers" ? CONSUMER_PLANS : MERCHANT_PLANS;
+
+  const getPlanState = (planId) => {
+    if (planId === currentSubscription?.plan) return "current";
+    if (activeTab === "consumers") {
+      const planIndex = CONSUMER_PLAN_ORDER.indexOf(planId);
+      if (planIndex < currentPlanIndex) return "downgrade-locked";
+      if (planId === "free_trial" && currentPlanIndex > 0) return "downgrade-locked";
+    }
+    if (activeTab === "consumers" && planId === "free_trial") return "active";
+    return "upgrade";
+  };
 
   return (
     <div className="pricing-page stitch-bg">
@@ -381,12 +386,8 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
 
       <div className="pricing-grid">
         {displayPlans.map((plan) => {
-          if (activeTab === "consumers") {
-            const planIndex = CONSUMER_PLAN_ORDER.indexOf(plan.id);
-            if (planIndex <= currentPlanIndex && plan.id !== "free_trial") return null;
-          }
-
           const state = getPlanState(plan.id);
+          const isDowngradeLocked = state === "downgrade-locked";
           
           return (
             <div 
@@ -455,14 +456,19 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
 
               <button 
                 className={`plan-cta primary-button ${state}`}
-                onClick={() => activeTab === "consumers" ? handleSelectPlan(plan.id) : null}
-                disabled={activeTab === "merchants" || state === "current" || loading}
+                onClick={() => {
+                  if (isDowngradeLocked || state === "current") return;
+                  activeTab === "consumers" ? handleSelectPlan(plan.id) : null;
+                }}
+                disabled={activeTab === "merchants" || state === "current" || isDowngradeLocked || loading}
               >
                 {state === "current" 
                   ? "Current Plan" 
-                  : state === "active"
-                    ? "Active – 7 days free"
-                    : plan.cta}
+                  : state === "downgrade-locked"
+                    ? "Higher Tier Active"
+                    : state === "active"
+                      ? "Active – 7 days free"
+                      : plan.cta}
               </button>
             </div>
           );
