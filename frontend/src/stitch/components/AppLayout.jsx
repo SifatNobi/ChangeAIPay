@@ -33,6 +33,11 @@ export default function AppLayout({ profile, onLogout, children }) {
 
   const closeMenu = () => setMobileMenuOpen(false);
 
+  const handleGoals = () => {
+    closeMenu();
+    window.dispatchEvent(new CustomEvent("open-goals"));
+  };
+
   const handleAIInsights = () => {
     closeMenu();
     window.dispatchEvent(new CustomEvent("open-ai-assistant"));
@@ -126,14 +131,24 @@ export default function AppLayout({ profile, onLogout, children }) {
         </NavLink>
         <button
           className="nav-link nav-link-action"
-          onClick={handleAIInsights}
+          onClick={(e) => {
+            e.preventDefault();
+            handleAIInsights();
+          }}
           type="button"
         >
           <span className="nav-icon">🤖</span> AI Insights
         </button>
-        <NavLink className="nav-link" to="/goals" onClick={closeMenu}>
+        <button
+          className="nav-link nav-link-action"
+          onClick={(e) => {
+            e.preventDefault();
+            handleGoals();
+          }}
+          type="button"
+        >
           <span className="nav-icon">🎯</span> Goals
-        </NavLink>
+        </button>
         <div className="drawer-divider" />
         <button
           className="nav-link logout-link"

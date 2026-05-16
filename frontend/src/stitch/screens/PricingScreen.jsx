@@ -270,7 +270,7 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
 
   const getPlanState = (planId) => {
     if (planId === currentSubscription?.plan) return "current";
-    if (activeTab === "consumers" && CONSUMER_PLANS.find(p => p.id === planId)?.price === 0) return "unavailable";
+    if (activeTab === "consumers" && planId === "free_trial") return "active";
     return "upgrade";
   };
 
@@ -390,8 +390,8 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
               >
                 {state === "current" 
                   ? "Current Plan" 
-                  : state === "unavailable" 
-                    ? "Unavailable" 
+                  : state === "active"
+                    ? "Active – 7 days free"
                     : plan.cta}
               </button>
             </div>

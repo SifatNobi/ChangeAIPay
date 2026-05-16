@@ -29,9 +29,14 @@ export default function LoginScreen({ mode = "login", loading = false, error = "
     }
 
     const payload = isSignup
-      ? form
+      ? {
+          name: form.name.trim(),
+          email: form.email.trim().toLowerCase(),
+          password: form.password,
+          role: form.role
+        }
       : {
-          email: form.email,
+          email: form.email.trim().toLowerCase(),
           password: form.password
         };
 

@@ -25,7 +25,7 @@ const MERCHANT_PLANS = [
       { text: "AI Customer Recovery", included: false },
       { text: "Enterprise features", included: false }
     ],
-    cta: "Current Plan",
+    cta: "Auto-activates at €0",
     popular: false
   },
   {
@@ -47,7 +47,7 @@ const MERCHANT_PLANS = [
       { text: "AI Customer Recovery", included: false },
       { text: "Enterprise features", included: false }
     ],
-    cta: "Upgrade to Growth",
+    cta: "Auto-activates at €10K+",
     popular: false
   },
   {
@@ -67,7 +67,7 @@ const MERCHANT_PLANS = [
       { text: "Dynamic demand pricing", included: false },
       { text: "Enterprise features", included: false }
     ],
-    cta: "Upgrade to Scale",
+    cta: "Auto-activates at €50K+",
     popular: true
   },
   {
@@ -86,7 +86,7 @@ const MERCHANT_PLANS = [
       { text: "Premium analytics", included: true },
       { text: "Enterprise features", included: false }
     ],
-    cta: "Upgrade to Premium",
+    cta: "Auto-activates at €100K+",
     popular: false
   },
   {
@@ -103,7 +103,7 @@ const MERCHANT_PLANS = [
       { text: "Lower FX pricing", included: true },
       { text: "Enterprise features", included: false }
     ],
-    cta: "Contact Sales",
+    cta: "Auto-activates at €400K+",
     popular: false
   },
   {
@@ -113,6 +113,7 @@ const MERCHANT_PLANS = [
     price: "2.20% enterprise cap",
     fx: "0.45%",
     description: "AI call handling, Custom workflows, API customization",
+    tagline: "Legendary Choice",
     features: [
       { text: "Everything in Retention", included: true },
       { text: "AI call handling and messaging", included: true },
@@ -123,8 +124,9 @@ const MERCHANT_PLANS = [
       { text: "Private routing logic", included: true },
       { text: "Strategic account management", included: true }
     ],
-    cta: "Contact Sales",
-    popular: false
+    cta: "Auto-activates at €500K+",
+    popular: false,
+    legendary: true
   }
 ];
 
@@ -176,9 +178,10 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
           return (
             <div 
               key={plan.id} 
-              className={`merchant-plan-card glass-card ${plan.popular ? "popular" : ""} ${state} ${clickedPlan === plan.id ? "clicked" : ""}`}
+              className={`merchant-plan-card glass-card ${plan.popular ? "popular" : ""} ${plan.legendary ? "enterprise" : ""} ${state} ${clickedPlan === plan.id ? "clicked" : ""}`}
             >
               {plan.popular && <div className="popular-badge">Most Popular</div>}
+              {plan.legendary && <div className="legendary-badge">Legendary Choice</div>}
               
               <div className="merchant-plan-header">
                 <h2>{plan.name}</h2>

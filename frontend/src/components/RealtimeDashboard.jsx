@@ -283,7 +283,63 @@ export function StatCard({
   );
 }
 
-export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE }) {
+export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE, transactions = [], profile = null }) {
+  const generatedInsights = useMemo(() => {
+    const generated = [];
+    if (transactions && transactions.length > 0) {
+      const totalReceived = transactions
+        .filter(t => t.direction === "incoming")
+        .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+      const totalSent = transactions
+        .filter(t => t.direction === "outgoing")
+        .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+      const avgTx = transactions.length > 0 ? (totalReceived + totalSent) / transactions.length : 0;
+
+      if (totalReceived > 0) {
+        generated.push({
+          icon: "📈",
+          title: "Income Trend",
+          description: `You've received ${totalReceived.toFixed(2)} XNO across ${transactions.filter(t => t.direction === "incoming").length} transactions.`,
+          action: "View details"
+        });
+      }
+      if (totalSent > 0) {
+        generated.push({
+          icon: "📊",
+          title: "Spending Pattern",
+          description: `Average transaction: ${avgTx.toFixed(2)} XNO. Total sent: ${totalSent.toFixed(2)} XNO.`,
+          action: "Analyze"
+        });
+      }
+      if (totalReceived > totalSent) {
+        generated.push({
+          icon: "💰",
+          title: "Positive Balance",
+          description: `Your income exceeds spending by ${(totalReceived - totalSent).toFixed(2)} XNO. Great job!`,
+          action: "Set savings goal"
+        });
+      }
+      if (transactions.length >= 5) {
+        generated.push({
+          icon: "🤖",
+          title: "AI Recommendation",
+          description: "Based on your activity, consider setting up automated savings for consistent growth.",
+          action: "Learn more"
+        });
+      }
+    } else {
+      generated.push({
+        icon: "👋",
+        title: "Getting Started",
+        description: "Start making transactions to receive personalized AI insights about your spending and savings.",
+        action: "Send your first payment"
+      });
+    }
+    return generated;
+  }, [transactions]);
+
+  const displayInsights = insights.length > 0 ? insights : generatedInsights;
+
   return (
     <div className="ai-insight-card">
       <div className="insight-header">
@@ -291,7 +347,7 @@ export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE }) {
         <img src={finaImage} alt="Fina" className="insight-fina-avatar" />
       </div>
       <div className="insights-list">
-        {insights.map((insight, index) => (
+        {displayInsights.map((insight, index) => (
           <div key={index} className="insight-item">
             <span className="insight-icon">{insight.icon || "💡"}</span>
             <div className="insight-content">
@@ -303,7 +359,7 @@ export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE }) {
             </div>
           </div>
         ))}
-        {insights.length === 0 && (
+        {displayInsights.length === 0 && (
           <div className="insight-empty">
             <span>No insights available</span>
           </div>

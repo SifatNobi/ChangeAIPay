@@ -273,6 +273,7 @@ function App() {
   return (
     <>
       <AIAssistant userId={profile?.id} subscription={profile?.subscription} paymentContext={paymentContext} onNavigate={navigate} />
+      <WelcomeMessage profile={profile} />
       <Routes>
         <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
 
@@ -476,6 +477,41 @@ function LoginGate({ mode, authStatus, onSubmit }) {
       error={authStatus.error}
       onSubmit={(payload) => onSubmit(payload, redirectTo)}
     />
+  );
+}
+
+function WelcomeMessage({ profile }) {
+  const [visible, setVisible] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (profile?.user?.name) {
+      setMessage(`Welcome to ChangeAIPay, ${profile.user.name.split(" ")[0]}!`);
+      setVisible(true);
+
+      const fadeTimer = setTimeout(() => {
+        setMessage("Thanks for using ChangeAIPay!");
+      }, 8000);
+
+      const closeTimer = setTimeout(() => {
+        setVisible(false);
+      }, 13000);
+
+      return () => {
+        clearTimeout(fadeTimer);
+        clearTimeout(closeTimer);
+      };
+    }
+  }, [profile?.user?.name]);
+
+  if (!visible) return null;
+
+  return (
+    <div className={`welcome-overlay ${visible ? "visible" : ""}`}>
+      <div className="welcome-card">
+        <p className="welcome-text">{message}</p>
+      </div>
+    </div>
   );
 }
 

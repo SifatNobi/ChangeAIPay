@@ -727,3 +727,62 @@ html {
 .role-option {
   transform: translateZ(0);
 }
+
+/* ===== WELCOME MESSAGE ===== */
+.welcome-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.welcome-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.welcome-card {
+  background: rgba(18, 18, 18, 0.95);
+  border: 1px solid rgba(84, 195, 255, 0.3);
+  border-radius: 20px;
+  padding: 32px 48px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(84, 195, 255, 0.2);
+  animation: welcomeSlide 0.5s ease forwards;
+}
+
+@keyframes welcomeSlide {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.welcome-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  background: linear-gradient(135deg, #fff, #54c3ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 640px) {
+  .welcome-card {
+    padding: 24px 20px;
+    margin: 0 16px;
+  }
+  .welcome-text {
+    font-size: 16px;
+  }
+}

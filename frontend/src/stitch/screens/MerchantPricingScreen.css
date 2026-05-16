@@ -74,15 +74,75 @@
 }
 
 .merchant-plan-card:hover {
-  border-color: rgba(84, 195, 255, 0.4);
+  border-color: rgba(84, 195, 255, 0.5);
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 20px rgba(84, 195, 255, 0.15), 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-.merchant-plan-card.popular {
-  border-color: #54c3ff;
-  background: linear-gradient(180deg, rgba(15, 39, 96, 0.4) 0%, rgba(18, 18, 18, 0.9) 100%);
-  box-shadow: 0 0 40px rgba(84, 195, 255, 0.15);
+.merchant-plan-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(84, 195, 255, 0.3), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.merchant-plan-card:hover::before {
+  opacity: 1;
+}
+
+.merchant-plan-card.enterprise {
+  border-color: #ffd700;
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.08) 0%, rgba(18, 18, 18, 0.95) 100%);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
+  animation: enterpriseGlow 3s ease-in-out infinite;
+}
+
+.merchant-plan-card.enterprise::before {
+  background: linear-gradient(90deg, transparent, #ffd700, transparent);
+  opacity: 1;
+  animation: shimmer 3s linear infinite;
+  background-size: 200% 100%;
+}
+
+.merchant-plan-card.enterprise:hover {
+  border-color: #ffd700;
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.2), 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes enterpriseGlow {
+  0%, 100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.1), 0 0 60px rgba(255, 215, 0, 0.05); }
+  50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.2), 0 0 80px rgba(255, 215, 0, 0.1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.legendary-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  color: #000;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  z-index: 10;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  animation: legendaryPulse 2s ease-in-out infinite;
+}
+
+@keyframes legendaryPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
 }
 
 .merchant-plan-card.current {

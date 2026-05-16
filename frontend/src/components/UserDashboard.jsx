@@ -280,6 +280,8 @@ const UserDashboard = React.memo(function UserDashboard({ profile, token, onNavi
           <AIInsightCard 
             insights={aiInsights}
             finaImage={FINA_AI_IMAGE}
+            transactions={transactions}
+            profile={profile}
           />
 
           <div className="sidebar-section subscription-section">
