@@ -167,7 +167,7 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
       </header>
 
       <div className="merchant-pricing-fina">
-        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
+        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))} style={{ cursor: "pointer" }} />
         <p>Fina AI helps merchants maximize revenue!</p>
       </div>
 

@@ -140,6 +140,16 @@ const UserDashboard = React.memo(function UserDashboard({ profile, token, onNavi
     saveGoals(goals);
   }, [goals]);
 
+  useEffect(() => {
+    const handleOpenGoals = () => {
+      setEditingGoal(null);
+      setGoalForm({ name: "", target: "" });
+      setShowGoalModal(true);
+    };
+    window.addEventListener("open-goals", handleOpenGoals);
+    return () => window.removeEventListener("open-goals", handleOpenGoals);
+  }, []);
+
   const currentBalance = useMemo(() => parseFloat(stats.balance || 0), [stats.balance]);
 
   const goalsWithProgress = useMemo(() => goals.map(goal => ({
@@ -282,6 +292,7 @@ const UserDashboard = React.memo(function UserDashboard({ profile, token, onNavi
             finaImage={FINA_AI_IMAGE}
             transactions={transactions}
             profile={profile}
+            onNavigate={onNavigate}
           />
 
           <div className="sidebar-section subscription-section">

@@ -310,7 +310,7 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
       </div>
 
       <div className="pricing-fina">
-        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" />
+        <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))} style={{ cursor: "pointer" }} />
         <p>{activeTab === "consumers" ? "Upgrade your experience with Fina AI!" : "Fina AI helps merchants maximize revenue!"}</p>
       </div>
 

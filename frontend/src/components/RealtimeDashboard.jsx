@@ -283,7 +283,7 @@ export function StatCard({
   );
 }
 
-export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE, transactions = [], profile = null }) {
+export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE, transactions = [], profile = null, onNavigate }) {
   const generatedInsights = useMemo(() => {
     const generated = [];
     if (transactions && transactions.length > 0) {
@@ -300,7 +300,8 @@ export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE, transa
           icon: "📈",
           title: "Income Trend",
           description: `You've received ${totalReceived.toFixed(2)} XNO across ${transactions.filter(t => t.direction === "incoming").length} transactions.`,
-          action: "View details"
+          action: "View details",
+          actionType: "history"
         });
       }
       if (totalSent > 0) {
@@ -308,7 +309,8 @@ export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE, transa
           icon: "📊",
           title: "Spending Pattern",
           description: `Average transaction: ${avgTx.toFixed(2)} XNO. Total sent: ${totalSent.toFixed(2)} XNO.`,
-          action: "Analyze"
+          action: "Analyze",
+          actionType: "history"
         });
       }
       if (totalReceived > totalSent) {
@@ -316,7 +318,8 @@ export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE, transa
           icon: "💰",
           title: "Positive Balance",
           description: `Your income exceeds spending by ${(totalReceived - totalSent).toFixed(2)} XNO. Great job!`,
-          action: "Set savings goal"
+          action: "Set savings goal",
+          actionType: "goals"
         });
       }
       if (transactions.length >= 5) {
@@ -324,7 +327,8 @@ export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE, transa
           icon: "🤖",
           title: "AI Recommendation",
           description: "Based on your activity, consider setting up automated savings for consistent growth.",
-          action: "Learn more"
+          action: "Learn more",
+          actionType: "insights"
         });
       }
     } else {
@@ -332,13 +336,21 @@ export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE, transa
         icon: "👋",
         title: "Getting Started",
         description: "Start making transactions to receive personalized AI insights about your spending and savings.",
-        action: "Send your first payment"
+        action: "Send your first payment",
+        actionType: "send"
       });
     }
     return generated;
   }, [transactions]);
 
   const displayInsights = insights.length > 0 ? insights : generatedInsights;
+
+  const handleActionClick = (actionType) => {
+    if (!onNavigate) return;
+    if (actionType === "send") onNavigate("/send");
+    else if (actionType === "history") onNavigate("/history");
+    else if (actionType === "goals") window.dispatchEvent(new CustomEvent("open-goals"));
+  };
 
   return (
     <div className="ai-insight-card">
@@ -354,7 +366,7 @@ export function AIInsightCard({ insights = [], finaImage = FINA_AI_IMAGE, transa
               <span className="insight-title">{insight.title}</span>
               <span className="insight-description">{insight.description}</span>
               {insight.action && (
-                <button className="insight-action">{insight.action}</button>
+                <button className="insight-action" onClick={() => handleActionClick(insight.actionType)}>{insight.action}</button>
               )}
             </div>
           </div>

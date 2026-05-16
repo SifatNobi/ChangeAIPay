@@ -184,6 +184,7 @@ export default function AdminDashboard({ onNavigate }) {
           <AIInsightCard
             insights={aiInsights}
             finaImage={FINA_AI_IMAGE}
+            onNavigate={onNavigate}
           />
 
           <div className="sidebar-section users-list-section">

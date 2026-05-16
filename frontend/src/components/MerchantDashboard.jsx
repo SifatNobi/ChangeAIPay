@@ -231,6 +231,7 @@ const MerchantDashboard = React.memo(function MerchantDashboard({ profile, token
           <AIInsightCard
             insights={aiInsights}
             finaImage={FINA_AI_IMAGE}
+            onNavigate={onNavigate}
           />
 
           {subscription?.features?.strongerCashFlowPredictor && (

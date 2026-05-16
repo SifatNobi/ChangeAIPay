@@ -349,18 +349,6 @@ export default function AIAssistant({ userId, subscription, paymentContext, onNa
   }, []);
 
   useEffect(() => {
-    const handleOpenGoals = () => {
-      setIsOpen(true);
-      setIsMinimized(false);
-      setTimeout(() => {
-        sendMessage("Show my financial goals and savings progress");
-      }, 300);
-    };
-    window.addEventListener("open-goals", handleOpenGoals);
-    return () => window.removeEventListener("open-goals", handleOpenGoals);
-  }, [sendMessage]);
-
-  useEffect(() => {
     if (!paymentContext?.rawValue) return;
     const contextSignature = `${paymentContext.rawValue}-${paymentContext.amount}-${paymentContext.recipient}`;
     if (contextNotificationRef.current === contextSignature) return;
