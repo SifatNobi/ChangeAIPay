@@ -41,8 +41,8 @@ export default function WaitlistScreen() {
   if (status.success) {
     return (
       <div className="waitlist-success">
-        <div className="success-avatar">
-          <img src={FINA_AI_IMAGE} alt="Fina" />
+        <div className="success-logo-wrapper">
+          <img src={COMPANY_LOGO} alt={COMPANY_NAME} className="success-logo" />
         </div>
         <h2>You're on the list!</h2>
         <p>We'll notify you when ChangeAIPay is ready.</p>

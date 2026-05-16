@@ -151,15 +151,9 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
     }
   };
 
-  const handleContactSales = (planId) => {
-    setClickedPlan(planId);
-    setTimeout(() => setClickedPlan(null), 600);
-    alert("Contact our sales team for Enterprise plans: sales@changeaipay.com");
-  };
-
   const getPlanState = (planId) => {
     if (planId === subscription?.tier) return "current";
-    return "upgrade";
+    return "available";
   };
 
   return (
@@ -167,7 +161,7 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
       <header className="merchant-pricing-header">
         <img src={COMPANY_LOGO} alt={COMPANY_NAME} className="pricing-logo" />
         <h1>Merchant Plans</h1>
-        <p>Scale your business with AI-powered tools</p>
+        <p>Tiers activate automatically based on your annual transaction volume</p>
       </header>
 
       <div className="merchant-pricing-fina">
@@ -215,15 +209,13 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
                 ))}
               </ul>
 
-              <button 
-                className={`merchant-plan-cta primary-button ${state}`}
-                onClick={() => plan.id === "enterprise" || plan.id === "retention" 
-                  ? handleContactSales(plan.id) 
-                  : null}
-                disabled={state === "current"}
-              >
-                {plan.cta}
-              </button>
+              <div className={`merchant-plan-status ${state}`}>
+                {state === "current" ? (
+                  <span className="status-current">✓ Your Current Tier</span>
+                ) : (
+                  <span className="status-available">Auto-activates at revenue threshold</span>
+                )}
+              </div>
             </div>
           );
         })}
@@ -241,6 +233,7 @@ export default function MerchantPricingScreen({ currentTier = "startup", onNavig
           </span>
         </div>
         <p>All plans include instant payment processing and 24/7 support</p>
+        <p className="auto-tier-note">Merchant tiers activate automatically based on your annual transaction volume. No manual upgrades required.</p>
       </div>
     </div>
   );

@@ -1,0 +1,225 @@
+.receive-screen {
+  min-height: 100vh;
+  padding: clamp(24px, 5vw, 40px) clamp(16px, 4vw, 24px);
+  background: radial-gradient(circle at 100% 0, rgba(84, 195, 255, 0.12), transparent 30%),
+    radial-gradient(circle at 0 100%, rgba(33, 182, 248, 0.1), transparent 30%),
+    #000;
+}
+
+.receive-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.receive-logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 16px;
+}
+
+.receive-header h1 {
+  font-size: clamp(24px, 5vw, 32px);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+}
+
+.receive-header p {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.receive-card {
+  max-width: 480px;
+  margin: 0 auto;
+  background: rgba(18, 18, 18, 0.9);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  border-radius: 20px;
+  padding: clamp(20px, 5vw, 32px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.receive-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 6px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(22, 22, 22, 0.95);
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  border-color: rgba(84, 195, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(84, 195, 255, 0.1);
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.qr-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.qr-display {
+  position: relative;
+  display: inline-block;
+}
+
+.qr-image {
+  width: min(280px, 70vw);
+  height: min(280px, 70vw);
+  border-radius: 16px;
+  border: 2px solid rgba(84, 195, 255, 0.3);
+  box-shadow: 0 0 30px rgba(84, 195, 255, 0.15);
+}
+
+.qr-amount-badge {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #0f2760, #1e6be0);
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(30, 107, 224, 0.4);
+}
+
+.qr-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.qr-placeholder {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 16px;
+  border-radius: 16px;
+  border: 2px dashed rgba(84, 195, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(84, 195, 255, 0.3);
+}
+
+.qr-placeholder svg {
+  width: 48px;
+  height: 48px;
+}
+
+.qr-empty p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+.wallet-section {
+  margin-bottom: 24px;
+}
+
+.wallet-section label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+}
+
+.wallet-address-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(22, 22, 22, 0.95);
+  border: 1px solid rgba(84, 195, 255, 0.15);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.wallet-address {
+  flex: 1;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  word-break: break-all;
+  font-family: monospace;
+}
+
+.copy-btn {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #54c3ff;
+  background: rgba(84, 195, 255, 0.1);
+  border: 1px solid rgba(84, 195, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: rgba(84, 195, 255, 0.2);
+  border-color: rgba(84, 195, 255, 0.4);
+}
+
+.receive-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.receive-actions button {
+  flex: 1;
+  min-width: 140px;
+}
+
+@media (max-width: 480px) {
+  .receive-card {
+    padding: 20px 16px;
+  }
+
+  .qr-image {
+    width: 70vw;
+    height: 70vw;
+  }
+
+  .wallet-address {
+    font-size: 10px;
+  }
+
+  .receive-actions {
+    flex-direction: column;
+  }
+
+  .receive-actions button {
+    min-width: 100%;
+  }
+}

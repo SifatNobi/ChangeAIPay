@@ -54,9 +54,9 @@ export default function AppLayout({ profile, onLogout, children }) {
           <NavLink className="nav-link" to="/send">
             Send
           </NavLink>
-          <a className="nav-link" href="#receive">
+          <NavLink className="nav-link" to="/receive">
             Receive
-          </a>
+          </NavLink>
           <NavLink className="nav-link" to="/history">
             History
           </NavLink>
@@ -66,7 +66,7 @@ export default function AppLayout({ profile, onLogout, children }) {
           Logout
         </button>
 
-        {/* Mobile Hamburger Button */}
+        {/* Hamburger Button - Right Side */}
         <button
           className={`hamburger-button ${mobileMenuOpen ? "active" : ""}`}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -92,7 +92,7 @@ export default function AppLayout({ profile, onLogout, children }) {
         />
       )}
 
-      {/* Mobile Navigation Menu */}
+      {/* Right-Side Navigation Drawer */}
       <nav
         id="mobile-nav"
         className={`topnav topnav-mobile ${mobileMenuOpen ? "open" : ""}`}
@@ -100,31 +100,41 @@ export default function AppLayout({ profile, onLogout, children }) {
         aria-label="Mobile navigation"
         aria-hidden={!mobileMenuOpen}
       >
+        <div className="drawer-header">
+          <span className="drawer-title">Menu</span>
+          <button className="drawer-close" onClick={closeMenu} aria-label="Close menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
         <NavLink className="nav-link" to="/dashboard" onClick={closeMenu}>
-          Home
+          <span className="nav-icon">🏠</span> Home
         </NavLink>
         <NavLink className="nav-link" to="/send" onClick={closeMenu}>
-          Send
+          <span className="nav-icon">📤</span> Send
         </NavLink>
-        <a className="nav-link" href="#receive" onClick={closeMenu}>
-          Receive
-        </a>
+        <NavLink className="nav-link" to="/receive" onClick={closeMenu}>
+          <span className="nav-icon">📥</span> Receive
+        </NavLink>
         <NavLink className="nav-link" to="/history" onClick={closeMenu}>
-          History
+          <span className="nav-icon">📋</span> History
         </NavLink>
         <NavLink className="nav-link" to="/pricing" onClick={closeMenu}>
-          Pricing
-        </NavLink>
-        <NavLink className="nav-link" to="/goals" onClick={closeMenu}>
-          Goals
+          <span className="nav-icon">💎</span> Pricing
         </NavLink>
         <button
           className="nav-link nav-link-action"
           onClick={handleAIInsights}
           type="button"
         >
-          AI Insights
+          <span className="nav-icon">🤖</span> AI Insights
         </button>
+        <NavLink className="nav-link" to="/goals" onClick={closeMenu}>
+          <span className="nav-icon">🎯</span> Goals
+        </NavLink>
+        <div className="drawer-divider" />
         <button
           className="nav-link logout-link"
           onClick={() => {
@@ -133,7 +143,7 @@ export default function AppLayout({ profile, onLogout, children }) {
           }}
           type="button"
         >
-          Logout
+          <span className="nav-icon">🚪</span> Logout
         </button>
       </nav>
 

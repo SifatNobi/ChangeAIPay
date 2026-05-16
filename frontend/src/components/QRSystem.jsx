@@ -178,6 +178,26 @@ export function useQRScanner({ onScan, onError }) {
     if (scannerRef.current) return;
 
     try {
+      // Request camera permission first
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } }
+        });
+        // Stop the test stream immediately
+        stream.getTracks().forEach(track => track.stop());
+      } catch (permErr) {
+        if (permErr.name === "NotAllowedError" || permErr.name === "PermissionDeniedError") {
+          setHasPermission(false);
+          onError?.({ message: "Camera permission denied. Please allow camera access in your browser settings.", error: permErr });
+          return;
+        }
+        if (permErr.name === "NotFoundError" || permErr.name === "DevicesNotFoundError") {
+          setHasPermission(false);
+          onError?.({ message: "No camera found on this device.", error: permErr });
+          return;
+        }
+      }
+
       const html5QrCode = new Html5Qrcode(elementId, { verbose: false });
       scannerRef.current = html5QrCode;
 
@@ -186,7 +206,7 @@ export function useQRScanner({ onScan, onError }) {
         throw new Error("No cameras found");
       }
 
-      const rearCamera = cameras.find((c) => /back|rear|environment|camera\d/i.test(c.label)) || cameras[cameras.length - 1];
+      const rearCamera = cameras.find((c) => /back|rear|environment|camera\d|back-facing/i.test(c.label)) || cameras[cameras.length - 1];
 
       await html5QrCode.start(
         rearCamera.id,
@@ -206,15 +226,15 @@ export function useQRScanner({ onScan, onError }) {
       setIsScanning(true);
       setHasPermission(true);
     } catch (err) {
-      if (err.name === "NotAllowedError" || err.name === "SecurityError") {
+      if (err.name === "NotAllowedError" || err.name === "SecurityError" || err.name === "PermissionDeniedError") {
         setHasPermission(false);
-        onError?.({ message: "Camera permission denied", error: err });
-      } else if (err.name === "NotFoundError" || err.message === "No cameras found") {
+        onError?.({ message: "Camera permission denied. Please allow camera access in your browser settings.", error: err });
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError" || err.message === "No cameras found") {
         setHasPermission(false);
-        onError?.({ message: "No camera found", error: err });
+        onError?.({ message: "No camera found on this device.", error: err });
       } else {
         setHasPermission(false);
-        onError?.({ message: err.message || "Failed to start camera", error: err });
+        onError?.({ message: err.message || "Failed to start camera. Please try again.", error: err });
       }
     }
   }, [handleScanSuccess, onError]);

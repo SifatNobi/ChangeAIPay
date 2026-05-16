@@ -35,6 +35,7 @@ const MerchantPricingScreen = React.lazy(() => import("./stitch/screens/Merchant
 const SendScreen = React.lazy(() => import("./stitch/screens/SendScreen"));
 const PricingCheckout = React.lazy(() => import("./components/PricingCheckout"));
 const HistoryScreen = React.lazy(() => import("./stitch/screens/HistoryScreen"));
+const ReceiveScreen = React.lazy(() => import("./stitch/screens/ReceiveScreen"));
 
 const LoadingFallback = React.memo(() => (
   <div className="loading-spinner" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
@@ -313,18 +314,27 @@ function App() {
         <Route
           path="/pricing"
           element={
-            <ProtectedRoute bootStatus={bootStatus} token={token}>
-              <AppLayout profile={profile} onLogout={logout}>
-                <LazyWrapper>
-                  <PricingScreen
-                    currentPlan={profile?.subscription?.plan}
-                    onSelectPlan={handleSelectPlan}
-                    onNavigate={navigate}
-                    userRole={profile?.role}
-                  />
-                </LazyWrapper>
-              </AppLayout>
-            </ProtectedRoute>
+            token ? (
+              <ProtectedRoute bootStatus={bootStatus} token={token}>
+                <AppLayout profile={profile} onLogout={logout}>
+                  <LazyWrapper>
+                    <PricingScreen
+                      currentPlan={profile?.subscription?.plan}
+                      onSelectPlan={handleSelectPlan}
+                      onNavigate={navigate}
+                      userRole={profile?.role}
+                    />
+                  </LazyWrapper>
+                </AppLayout>
+              </ProtectedRoute>
+            ) : (
+              <PricingScreen
+                currentPlan="free_trial"
+                onSelectPlan={() => navigate("/login")}
+                onNavigate={navigate}
+                userRole="user"
+              />
+            )
           }
         />
 
@@ -427,6 +437,19 @@ function App() {
               <AppLayout profile={profile} onLogout={logout}>
                 <LazyWrapper>
                   <HistoryScreen token={token} loadHistory={loadHistory} />
+                </LazyWrapper>
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/receive"
+          element={
+            <ProtectedRoute bootStatus={bootStatus} token={token}>
+              <AppLayout profile={profile} onLogout={logout}>
+                <LazyWrapper>
+                  <ReceiveScreen profile={profile} onNavigate={navigate} />
                 </LazyWrapper>
               </AppLayout>
             </ProtectedRoute>

@@ -208,18 +208,39 @@
   color: rgba(255, 255, 255, 0.3);
 }
 
-.merchant-plan-cta {
+.merchant-plan-status {
   width: 100%;
   padding: 12px;
-  font-size: 14px;
+  text-align: center;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.merchant-plan-status.current {
+  background: rgba(0, 214, 125, 0.1);
+  border: 1px solid rgba(0, 214, 125, 0.2);
+}
+
+.status-current {
+  color: #00d67d;
   font-weight: 600;
 }
 
-.merchant-plan-cta.current {
-  background: rgba(0, 214, 125, 0.15);
-  border: 1px solid rgba(0, 214, 125, 0.3);
-  color: #00d67d;
-  cursor: default;
+.merchant-plan-status.available {
+  background: rgba(84, 195, 255, 0.05);
+  border: 1px solid rgba(84, 195, 255, 0.1);
+}
+
+.status-available {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.auto-tier-note {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 12px;
+  font-style: italic;
 }
 
 .merchant-pricing-footer {
