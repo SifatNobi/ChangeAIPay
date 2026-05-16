@@ -483,6 +483,12 @@ img, video {
   gap: clamp(16px, 3vw, 20px);
 }
 
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 380px;
+  }
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
@@ -791,11 +797,14 @@ html {
 }
 
 /* ===== PERFORMANCE: PREVENT LAYOUT THRASHING ===== */
+/* REMOVED content-visibility: auto - causes sections to disappear on mobile browsers */
 .ai-chat-messages,
-.realtime-feed,
+.realtime-feed {
+  contain: layout style;
+}
+
 .dashboard-grid {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 500px;
+  contain: layout;
 }
 
 /* ===== PERFORMANCE: OPTIMIZE REPAINTS ===== */

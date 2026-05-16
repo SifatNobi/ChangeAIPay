@@ -3,6 +3,8 @@
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .user-dashboard-loading {
@@ -48,6 +50,16 @@
 .header-logo {
   height: clamp(32px, 6vw, 40px);
   max-width: 100%;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: high-quality;
+  -ms-interpolation-mode: bicubic;
+  object-fit: contain;
+  filter: none !important;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  shape-rendering: geometricPrecision;
 }
 
 .header-greeting h1 {
@@ -129,6 +141,43 @@
   }
   .header-greeting h1 {
     font-size: 20px;
+  }
+  .user-dashboard {
+    padding: 12px;
+  }
+  .dashboard-section {
+    padding: 16px;
+    border-radius: 16px;
+  }
+  .sidebar-section {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  .header-fina .fina-avatar {
+    width: 44px;
+    height: 44px;
+  }
+  .dashboard-notifications {
+    right: 12px;
+    left: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .user-dashboard {
+    padding: 10px;
+  }
+  .stats-grid {
+    gap: 8px;
+  }
+  .dashboard-header {
+    margin-bottom: 20px;
+  }
+  .header-greeting h1 {
+    font-size: 18px;
+  }
+  .header-greeting p {
+    font-size: 12px;
   }
 }
 

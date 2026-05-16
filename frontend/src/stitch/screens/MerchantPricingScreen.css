@@ -56,6 +56,7 @@
   max-width: 1200px;
   margin: 0 auto;
   overflow: visible;
+  padding-top: 20px;
 }
 
 .merchant-plan-card {

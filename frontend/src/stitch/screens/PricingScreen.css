@@ -138,6 +138,7 @@
   max-width: 1200px;
   margin: 0 auto;
   overflow: visible;
+  padding-top: 20px;
 }
 
 .pricing-card {
@@ -275,7 +276,7 @@
   50% {
     background-position: 100% 50%;
     box-shadow: 0 4px 30px rgba(255, 215, 0, 0.7), 0 0 40px rgba(0, 191, 255, 0.4);
-    transform: translateX(-50%) scale(1.05);
+    transform: translateX(-50%) scale(1.03);
   }
 }
 
