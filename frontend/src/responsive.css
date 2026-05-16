@@ -42,7 +42,7 @@
   text-shadow:
     0 0 8px rgba(84, 195, 255, 0.95),
     0 0 18px rgba(84, 195, 255, 0.8),
-    0 0 32px rgba(255, 255, 255, 0.55),
+    0 0 32px rgba(84, 195, 255, 0.55),
     0 0 48px rgba(84, 195, 255, 0.4);
   animation: cyanPulse 2.2s infinite ease-in-out;
 }

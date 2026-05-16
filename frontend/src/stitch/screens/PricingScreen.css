@@ -131,6 +131,29 @@
   font-size: 15px;
 }
 
+.pricing-goals-section {
+  max-width: 480px;
+  margin: 0 auto 32px;
+  background: rgba(18, 18, 18, 0.9);
+  border: 1px solid rgba(84, 195, 255, 0.15);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.pricing-goals-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pricing-goals-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
 .pricing-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));

@@ -1,7 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
 import { apiRequest } from "../../api";
+import { GoalProgress } from "../../components/RealtimeDashboard";
 import "./PricingScreen.css";
+
+const GOALS_STORAGE_KEY = "changeaipay_goals";
+
+function loadGoals() {
+  try {
+    const stored = localStorage.getItem(GOALS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
 
 const CONSUMER_PLANS = [
   {
@@ -225,10 +237,65 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [clickedPlan, setClickedPlan] = useState(null);
   const [activeTab, setActiveTab] = useState(userRole === "merchant" ? "merchants" : "consumers");
+  const [goals, setGoals] = useState(loadGoals);
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
+  const [goalForm, setGoalForm] = useState({ name: "", target: "" });
 
   useEffect(() => {
     loadCurrentSubscription();
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals));
+    } catch (e) {
+      console.error("Failed to save goals:", e);
+    }
+  }, [goals]);
+
+  useEffect(() => {
+    const handleOpenGoals = () => {
+      setEditingGoal(null);
+      setGoalForm({ name: "", target: "" });
+      setShowGoalModal(true);
+    };
+    window.addEventListener("open-goals", handleOpenGoals);
+    return () => window.removeEventListener("open-goals", handleOpenGoals);
+  }, []);
+
+  const handleOpenCreateGoal = useCallback(() => {
+    setEditingGoal(null);
+    setGoalForm({ name: "", target: "" });
+    setShowGoalModal(true);
+  }, []);
+
+  const handleOpenEditGoal = useCallback((goal) => {
+    setEditingGoal(goal);
+    setGoalForm({ name: goal.name, target: goal.target.toString() });
+    setShowGoalModal(true);
+  }, []);
+
+  const handleDeleteGoal = useCallback((goalId) => {
+    setGoals(prev => prev.filter(g => g.id !== goalId));
+  }, []);
+
+  const handleSaveGoal = useCallback((e) => {
+    e.preventDefault();
+    const name = goalForm.name.trim();
+    const target = parseFloat(goalForm.target);
+    if (!name || isNaN(target) || target <= 0) return;
+
+    if (editingGoal) {
+      setGoals(prev => prev.map(g => g.id === editingGoal.id ? { ...g, name, target } : g));
+    } else {
+      const newGoal = { id: Date.now().toString(), name, target, createdAt: new Date().toISOString() };
+      setGoals(prev => [...prev, newGoal]);
+    }
+    setShowGoalModal(false);
+    setEditingGoal(null);
+    setGoalForm({ name: "", target: "" });
+  }, [goalForm.name, goalForm.target, editingGoal]);
 
   const loadCurrentSubscription = async () => {
     try {
@@ -299,6 +366,18 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
         <img src={FINA_AI_IMAGE} alt="Fina" className="fina-avatar" onClick={() => window.dispatchEvent(new CustomEvent("open-ai-assistant"))} style={{ cursor: "pointer" }} />
         <p>{activeTab === "consumers" ? "Upgrade your experience with Fina AI!" : "Fina AI helps merchants maximize revenue!"}</p>
       </div>
+
+      {activeTab === "consumers" && (
+        <div className="pricing-goals-section">
+          <div className="pricing-goals-header">
+            <h3>Your Goals</h3>
+            <button className="set-goal-btn" onClick={handleOpenCreateGoal}>
+              Set Goal
+            </button>
+          </div>
+          <GoalProgress goals={goals} onEdit={handleOpenEditGoal} onDelete={handleDeleteGoal} />
+        </div>
+      )}
 
       <div className="pricing-grid">
         {displayPlans.map((plan) => {
@@ -398,6 +477,51 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
           <span>🌍 Global</span>
         </div>
       </div>
+
+      {showGoalModal && (
+        <div className="goal-modal-overlay" onClick={() => setShowGoalModal(false)}>
+          <div className="goal-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingGoal ? "Edit Goal" : "Set New Goal"}</h3>
+              <button className="modal-close" onClick={() => setShowGoalModal(false)}>×</button>
+            </div>
+            <form className="goal-form" onSubmit={handleSaveGoal}>
+              <div className="form-group">
+                <label htmlFor="goal-name">Goal Name</label>
+                <input
+                  id="goal-name"
+                  type="text"
+                  placeholder="e.g., New Laptop, Vacation"
+                  value={goalForm.name}
+                  onChange={e => setGoalForm(prev => ({ ...prev, name: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="goal-target">Target Amount (XNO)</label>
+                <input
+                  id="goal-target"
+                  type="number"
+                  step="0.0001"
+                  min="0.0001"
+                  placeholder="0.0000"
+                  value={goalForm.target}
+                  onChange={e => setGoalForm(prev => ({ ...prev, target: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-actions">
+                <button type="button" className="btn-cancel" onClick={() => setShowGoalModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-save">
+                  {editingGoal ? "Update Goal" : "Create Goal"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
