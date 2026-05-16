@@ -230,64 +230,6 @@ export default function AIAssistant({ userId, subscription, paymentContext, onNa
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages.length, scrollToBottom]);
-
-  useEffect(() => {
-    inputRef.current = input;
-  }, [input]);
-
-  useEffect(() => {
-    isLoadingRef.current = isLoading;
-  }, [isLoading]);
-
-  useEffect(() => {
-    if (chatInitialized.current) return;
-    chatInitialized.current = true;
-    loadHistory();
-  }, []);
-
-  useEffect(() => {
-    const handleOpenAI = () => {
-      setIsOpen(true);
-      setIsMinimized(false);
-    };
-    window.addEventListener("open-ai-assistant", handleOpenAI);
-    return () => window.removeEventListener("open-ai-assistant", handleOpenAI);
-  }, []);
-
-  useEffect(() => {
-    const handleOpenGoals = () => {
-      setIsOpen(true);
-      setIsMinimized(false);
-      setTimeout(() => {
-        sendMessage("Show my financial goals and savings progress");
-      }, 300);
-    };
-    window.addEventListener("open-goals", handleOpenGoals);
-    return () => window.removeEventListener("open-goals", handleOpenGoals);
-  }, [sendMessage]);
-
-  useEffect(() => {
-    if (!paymentContext?.rawValue) return;
-    const contextSignature = `${paymentContext.rawValue}-${paymentContext.amount}-${paymentContext.recipient}`;
-    if (contextNotificationRef.current === contextSignature) return;
-
-    contextNotificationRef.current = contextSignature;
-    setIsOpen(true);
-
-    const assistantMessage = {
-      id: `ctx_${Date.now()}`,
-      role: "assistant",
-      content: buildPaymentContextMessage(paymentContext),
-      timestamp: new Date().toISOString(),
-      intent: "payment_context"
-    };
-
-    setMessages((prev) => [...prev, assistantMessage]);
-  }, [paymentContext]);
-
   const loadHistory = useCallback(async () => {
     const token = getToken();
     if (!token) return;
@@ -378,6 +320,64 @@ export default function AIAssistant({ userId, subscription, paymentContext, onNa
       handleSend();
     }
   }, [handleSend]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages.length, scrollToBottom]);
+
+  useEffect(() => {
+    inputRef.current = input;
+  }, [input]);
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (chatInitialized.current) return;
+    chatInitialized.current = true;
+    loadHistory();
+  }, [loadHistory]);
+
+  useEffect(() => {
+    const handleOpenAI = () => {
+      setIsOpen(true);
+      setIsMinimized(false);
+    };
+    window.addEventListener("open-ai-assistant", handleOpenAI);
+    return () => window.removeEventListener("open-ai-assistant", handleOpenAI);
+  }, []);
+
+  useEffect(() => {
+    const handleOpenGoals = () => {
+      setIsOpen(true);
+      setIsMinimized(false);
+      setTimeout(() => {
+        sendMessage("Show my financial goals and savings progress");
+      }, 300);
+    };
+    window.addEventListener("open-goals", handleOpenGoals);
+    return () => window.removeEventListener("open-goals", handleOpenGoals);
+  }, [sendMessage]);
+
+  useEffect(() => {
+    if (!paymentContext?.rawValue) return;
+    const contextSignature = `${paymentContext.rawValue}-${paymentContext.amount}-${paymentContext.recipient}`;
+    if (contextNotificationRef.current === contextSignature) return;
+
+    contextNotificationRef.current = contextSignature;
+    setIsOpen(true);
+
+    const assistantMessage = {
+      id: `ctx_${Date.now()}`,
+      role: "assistant",
+      content: buildPaymentContextMessage(paymentContext),
+      timestamp: new Date().toISOString(),
+      intent: "payment_context"
+    };
+
+    setMessages((prev) => [...prev, assistantMessage]);
+  }, [paymentContext]);
 
   if (!isOpen) {
     return (
