@@ -47,9 +47,78 @@ const LazyWrapper = React.memo(({ children }) => (
   <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
 ));
 
+function LoginGate({ mode, authStatus, onSubmit }) {
+  const location = useLocation();
+  const from = location.state?.from || "/dashboard";
+  const redirectTo = useMemo(() => (typeof from === "string" ? from : "/dashboard"), [from]);
+
+  return (
+    <LoginScreen
+      mode={mode}
+      loading={authStatus.loading}
+      error={authStatus.error}
+      onSubmit={(payload) => onSubmit(payload, redirectTo)}
+    />
+  );
+}
+
+function WelcomeMessage({ profile }) {
+  const [visible, setVisible] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (profile?.user?.name) {
+      setMessage(`Welcome to ChangeAIPay, ${profile.user.name.split(" ")[0]}!`);
+      setVisible(true);
+
+      const fadeTimer = setTimeout(() => {
+        setMessage("Thanks for using ChangeAIPay!");
+      }, 8000);
+
+      const closeTimer = setTimeout(() => {
+        setVisible(false);
+      }, 13000);
+
+      return () => {
+        clearTimeout(fadeTimer);
+        clearTimeout(closeTimer);
+      };
+    }
+  }, [profile?.user?.name]);
+
+  if (!visible) return null;
+
+  return (
+    <div className={`welcome-overlay ${visible ? "visible" : ""}`}>
+      <div className="welcome-card">
+        <p className="welcome-text">{message}</p>
+      </div>
+    </div>
+  );
+}
+
+function CheckoutRouteWrapper({ profile, loadProfile, onNavigate }) {
+  const { plan } = useParams();
+  const handleComplete = useCallback((result) => {
+    loadProfile();
+    onNavigate("/dashboard");
+  }, [loadProfile, onNavigate]);
+
+  const handleCancel = useCallback(() => onNavigate("/pricing"), [onNavigate]);
+
+  return (
+    <PricingCheckout
+      selectedPlan={plan}
+      onComplete={handleComplete}
+      onCancel={handleCancel}
+    />
+  );
+}
+
 const MemoizedLoginGate = React.memo(LoginGate);
 const MemoizedWaitlistScreen = React.memo(WaitlistScreen);
 const MemoizedQRPaymentScanner = React.memo(QRPaymentScanner);
+const MemoizedCheckoutRouteWrapper = React.memo(CheckoutRouteWrapper);
 
 function App() {
   const navigate = useNavigate();
@@ -464,73 +533,3 @@ function App() {
 }
 
 export default App;
-
-function LoginGate({ mode, authStatus, onSubmit }) {
-  const location = useLocation();
-  const from = location.state?.from || "/dashboard";
-  const redirectTo = useMemo(() => (typeof from === "string" ? from : "/dashboard"), [from]);
-
-  return (
-    <LoginScreen
-      mode={mode}
-      loading={authStatus.loading}
-      error={authStatus.error}
-      onSubmit={(payload) => onSubmit(payload, redirectTo)}
-    />
-  );
-}
-
-function WelcomeMessage({ profile }) {
-  const [visible, setVisible] = useState(false);
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    if (profile?.user?.name) {
-      setMessage(`Welcome to ChangeAIPay, ${profile.user.name.split(" ")[0]}!`);
-      setVisible(true);
-
-      const fadeTimer = setTimeout(() => {
-        setMessage("Thanks for using ChangeAIPay!");
-      }, 8000);
-
-      const closeTimer = setTimeout(() => {
-        setVisible(false);
-      }, 13000);
-
-      return () => {
-        clearTimeout(fadeTimer);
-        clearTimeout(closeTimer);
-      };
-    }
-  }, [profile?.user?.name]);
-
-  if (!visible) return null;
-
-  return (
-    <div className={`welcome-overlay ${visible ? "visible" : ""}`}>
-      <div className="welcome-card">
-        <p className="welcome-text">{message}</p>
-      </div>
-    </div>
-  );
-}
-
-function CheckoutRouteWrapper({ profile, loadProfile, onNavigate }) {
-  const { plan } = useParams();
-  const handleComplete = useCallback((result) => {
-    loadProfile();
-    onNavigate("/dashboard");
-  }, [loadProfile, onNavigate]);
-
-  const handleCancel = useCallback(() => onNavigate("/pricing"), [onNavigate]);
-
-  return (
-    <PricingCheckout
-      selectedPlan={plan}
-      onComplete={handleComplete}
-      onCancel={handleCancel}
-    />
-  );
-}
-
-const MemoizedCheckoutRouteWrapper = React.memo(CheckoutRouteWrapper);
