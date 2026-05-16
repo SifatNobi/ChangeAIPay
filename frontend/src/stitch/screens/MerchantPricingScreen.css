@@ -96,14 +96,16 @@
 }
 
 .merchant-plan-card.enterprise {
-  border-color: #ffd700;
-  background: linear-gradient(180deg, rgba(255, 215, 0, 0.08) 0%, rgba(18, 18, 18, 0.95) 100%);
-  box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
-  animation: enterpriseGlow 3s ease-in-out infinite;
+  border-color: rgba(255, 215, 0, 0.8);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(0, 170, 255, 0.12) 50%, rgba(18, 18, 18, 0.95) 100%);
+  box-shadow:
+    0 0 20px rgba(255, 215, 0, 0.45),
+    0 0 45px rgba(0, 170, 255, 0.25);
+  animation: enterprisePulse 3s infinite ease-in-out;
 }
 
 .merchant-plan-card.enterprise::before {
-  background: linear-gradient(90deg, transparent, #ffd700, transparent);
+  background: linear-gradient(90deg, transparent, #ffd700, #00bfff, transparent);
   opacity: 1;
   animation: shimmer 3s linear infinite;
   background-size: 200% 100%;
@@ -111,12 +113,16 @@
 
 .merchant-plan-card.enterprise:hover {
   border-color: #ffd700;
-  box-shadow: 0 0 40px rgba(255, 215, 0, 0.2), 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 40px rgba(255, 215, 0, 0.3),
+    0 0 60px rgba(0, 170, 255, 0.2),
+    0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-@keyframes enterpriseGlow {
-  0%, 100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.1), 0 0 60px rgba(255, 215, 0, 0.05); }
-  50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.2), 0 0 80px rgba(255, 215, 0, 0.1); }
+@keyframes enterprisePulse {
+  0% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 215, 0, 0.45), 0 0 45px rgba(0, 170, 255, 0.25); }
+  50% { transform: scale(1.01); box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(0, 170, 255, 0.35); }
+  100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 215, 0, 0.45), 0 0 45px rgba(0, 170, 255, 0.25); }
 }
 
 @keyframes shimmer {
@@ -138,6 +144,10 @@
   z-index: 10;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
   animation: legendaryPulse 2s ease-in-out infinite;
+  text-shadow:
+    0 0 10px gold,
+    0 0 18px #00bfff,
+    0 0 28px #00bfff;
 }
 
 @keyframes legendaryPulse {

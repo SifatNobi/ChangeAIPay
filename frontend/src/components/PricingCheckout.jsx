@@ -112,14 +112,18 @@ export default function PricingCheckout({ selectedPlan, onComplete, onCancel }) 
       }
 
       if (plansRes?.plans && token) {
-        const checkoutData = await apiRequest("/billing/checkout", {
-          method: "POST",
-          token,
-          body: { planId: selectedPlan, currency }
-        });
-        
-        if (checkoutData?.recommendations) {
-          setRecommendation(checkoutData.recommendations);
+        try {
+          const checkoutData = await apiRequest("/billing/checkout", {
+            method: "POST",
+            token,
+            body: { planId: selectedPlan, currency }
+          });
+          
+          if (checkoutData?.recommendations) {
+            setRecommendation(checkoutData.recommendations);
+          }
+        } catch (checkoutErr) {
+          console.log("Checkout session unavailable:", checkoutErr.message);
         }
       }
     } catch (err) {

@@ -93,8 +93,16 @@ export async function getPricingPlans(req, res) {
 
 export async function createCheckoutSession(req, res) {
   try {
-    const userId = req.user._id;
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: "Authentication required" });
+    }
+
     const { planId, currency = "EUR", paymentMethod = "fiat" } = req.body;
+
+    if (!planId) {
+      return res.status(400).json({ success: false, error: "Missing planId" });
+    }
 
     const planConfig = {
       edge: { fiatPrice: 19.99, name: "Edge" },
@@ -108,49 +116,80 @@ export async function createCheckoutSession(req, res) {
     }
 
     const user = await User.findById(userId).lean();
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
     const nanoBalance = parseFloat(user?.balance?.balanceNano || "0");
 
-    const conversion = await lockConversion(plan.fiatPrice, currency, 600000);
+    let conversion;
+    try {
+      conversion = await lockConversion(plan.fiatPrice, currency, 600000);
+    } catch (convErr) {
+      logger.error("Conversion lock failed", { error: convErr.message });
+      conversion = {
+        nanoAmount: plan.fiatPrice / 0.0075,
+        rate: 1 / 0.0075,
+        expiresAt: new Date(Date.now() + 600000).toISOString()
+      };
+    }
+
     const savings = calculateSavings(plan.fiatPrice);
 
     if (paymentMethod === "fiat") {
-      // Create Stripe checkout session
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price_data: {
-              currency: currency.toLowerCase(),
-              product_data: {
-                name: `${plan.name} Subscription`,
-                description: `Monthly subscription to ${plan.name} plan`,
-              },
-              unit_amount: Math.round(plan.fiatPrice * 100),
-            },
-            quantity: 1,
-          },
-        ],
-        mode: "subscription",
-        success_url: `${process.env.FRONTEND_URL || "https://changeaipay.netlify.app"}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL || "https://changeaipay.netlify.app"}/pricing?canceled=true`,
-        metadata: {
-          userId: userId.toString(),
-          planId,
-          paymentMethod: "stripe"
-        },
-        customer_email: user.email,
-      });
+      const stripeKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeKey || stripeKey === "sk_test_placeholder") {
+        return res.status(503).json({
+          success: false,
+          error: "Card payments not yet configured",
+          fallback: "Please pay with Nano (XNO) instead"
+        });
+      }
 
-      res.json({
-        success: true,
-        session: {
-          id: session.id,
-          url: session.url,
-          paymentMethod: "stripe"
-        }
-      });
+      try {
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          line_items: [
+            {
+              price_data: {
+                currency: currency.toLowerCase(),
+                product_data: {
+                  name: `${plan.name} Subscription`,
+                  description: `Monthly subscription to ${plan.name} plan`,
+                },
+                unit_amount: Math.round(plan.fiatPrice * 100),
+              },
+              quantity: 1,
+            },
+          ],
+          mode: "subscription",
+          success_url: `${process.env.FRONTEND_URL || "https://changeaipay.netlify.app"}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${process.env.FRONTEND_URL || "https://changeaipay.netlify.app"}/pricing?canceled=true`,
+          metadata: {
+            userId: userId.toString(),
+            planId,
+            paymentMethod: "stripe"
+          },
+          customer_email: user.email,
+        });
+
+        res.json({
+          success: true,
+          session: {
+            id: session.id,
+            url: session.url,
+            paymentMethod: "stripe"
+          }
+        });
+      } catch (stripeErr) {
+        logger.error("Stripe session creation error", { error: stripeErr.message });
+        return res.status(500).json({
+          success: false,
+          error: "Card checkout unavailable",
+          fallback: "Please pay with Nano (XNO) instead"
+        });
+      }
     } else {
-      // Nano payment - create custom session
       const checkoutSession = {
         id: `checkout_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         userId,
@@ -189,7 +228,7 @@ export async function createCheckoutSession(req, res) {
       });
     }
   } catch (err) {
-    logger.error("Checkout creation error", { error: err.message });
+    logger.error("Checkout creation error", { error: err.message, stack: err.stack });
     res.status(500).json({ success: false, error: "Failed to create checkout" });
   }
 }
