@@ -245,26 +245,16 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
   };
 
   const handleSelectPlan = async (planId) => {
-    if (planId === currentPlan || planId === "free_trial") return;
+    if (planId === "free_trial") return;
     
     setClickedPlan(planId);
     setTimeout(() => setClickedPlan(null), 600);
     
     setLoading(true);
     try {
-      const token = localStorage.getItem("changeaipay_token") || localStorage.getItem("token");
-      const data = await apiRequest("/subscription/change", {
-        method: "POST",
-        token,
-        body: { planId }
-      });
-      
-      if (data?.success) {
-        setCurrentSubscription({ ...currentSubscription, plan: planId });
-        onSelectPlan?.(planId);
-      }
+      onNavigate?.(`/checkout/${planId}`);
     } catch (err) {
-      console.error("Failed to change plan:", err);
+      console.error("Failed to navigate to checkout:", err);
     } finally {
       setLoading(false);
     }
@@ -275,6 +265,10 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
     if (activeTab === "consumers" && planId === "free_trial") return "active";
     return "upgrade";
   };
+
+  const CONSUMER_PLAN_ORDER = ["free_trial", "edge", "prime", "apex"];
+  const effectivePlan = currentSubscription?.plan || currentPlan || "free_trial";
+  const currentPlanIndex = CONSUMER_PLAN_ORDER.indexOf(effectivePlan);
 
   const displayPlans = activeTab === "consumers" ? CONSUMER_PLANS : MERCHANT_PLANS;
 
@@ -308,6 +302,11 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
 
       <div className="pricing-grid">
         {displayPlans.map((plan) => {
+          if (activeTab === "consumers") {
+            const planIndex = CONSUMER_PLAN_ORDER.indexOf(plan.id);
+            if (planIndex <= currentPlanIndex && plan.id !== "free_trial") return null;
+          }
+
           const state = getPlanState(plan.id);
           
           return (

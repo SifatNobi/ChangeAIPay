@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "../../api";
+import { AIInsightCard, GoalProgress } from "../../components/RealtimeDashboard";
+import { FINA_AI_IMAGE } from "../../constants/branding";
 import "../../components/SendStyles.css";
 
 const PAYMENT_STORAGE_KEY = "changeaipay_payment_context";
+const GOALS_STORAGE_KEY = "changeaipay_goals";
 
 function loadSavedPaymentContext() {
   try {
@@ -25,6 +28,15 @@ function clearSavedPaymentContext() {
   } catch {}
 }
 
+function loadGoals() {
+  try {
+    const stored = localStorage.getItem(GOALS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function SendScreen({ sendTransaction, paymentContext: appPaymentContext, onClearContext }) {
   const location = useLocation();
   const [form, setForm] = useState({
@@ -43,6 +55,10 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
   const [permissionState, setPermissionState] = useState("idle");
   const [paymentContext, setPaymentContext] = useState(null);
   const [smartWarnings, setSmartWarnings] = useState([]);
+  const [goals, setGoals] = useState(loadGoals);
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
+  const [goalForm, setGoalForm] = useState({ name: "", target: "" });
   const scannerRef = useRef(null);
   const statusRef = useRef(status);
   statusRef.current = status;
@@ -66,6 +82,57 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
       }
     };
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals));
+    } catch (e) {
+      console.error("Failed to save goals:", e);
+    }
+  }, [goals]);
+
+  useEffect(() => {
+    const handleOpenGoals = () => {
+      setEditingGoal(null);
+      setGoalForm({ name: "", target: "" });
+      setShowGoalModal(true);
+    };
+    window.addEventListener("open-goals", handleOpenGoals);
+    return () => window.removeEventListener("open-goals", handleOpenGoals);
+  }, []);
+
+  const handleOpenCreateGoal = useCallback(() => {
+    setEditingGoal(null);
+    setGoalForm({ name: "", target: "" });
+    setShowGoalModal(true);
+  }, []);
+
+  const handleOpenEditGoal = useCallback((goal) => {
+    setEditingGoal(goal);
+    setGoalForm({ name: goal.name, target: goal.target.toString() });
+    setShowGoalModal(true);
+  }, []);
+
+  const handleDeleteGoal = useCallback((goalId) => {
+    setGoals(prev => prev.filter(g => g.id !== goalId));
+  }, []);
+
+  const handleSaveGoal = useCallback((e) => {
+    e.preventDefault();
+    const name = goalForm.name.trim();
+    const target = parseFloat(goalForm.target);
+    if (!name || isNaN(target) || target <= 0) return;
+
+    if (editingGoal) {
+      setGoals(prev => prev.map(g => g.id === editingGoal.id ? { ...g, name, target } : g));
+    } else {
+      const newGoal = { id: Date.now().toString(), name, target, createdAt: new Date().toISOString() };
+      setGoals(prev => [...prev, newGoal]);
+    }
+    setShowGoalModal(false);
+    setEditingGoal(null);
+    setGoalForm({ name: "", target: "" });
+  }, [goalForm.name, goalForm.target, editingGoal]);
 
   useEffect(() => {
     const saved = loadSavedPaymentContext();
@@ -505,6 +572,19 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
         <h1>Send Payment</h1>
         <p className="muted">Smart payment flow with QR-backed autofill, secure routing, and Fina assistant guidance.</p>
 
+        <div className="send-ai-sections">
+          <AIInsightCard transactions={[]} finaImage={FINA_AI_IMAGE} onNavigate={null} />
+          <div className="sidebar-section goals-section">
+            <div className="goals-header">
+              <h4>Your Goals</h4>
+              <button className="set-goal-btn" onClick={handleOpenCreateGoal}>
+                Set Goal
+              </button>
+            </div>
+            <GoalProgress goals={goals} onEdit={handleOpenEditGoal} onDelete={handleDeleteGoal} />
+          </div>
+        </div>
+
         {paymentContext && (
           <div className="payment-preview glass-card">
             <div className="preview-heading">Scanned Payment Preview</div>
@@ -692,6 +772,51 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
           </button>
         </form>
       </section>
+
+      {showGoalModal && (
+        <div className="goal-modal-overlay" onClick={() => setShowGoalModal(false)}>
+          <div className="goal-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingGoal ? "Edit Goal" : "Set New Goal"}</h3>
+              <button className="modal-close" onClick={() => setShowGoalModal(false)}>×</button>
+            </div>
+            <form className="goal-form" onSubmit={handleSaveGoal}>
+              <div className="form-group">
+                <label htmlFor="goal-name">Goal Name</label>
+                <input
+                  id="goal-name"
+                  type="text"
+                  placeholder="e.g., New Laptop, Vacation"
+                  value={goalForm.name}
+                  onChange={e => setGoalForm(prev => ({ ...prev, name: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="goal-target">Target Amount (XNO)</label>
+                <input
+                  id="goal-target"
+                  type="number"
+                  step="0.0001"
+                  min="0.0001"
+                  placeholder="0.0000"
+                  value={goalForm.target}
+                  onChange={e => setGoalForm(prev => ({ ...prev, target: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-actions">
+                <button type="button" className="btn-cancel" onClick={() => setShowGoalModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-save">
+                  {editingGoal ? "Update Goal" : "Create Goal"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

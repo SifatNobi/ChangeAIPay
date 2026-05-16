@@ -103,7 +103,7 @@
     0 0 25px rgba(255, 215, 0, 0.45),
     0 0 50px rgba(0, 170, 255, 0.35);
   animation: enterpriseLegendary 3s infinite ease-in-out;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .merchant-plan-card.enterprise::before {
@@ -544,5 +544,17 @@
 
   .merchant-price-value {
     font-size: 14px;
+  }
+
+  .legendary-badge {
+    top: -10px;
+    padding: 5px 12px;
+    font-size: 10px;
+  }
+
+  .merchant-plan-card.popular .popular-badge {
+    top: -8px;
+    padding: 4px 10px;
+    font-size: 10px;
   }
 }

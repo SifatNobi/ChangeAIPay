@@ -176,7 +176,7 @@
     0 0 50px rgba(0, 170, 255, 0.35),
     inset 0 0 40px rgba(255, 215, 0, 0.05);
   animation: enterpriseLegendary 3s infinite ease-in-out;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .pricing-card.legendary::before {
@@ -552,5 +552,31 @@
 
   .plan-price .amount {
     font-size: clamp(36px, 8vw, 40px);
+  }
+
+  .legendary-badge {
+    top: -12px;
+    padding: 6px 16px;
+    font-size: 12px;
+  }
+
+  .popular-badge {
+    top: -10px;
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .legendary-badge {
+    top: -10px;
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+
+  .popular-badge {
+    top: -8px;
+    padding: 4px 10px;
+    font-size: 10px;
   }
 }
