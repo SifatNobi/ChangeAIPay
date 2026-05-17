@@ -57,6 +57,9 @@
   object-fit: contain;
   filter: none !important;
   shape-rendering: geometricPrecision;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .header-greeting h1 {

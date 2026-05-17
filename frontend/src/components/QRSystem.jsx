@@ -178,12 +178,11 @@ export function useQRScanner({ onScan, onError }) {
     if (scannerRef.current) return;
 
     try {
-      // Request camera permission first
+      // Request camera permission first with proper error handling
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } }
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
         });
-        // Stop the test stream immediately
         stream.getTracks().forEach(track => track.stop());
       } catch (permErr) {
         if (permErr.name === "NotAllowedError" || permErr.name === "PermissionDeniedError") {

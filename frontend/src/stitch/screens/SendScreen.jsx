@@ -53,6 +53,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
   const [scanActive, setScanActive] = useState(false);
   const [scanError, setScanError] = useState("");
   const [permissionState, setPermissionState] = useState("idle");
+  const [scannerLoading, setScannerLoading] = useState(false);
   const [paymentContext, setPaymentContext] = useState(null);
   const [smartWarnings, setSmartWarnings] = useState([]);
   const [goals, setGoals] = useState(loadGoals);
@@ -62,6 +63,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
   const scannerRef = useRef(null);
   const statusRef = useRef(status);
   statusRef.current = status;
+  const hasAutoSubmittedRef = useRef(false);
   
   const [txId, setTxId] = useState(null);
   const [confirmationTime, setConfirmationTime] = useState(0);
@@ -466,7 +468,7 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
 
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        facingMode: "environment",
+        facingMode: { ideal: "environment" },
         width: { ideal: 1280 },
         height: { ideal: 720 }
       }
@@ -488,12 +490,15 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
     scannerRef.current = null;
     setScanActive(false);
     setPermissionState("idle");
+    setScannerLoading(false);
   }, []);
 
   const openScanner = useCallback(async () => {
     if (scanActive || scannerRef.current) return;
     setScanError("");
+    setScannerLoading(true);
     setPermissionState("requesting");
+    hasAutoSubmittedRef.current = false;
 
     try {
       await requestCameraAccess();
@@ -506,11 +511,12 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
         throw new Error("No camera devices found");
       }
 
-      const rearCamera = cameras.find((c) => /back|rear|environment|camera\d/i.test(c.label)) || cameras[cameras.length - 1];
+      const rearCamera = cameras.find((c) => /back|rear|environment|camera\d|back-facing/i.test(c.label)) || cameras[cameras.length - 1];
 
       const html5QrCode = new Html5Qrcode("qr-scanner", { verbose: false });
       scannerRef.current = html5QrCode;
       setScanActive(true);
+      setScannerLoading(false);
 
       await html5QrCode.start(
         rearCamera.id,
@@ -522,9 +528,13 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
           formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
         },
         async (decodedText) => {
+          if (hasAutoSubmittedRef.current) return;
+          hasAutoSubmittedRef.current = true;
+
           const { recipient, amount, note, merchant } = normalizeScannedText(decodedText);
           if (!recipient) {
             setScanError("Scanned QR is not a valid Nano address or payment payload.");
+            hasAutoSubmittedRef.current = false;
             return;
           }
 
@@ -535,8 +545,81 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
             note: note || state.note,
             merchant: merchant || state.merchant
           }));
-          setStatus({ type: "success", message: "QR scanned and payment details auto-filled.", txHash: null });
+          setStatus({ type: "success", message: "QR scanned. Processing payment...", txHash: null });
           await stopScanner();
+
+          const token = localStorage.getItem("changeaipay_token") || localStorage.getItem("token");
+          if (!token) {
+            setScanError("Authentication required to process payment.");
+            return;
+          }
+
+          try {
+            setLoading(true);
+            const result = await sendTransaction({
+              recipient,
+              amount: parseFloat(amount) || 0,
+              currency: "XNO",
+              merchant: merchant || "",
+              destination: recipient,
+              note: note || "",
+              reference: "",
+              metadata: {}
+            });
+
+            const hasSuccessStatus = result?.status === "success";
+            const hasTxHash = Boolean(result?.tx_hash);
+            const isFailureStatus = result?.status === "failed";
+
+            if (hasTxHash && (hasSuccessStatus || !isFailureStatus)) {
+              const txIdFromResponse = result?.transaction?.id || result?.transaction_id;
+              if (txIdFromResponse) {
+                setTxId(txIdFromResponse);
+              }
+
+              setStatus({
+                type: "success",
+                message: "Payment submitted successfully",
+                txHash: result.tx_hash
+              });
+              setForm({ recipient: "", amount: "", currency: "XNO", merchant: "", destination: "", note: "", reference: "" });
+              clearSavedPaymentContext();
+              setPaymentContext(null);
+              onClearContext?.();
+
+              if (txIdFromResponse) {
+                setStatus({
+                  type: "pending",
+                  message: "Confirming on network (0s)...",
+                  txHash: result.tx_hash
+                });
+              }
+            } else if (result?.status === "pending") {
+              setStatus({
+                type: "pending",
+                message: result?.message || "Payment processing... Check back in a moment.",
+                txHash: result?.tx_hash || null
+              });
+            } else {
+              setStatus({
+                type: "error",
+                message: result?.error || "Payment failed. Please try again.",
+                txHash: null
+              });
+              hasAutoSubmittedRef.current = false;
+            }
+          } catch (err) {
+            const rawMessage = String(err?.message || "Payment failed. Please try again.");
+            const needsFunding = /fund|receive|activate|activated|wallet/i.test(rawMessage);
+            setStatus({
+              type: needsFunding ? "action_required" : "error",
+              message: rawMessage,
+              txHash: null
+            });
+            hasAutoSubmittedRef.current = false;
+          } finally {
+            setLoading(false);
+          }
         },
         () => {}
       );
@@ -549,13 +632,14 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
 
       setScanError(reason);
       setScanActive(false);
+      setScannerLoading(false);
       setPermissionState("denied");
       if (scannerRef.current) {
         scannerRef.current.clear().catch(() => {});
         scannerRef.current = null;
       }
     }
-  }, [scanActive, stopScanner]);
+  }, [scanActive, stopScanner, sendTransaction, onClearContext]);
 
   const handleClearPaymentContext = useCallback(() => {
     setPaymentContext(null);
@@ -702,6 +786,12 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
 
           {scanActive && (
             <div className="qr-scanner-container active">
+              {scannerLoading && (
+                <div className="scanner-loading-overlay">
+                  <div className="loading-spinner"></div>
+                  <span>Initializing camera...</span>
+                </div>
+              )}
               <div id="qr-scanner" />
               <div className="scanner-caption">
                 {permissionState === "requesting" ? "Requesting camera permission..." : "Point your camera at a QR code to scan."}
