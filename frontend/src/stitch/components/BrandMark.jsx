@@ -20,9 +20,6 @@ export default function BrandMark({ size = 52, src = COMPANY_LOGO }) {
             imageRendering: "high-quality",
             msInterpolationMode: "bicubic",
             filter: "none",
-            transform: "translateZ(0)",
-            backfaceVisibility: "hidden",
-            WebkitBackfaceVisibility: "hidden",
             shapeRendering: "geometricPrecision"
           }}
         />

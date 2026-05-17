@@ -56,9 +56,6 @@
   -ms-interpolation-mode: bicubic;
   object-fit: contain;
   filter: none !important;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   shape-rendering: geometricPrecision;
 }
 

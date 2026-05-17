@@ -164,6 +164,20 @@ export async function getCurrentSubscription(req, res) {
       });
     }
 
+    // Check and reset expired free trial
+    if (subscription.freeTrial && subscription.freeTrial.activated && !subscription.freeTrial.firstTransactionCompleted) {
+      if (subscription.freeTrial.expiresAt && new Date() > subscription.freeTrial.expiresAt) {
+        subscription.freeTrial.activated = false;
+        subscription.freeTrial.clickedActivation = false;
+        subscription.freeTrial.activatedAt = null;
+        subscription.freeTrial.firstTransactionCompleted = false;
+        subscription.freeTrial.expiresAt = null;
+        subscription.plan = "free_trial";
+        subscription.status = "expired";
+        await subscription.save();
+      }
+    }
+
     const planConfig = PLANS_CONFIG[subscription.plan];
 
     res.json({
@@ -175,7 +189,14 @@ export async function getCurrentSubscription(req, res) {
         currentPeriodEnd: subscription.currentPeriodEnd,
         features: subscription.features,
         usage: subscription.usage,
-        planDetails: planConfig
+        planDetails: planConfig,
+        freeTrial: subscription.freeTrial ? {
+          activated: subscription.freeTrial.activated,
+          clickedActivation: subscription.freeTrial.clickedActivation,
+          firstTransactionCompleted: subscription.freeTrial.firstTransactionCompleted,
+          expiresAt: subscription.freeTrial.expiresAt,
+          activatedAt: subscription.freeTrial.activatedAt
+        } : null
       }
     });
   } catch (err) {

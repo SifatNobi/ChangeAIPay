@@ -12,9 +12,6 @@
   -ms-interpolation-mode: bicubic;
   object-fit: contain;
   filter: none !important;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   will-change: auto;
   shape-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
@@ -1212,9 +1209,6 @@ main.page-shell {
   -ms-interpolation-mode: bicubic;
   object-fit: contain;
   filter: none !important;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   will-change: auto;
   shape-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;

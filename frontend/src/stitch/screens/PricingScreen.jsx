@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { FINA_AI_IMAGE, COMPANY_LOGO, COMPANY_NAME } from "../../constants/branding";
-import { apiRequest } from "../../api";
+import { apiRequest, getToken, activateFreeTrial } from "../../api";
 import { GoalProgress } from "../../components/RealtimeDashboard";
 import "./PricingScreen.css";
 
@@ -312,7 +312,37 @@ export default function PricingScreen({ currentPlan = "free_trial", onSelectPlan
   };
 
   const handleSelectPlan = async (planId) => {
-    if (planId === "free_trial") return;
+    if (planId === "free_trial") {
+      setClickedPlan(planId);
+      setTimeout(() => setClickedPlan(null), 600);
+      setLoading(true);
+      try {
+        const token = getToken();
+        const result = await activateFreeTrial(token);
+        if (result?.success) {
+          alert("Free Trial activated! Complete your first transaction within 24 hours to keep your 7-day trial benefits.");
+          setCurrentSubscription(prev => ({
+            ...prev,
+            plan: "free_trial",
+            status: "active",
+            freeTrial: {
+              activated: true,
+              clickedActivation: true,
+              firstTransactionCompleted: false,
+              expiresAt: result.trial?.expiresAt
+            }
+          }));
+        } else {
+          alert(result?.error || "Failed to activate Free Trial");
+        }
+      } catch (err) {
+        console.error("Free trial activation error:", err);
+        alert("Failed to activate Free Trial. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     
     setClickedPlan(planId);
     setTimeout(() => setClickedPlan(null), 600);
