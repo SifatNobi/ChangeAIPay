@@ -45,10 +45,13 @@
 /* ===== GLOWING BRAND TEXT ===== */
 .brand-title {
   color: #54c3ff !important;
+  -webkit-text-fill-color: #54c3ff !important;
   text-shadow:
-    0 0 10px rgba(84, 195, 255, 0.5),
-    0 0 20px rgba(84, 195, 255, 0.3),
-    0 0 36px rgba(84, 195, 255, 0.15) !important;
+    0 0 8px rgba(84, 195, 255, 0.9),
+    0 0 16px rgba(84, 195, 255, 0.7),
+    0 0 28px rgba(84, 195, 255, 0.5),
+    0 0 44px rgba(84, 195, 255, 0.35),
+    0 0 64px rgba(84, 195, 255, 0.2) !important;
   animation: cyanPulse 2.2s infinite ease-in-out;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -57,7 +60,11 @@
   text-stroke: 0 !important;
   letter-spacing: 0 !important;
   outline: none !important;
-  -webkit-text-fill-color: #54c3ff !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  filter: none !important;
+  -webkit-filter: none !important;
 }
 
 @keyframes cyanPulse {
@@ -304,6 +311,13 @@ img, video {
   font-size: 16px;
   font-weight: 700;
   color: #54c3ff !important;
+  -webkit-text-fill-color: #54c3ff !important;
+  text-shadow:
+    0 0 8px rgba(84, 195, 255, 0.9),
+    0 0 16px rgba(84, 195, 255, 0.7),
+    0 0 28px rgba(84, 195, 255, 0.5),
+    0 0 44px rgba(84, 195, 255, 0.35),
+    0 0 64px rgba(84, 195, 255, 0.2) !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -314,7 +328,9 @@ img, video {
   text-stroke: 0 !important;
   letter-spacing: 0 !important;
   outline: none !important;
-  -webkit-text-fill-color: #54c3ff !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
 }
 
 .topnav-desktop {
