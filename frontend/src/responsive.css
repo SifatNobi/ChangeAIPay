@@ -46,17 +46,18 @@
 .brand-title {
   color: #54c3ff !important;
   text-shadow:
-    0 0 12px rgba(84, 195, 255, 0.6),
-    0 0 24px rgba(84, 195, 255, 0.35),
-    0 0 40px rgba(84, 195, 255, 0.2),
-    0 0 60px rgba(84, 195, 255, 0.12) !important;
+    0 0 10px rgba(84, 195, 255, 0.5),
+    0 0 20px rgba(84, 195, 255, 0.3),
+    0 0 36px rgba(84, 195, 255, 0.15) !important;
   animation: cyanPulse 2.2s infinite ease-in-out;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   -webkit-text-stroke: 0 !important;
   text-stroke: 0 !important;
-  paint-order: stroke fill;
+  letter-spacing: 0 !important;
+  outline: none !important;
+  -webkit-text-fill-color: #54c3ff !important;
 }
 
 @keyframes cyanPulse {
@@ -311,18 +312,9 @@ img, video {
   text-rendering: optimizeLegibility;
   -webkit-text-stroke: 0 !important;
   text-stroke: 0 !important;
-  paint-order: stroke fill;
-}
-
-.app-shell .brand-lockup .brand-title {
-  color: #54c3ff !important;
-  text-shadow:
-    0 0 12px rgba(84, 195, 255, 0.6),
-    0 0 24px rgba(84, 195, 255, 0.35),
-    0 0 40px rgba(84, 195, 255, 0.2),
-    0 0 60px rgba(84, 195, 255, 0.12) !important;
-  -webkit-text-stroke: 0 !important;
-  text-stroke: 0 !important;
+  letter-spacing: 0 !important;
+  outline: none !important;
+  -webkit-text-fill-color: #54c3ff !important;
 }
 
 .topnav-desktop {

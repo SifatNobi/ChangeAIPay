@@ -178,25 +178,6 @@ export function useQRScanner({ onScan, onError }) {
     if (scannerRef.current) return;
 
     try {
-      // Request camera permission first with proper error handling
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
-        });
-        stream.getTracks().forEach(track => track.stop());
-      } catch (permErr) {
-        if (permErr.name === "NotAllowedError" || permErr.name === "PermissionDeniedError") {
-          setHasPermission(false);
-          onError?.({ message: "Camera permission denied. Please allow camera access in your browser settings.", error: permErr });
-          return;
-        }
-        if (permErr.name === "NotFoundError" || permErr.name === "DevicesNotFoundError") {
-          setHasPermission(false);
-          onError?.({ message: "No camera found on this device.", error: permErr });
-          return;
-        }
-      }
-
       const html5QrCode = new Html5Qrcode(elementId, { verbose: false });
       scannerRef.current = html5QrCode;
 

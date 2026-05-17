@@ -461,24 +461,6 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
     return { recipient: text, amount: "", note: "", merchant: "" };
   }
 
-  async function requestCameraAccess() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error("Camera access is not supported by this browser.");
-    }
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
-    });
-    stream.getTracks().forEach((track) => {
-      if (track.stop) track.stop();
-    });
-    return true;
-  }
-
   const stopScanner = useCallback(async () => {
     if (!scannerRef.current) return;
     try {
@@ -501,9 +483,6 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
     hasAutoSubmittedRef.current = false;
 
     try {
-      await requestCameraAccess();
-      setPermissionState("granted");
-
       const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
 
       const cameras = await Html5Qrcode.getCameras();
@@ -515,8 +494,6 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
 
       const html5QrCode = new Html5Qrcode("qr-scanner", { verbose: false });
       scannerRef.current = html5QrCode;
-      setScanActive(true);
-      setScannerLoading(false);
 
       await html5QrCode.start(
         rearCamera.id,
@@ -623,6 +600,10 @@ export default function SendScreen({ sendTransaction, paymentContext: appPayment
         },
         () => {}
       );
+
+      setScanActive(true);
+      setPermissionState("granted");
+      setScannerLoading(false);
     } catch (err) {
       const reason = err?.name === "NotAllowedError" || err?.name === "SecurityError"
         ? "Camera permission denied. Please allow access to scan QR codes."
